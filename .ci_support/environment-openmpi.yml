@@ -5,7 +5,7 @@ dependencies:
 - coveralls =3.3.1
 - ase =3.22.1
 - lammps =2023.03.28
-- numpy =1.23.5
+- numpy =1.24.2
 - openmpi
 - pandas =1.5.3
 - pathlib2 =2.3.7.post1
