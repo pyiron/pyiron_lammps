@@ -30,7 +30,7 @@ setup(
     packages=find_packages(exclude=["*tests*", "*docs*", "*binder*", "*conda*", "*notebooks*", "*.ci_support*"]),
     install_requires=[
         'ase==3.22.1',
-        'numpy==1.23.5',
+        'numpy==1.25.2',
         'pandas==2.0.2',
         'pylammpsmpi==0.2.1',
         'pympipool==0.6.2',
