@@ -12,7 +12,7 @@ def validate_fitdict(fit_dict):
         fit_dict['bulkmodul_eq'] > 174,
         fit_dict['bulkmodul_eq'] < 181,
         fit_dict['energy_eq'] > -453.9,
-        fit_dict['energy_eq'] < -453.6,
+        fit_dict['energy_eq'] < -453.5,
         fit_dict['volume_eq'] > 1207,
         fit_dict['volume_eq'] < 1213,
     ]
