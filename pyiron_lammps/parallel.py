@@ -1,7 +1,7 @@
 import numpy as np
 from ase.atoms import Atoms
 from pandas import DataFrame, Series
-from pympipool import Pool
+from pympipool.mpi import PyMPIExecutor
 from pylammpsmpi import LammpsASELibrary
 
 from pyiron_lammps.calculation import (
@@ -44,12 +44,10 @@ def _parallel_execution(function, input_parameter_lst, cores=1):
             for input_parameter in input_parameter_lst
         ]
     elif cores > 1:
-        with Pool(max_workers=cores) as p:
+        with PyMPIExecutor(max_workers=cores) as p:
             return p.map(
-                func=function,
-                iterable=[
-                    input_parameter + [True] for input_parameter in input_parameter_lst
-                ],
+                function,
+                [input_parameter + [True] for input_parameter in input_parameter_lst],
             )
     else:
         raise ValueError("The number of cores has to be a positive integer.")
