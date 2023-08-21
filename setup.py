@@ -35,7 +35,7 @@ setup(
         'pandas==2.0.3',
         'pylammpsmpi==0.2.2',
         'pympipool==0.6.2',
-        'scipy==1.11.1',
+        'scipy==1.11.2',
         'spglib==2.0.2',
     ],
     cmdclass=versioneer.get_cmdclass(),
