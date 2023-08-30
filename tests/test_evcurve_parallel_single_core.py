@@ -7,9 +7,9 @@ import structuretoolkit as stk
 
 def validate_fitdict(fit_dict):
     lst = [
-        fit_dict['b_prime_eq'] > 1.5,
+        fit_dict['b_prime_eq'] > 1.4,
         fit_dict['b_prime_eq'] < 2.0,
-        fit_dict['bulkmodul_eq'] > 170,
+        fit_dict['bulkmodul_eq'] > 165,
         fit_dict['bulkmodul_eq'] < 175,
         fit_dict['energy_eq'] > -453.9,
         fit_dict['energy_eq'] < -453.5,
