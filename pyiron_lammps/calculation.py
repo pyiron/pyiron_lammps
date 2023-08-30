@@ -131,12 +131,13 @@ def calculate_energy_volume_curve(
     strains=None,
     minimization_activated=False,
 ):
-    lammps_input_calc_static = """\
+    lammps_input_template_minimize_pos = """\
 variable thermotime equal 100
 thermo_style custom step temp pe etotal pxx pxy pxz pyy pyz pzz vol
 thermo_modify format float %20.15g
 thermo ${thermotime}
-run 0"""
+min_style cg
+minimize 0.0 0.0001 100000 10000000"""
 
     # Optimize structure
     structure_opt = _optimize_structure_optional(
@@ -165,7 +166,7 @@ run 0"""
             lmp=lmp,
             structure=struct,
             potential_dataframe=potential_dataframe,
-            input_template=lammps_input_calc_static,
+            input_template=lammps_input_template_minimize_pos,
         )
         energy_tot_lst[key] = lmp.interactive_energy_tot_getter()
         lmp.interactive_lib_command("clear")
