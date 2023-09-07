@@ -103,7 +103,7 @@ minimize 0.0 0.0001 100000 10000000"""
 
     # run calculation
     energy_tot_lst = {}
-    for key, struct in structure_dict.items():
+    for key, struct in structure_dict["calc_energy"].items():
         lmp = _run_simulation(
             lmp=lmp,
             structure=struct,
