@@ -148,7 +148,7 @@ run 0"""
 
     # Generate structures
     calculator = EnergyVolumeCurveCalculator(
-        basis_ref=structure_opt.copy(),
+        structure=structure_opt.copy(),
         num_points=num_points,
         fit_type=fit_type,
         fit_order=fit_order,
@@ -160,7 +160,7 @@ run 0"""
 
     # run calculation
     energy_tot_lst = {}
-    for key, struct in structure_dict.items():
+    for key, struct in structure_dict["calc_energy"].items():
         lmp = _run_simulation(
             lmp=lmp,
             structure=struct,
