@@ -93,7 +93,7 @@ minimize 0.0 0.0001 100000 10000000"""
 
     # Generate structures
     calculator = ElasticMatrixCalculator(
-        basis_ref=structure_opt.copy(),
+        structure=structure_opt.copy(),
         num_of_point=num_of_point,
         eps_range=eps_range,
         sqrt_eta=sqrt_eta,
