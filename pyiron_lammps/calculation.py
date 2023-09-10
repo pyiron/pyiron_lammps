@@ -1,6 +1,6 @@
 from pyiron_lammps.decorator import calculation
-from atomistics.elastic.calculator import ElasticMatrixCalculator
-from atomistics.evcurve.calculator import EnergyVolumeCurveCalculator
+from atomistics.workflows.elastic.workflow import ElasticMatrixWorkflow
+from atomistics.workflows.evcurve.workflow import EnergyVolumeCurveWorkflow
 
 
 def _run_simulation(structure, potential_dataframe, input_template, lmp):
@@ -92,7 +92,7 @@ minimize 0.0 0.0001 100000 10000000"""
     )
 
     # Generate structures
-    calculator = ElasticMatrixCalculator(
+    calculator = ElasticMatrixWorkflow(
         structure=structure_opt.copy(),
         num_of_point=num_of_point,
         eps_range=eps_range,
@@ -147,7 +147,7 @@ run 0"""
     )
 
     # Generate structures
-    calculator = EnergyVolumeCurveCalculator(
+    calculator = EnergyVolumeCurveWorkflow(
         structure=structure_opt.copy(),
         num_points=num_points,
         fit_type=fit_type,
