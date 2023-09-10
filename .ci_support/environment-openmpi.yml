@@ -10,5 +10,6 @@ dependencies:
 - openmpi
 - pandas =2.1.0
 - pympipool =0.6.2
+- pylammpsmpi =0.2.2
 - sqsgenerator =0.2
 - structuretoolkit =0.0.11

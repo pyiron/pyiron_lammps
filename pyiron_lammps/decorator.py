@@ -1,4 +1,4 @@
-from atomistics.calculators.lammps_library.calculator import LammpsASELibrary
+from pylammpsmpi import LammpsASELibrary
 
 
 def calculation(funct):

@@ -2,7 +2,7 @@ import numpy as np
 from ase.atoms import Atoms
 from pandas import DataFrame, Series
 from pympipool import Pool
-from atomistics.calculators.lammps_library.calculator import LammpsASELibrary
+from pylammpsmpi import LammpsASELibrary
 
 from pyiron_lammps.calculation import (
     optimize_structure,
