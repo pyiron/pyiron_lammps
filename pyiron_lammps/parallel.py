@@ -1,8 +1,8 @@
 import numpy as np
 from ase.atoms import Atoms
 from pandas import DataFrame, Series
-from pympipool import Pool
-from pylammpsmpi import LammpsASELibrary
+from pympipool.mpi import PyMPIExecutor
+from atomistics.calculators.lammps_library.calculator import LammpsASELibrary
 
 from pyiron_lammps.calculation import (
     optimize_structure,
@@ -44,10 +44,10 @@ def _parallel_execution(function, input_parameter_lst, cores=1):
             for input_parameter in input_parameter_lst
         ]
     elif cores > 1:
-        with Pool(max_workers=cores) as p:
+        with PyMPIExecutor(max_workers=cores) as p:
             return p.map(
-                func=function,
-                iterable=[
+                function,
+                [
                     input_parameter + [True] for input_parameter in input_parameter_lst
                 ],
             )

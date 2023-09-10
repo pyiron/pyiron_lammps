@@ -4,12 +4,11 @@ dependencies:
 - coverage
 - coveralls =3.3.1
 - ase =3.22.1
-- atomistics =0.0.3
+- atomistics =0.0.4
 - lammps =2023.03.28
 - numpy =1.23.5
 - openmpi
 - pandas =2.1.0
 - pympipool =0.6.2
-- pylammpsmpi =0.2.2
 - sqsgenerator =0.2
 - structuretoolkit =0.0.11
