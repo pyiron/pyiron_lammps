@@ -19,7 +19,7 @@ def validate_elastic_constants(elastic_matrix):
     ]
 
 
-class TestParallelTwoCores(unittest.TestCase):
+class TestParallelSingleCore(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         count_lst = [22, 22, 22, 21, 21]
@@ -53,36 +53,38 @@ class TestParallelTwoCores(unittest.TestCase):
     def test_structure(self):
         self.assertEqual(len(self.structure), sum(self.count_lst))
 
-    def test_example_elastic_constants_parallel_cores_two(self):
+    def test_example_elastic_constants_parallel_cores_one(self):
         structure_opt_lst = pyr.optimize_structure_parallel(
             structure_list=[self.structure.copy()],
-            potential_dataframe_list=[self.df_pot_selected],
-            cores=2
+            potential_dataframe_list=self.df_pot_selected,
+            cores=1
         )
 
         # Calculate Elastic Constants
         elastic_matrix = pyr.calculate_elastic_constants_parallel(
             structure_list=structure_opt_lst,
-            potential_dataframe_list=[self.df_pot_selected],
+            potential_dataframe_list=self.df_pot_selected,
             num_of_point=5,
             eps_range=0.005,
             sqrt_eta=True,
             fit_order=2,
-            cores=2
+            cores=1,
+            minimization_activated=False,
         )[0]
 
         self.assertEqual(len(structure_opt_lst[0]), sum(self.count_lst))
         self.assertTrue(all(validate_elastic_constants(elastic_matrix=elastic_matrix)))
 
-    def test_example_elastic_constants_with_minimization_parallel_cores_two(self):
-        elastic_matrix = pyr.calculate_elastic_constants_with_minimization_parallel(
+    def test_example_elastic_constants_with_minimization_parallel_cores_one(self):
+        elastic_matrix = pyr.calculate_elastic_constants_parallel(
             structure_list=[self.structure.copy()],
-            potential_dataframe_list=[self.df_pot_selected],
+            potential_dataframe_list=self.df_pot_selected,
             num_of_point=5,
             eps_range=0.005,
             sqrt_eta=True,
             fit_order=2,
-            cores=2
+            cores=1,
+            minimization_activated=True,
         )[0]
         self.assertTrue(all(validate_elastic_constants(elastic_matrix=elastic_matrix)))
 

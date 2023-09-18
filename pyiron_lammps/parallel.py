@@ -7,7 +7,7 @@ from pylammpsmpi import LammpsASELibrary
 from pyiron_lammps.calculation import (
     optimize_structure,
     calculate_elastic_constants,
-    calculate_elastic_constants_with_minimization,
+    calculate_energy_volume_curve,
 )
 
 
@@ -70,6 +70,7 @@ def _calculate_elastic_constants_serial(input_parameter):
         eps_range,
         sqrt_eta,
         fit_order,
+        minimization_activated,
         enable_mpi,
     ) = input_parameter
     return calculate_elastic_constants(
@@ -80,27 +81,34 @@ def _calculate_elastic_constants_serial(input_parameter):
         eps_range=eps_range,
         sqrt_eta=sqrt_eta,
         fit_order=fit_order,
+        minimization_activated=minimization_activated,
     )
 
 
-def _calculate_elastic_constants_with_minimization_serial(input_parameter):
+def _calculate_energy_volume_curve_serial(input_parameter):
     (
         structure,
         potential_dataframe,
-        num_of_point,
-        eps_range,
-        sqrt_eta,
+        num_points,
+        fit_type,
         fit_order,
+        vol_range,
+        axes,
+        strains,
+        minimization_activated,
         enable_mpi,
     ) = input_parameter
-    return calculate_elastic_constants_with_minimization(
+    return calculate_energy_volume_curve(
         lmp=_get_lammps_mpi(enable_mpi=enable_mpi),
         structure=structure,
         potential_dataframe=potential_dataframe,
-        num_of_point=num_of_point,
-        eps_range=eps_range,
-        sqrt_eta=sqrt_eta,
+        num_points=num_points,
+        fit_type=fit_type,
         fit_order=fit_order,
+        vol_range=vol_range,
+        axes=axes,
+        strains=strains,
+        minimization_activated=minimization_activated,
     )
 
 
@@ -168,6 +176,7 @@ def calculate_elastic_constants_parallel(
     eps_range=0.005,
     sqrt_eta=True,
     fit_order=2,
+    minimization_activated=False,
     cores=1,
 ):
     if isinstance(structure_list, (list, np.ndarray)):
@@ -183,6 +192,7 @@ def calculate_elastic_constants_parallel(
                             eps_range,
                             sqrt_eta,
                             fit_order,
+                            minimization_activated,
                         ]
                         for structure, potential in zip(
                             structure_list, potential_dataframe_list
@@ -205,6 +215,7 @@ def calculate_elastic_constants_parallel(
                         eps_range,
                         sqrt_eta,
                         fit_order,
+                        minimization_activated,
                     ]
                     for structure in structure_list
                 ],
@@ -226,6 +237,7 @@ def calculate_elastic_constants_parallel(
                         eps_range,
                         sqrt_eta,
                         fit_order,
+                        minimization_activated,
                     ]
                     for potential in potential_dataframe_list
                 ],
@@ -240,6 +252,7 @@ def calculate_elastic_constants_parallel(
                 eps_range=eps_range,
                 sqrt_eta=sqrt_eta,
                 fit_order=fit_order,
+                minimization_activated=minimization_activated,
             )
         else:
             raise TypeError(
@@ -251,28 +264,34 @@ def calculate_elastic_constants_parallel(
         )
 
 
-def calculate_elastic_constants_with_minimization_parallel(
+def calculate_energy_volume_curve_parallel(
     structure_list,
     potential_dataframe_list,
-    num_of_point=5,
-    eps_range=0.005,
-    sqrt_eta=True,
-    fit_order=2,
+    num_points=11,
+    fit_type="polynomial",
+    fit_order=3,
+    vol_range=0.05,
+    axes=["x", "y", "z"],
+    strains=None,
+    minimization_activated=False,
     cores=1,
 ):
     if isinstance(structure_list, (list, np.ndarray)):
         if isinstance(potential_dataframe_list, (list, np.ndarray)):
             if len(structure_list) == len(potential_dataframe_list):
                 return _parallel_execution(
-                    function=_calculate_elastic_constants_with_minimization_serial,
+                    function=_calculate_energy_volume_curve_serial,
                     input_parameter_lst=[
                         [
                             structure,
                             potential,
-                            num_of_point,
-                            eps_range,
-                            sqrt_eta,
+                            num_points,
+                            fit_type,
                             fit_order,
+                            vol_range,
+                            axes,
+                            strains,
+                            minimization_activated,
                         ]
                         for structure, potential in zip(
                             structure_list, potential_dataframe_list
@@ -286,15 +305,18 @@ def calculate_elastic_constants_with_minimization_parallel(
                 )
         elif isinstance(potential_dataframe_list, (DataFrame, Series)):
             return _parallel_execution(
-                function=_calculate_elastic_constants_with_minimization_serial,
+                function=_calculate_energy_volume_curve_serial,
                 input_parameter_lst=[
                     [
                         structure,
                         potential_dataframe_list,
-                        num_of_point,
-                        eps_range,
-                        sqrt_eta,
+                        num_points,
+                        fit_type,
                         fit_order,
+                        vol_range,
+                        axes,
+                        strains,
+                        minimization_activated,
                     ]
                     for structure in structure_list
                 ],
@@ -307,29 +329,35 @@ def calculate_elastic_constants_with_minimization_parallel(
     elif isinstance(structure_list, Atoms):
         if isinstance(potential_dataframe_list, (list, np.ndarray)):
             return _parallel_execution(
-                function=_calculate_elastic_constants_with_minimization_serial,
+                function=_calculate_energy_volume_curve_serial,
                 input_parameter_lst=[
                     [
                         structure_list,
                         potential,
-                        num_of_point,
-                        eps_range,
-                        sqrt_eta,
+                        num_points,
+                        fit_type,
                         fit_order,
+                        vol_range,
+                        axes,
+                        strains,
+                        minimization_activated,
                     ]
                     for potential in potential_dataframe_list
                 ],
                 cores=cores,
             )
         elif isinstance(potential_dataframe_list, (DataFrame, Series)):
-            return calculate_elastic_constants_with_minimization(
+            return calculate_energy_volume_curve(
                 lmp=_get_lammps_mpi(enable_mpi=False),
                 structure=structure_list,
                 potential_dataframe=potential_dataframe_list,
-                num_of_point=num_of_point,
-                eps_range=eps_range,
-                sqrt_eta=sqrt_eta,
+                num_points=num_points,
+                fit_type=fit_type,
                 fit_order=fit_order,
+                vol_range=vol_range,
+                axes=axes,
+                strains=strains,
+                minimization_activated=minimization_activated,
             )
         else:
             raise TypeError(

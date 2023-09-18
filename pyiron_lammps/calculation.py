@@ -1,6 +1,6 @@
 from pyiron_lammps.decorator import calculation
-from pyiron_lammps.elastic import ElasticMatrixCalculator
-from pyiron_lammps.evcurve import EnergyVolumeCurveCalculator
+from atomistics.workflows.elastic.workflow import ElasticMatrixWorkflow
+from atomistics.workflows.evcurve.workflow import EnergyVolumeCurveWorkflow
 
 
 def _run_simulation(structure, potential_dataframe, input_template, lmp):
@@ -23,6 +23,17 @@ def _run_simulation(structure, potential_dataframe, input_template, lmp):
         lmp.interactive_lib_command(l)
 
     return lmp
+
+
+def _optimize_structure_optional(
+    lmp, structure, potential_dataframe, minimization_activated=True
+):
+    if minimization_activated:
+        return optimize_structure(
+            lmp=lmp, structure=structure, potential_dataframe=potential_dataframe
+        )
+    else:
+        return structure
 
 
 @calculation
@@ -62,6 +73,7 @@ def calculate_elastic_constants(
     eps_range=0.005,
     sqrt_eta=True,
     fit_order=2,
+    minimization_activated=False,
 ):
     lammps_input_template_minimize_pos = """\
 variable thermotime equal 100
@@ -71,9 +83,17 @@ thermo ${thermotime}
 min_style cg
 minimize 0.0 0.0001 100000 10000000"""
 
+    # Optimize structure
+    structure_opt = _optimize_structure_optional(
+        lmp=lmp,
+        structure=structure,
+        potential_dataframe=potential_dataframe,
+        minimization_activated=minimization_activated,
+    )
+
     # Generate structures
-    calculator = ElasticMatrixCalculator(
-        basis_ref=structure.copy(),
+    calculator = ElasticMatrixWorkflow(
+        structure=structure_opt.copy(),
         num_of_point=num_of_point,
         eps_range=eps_range,
         sqrt_eta=sqrt_eta,
@@ -83,7 +103,7 @@ minimize 0.0 0.0001 100000 10000000"""
 
     # run calculation
     energy_tot_lst = {}
-    for key, struct in structure_dict.items():
+    for key, struct in structure_dict["calc_energy"].items():
         lmp = _run_simulation(
             lmp=lmp,
             structure=struct,
@@ -99,30 +119,6 @@ minimize 0.0 0.0001 100000 10000000"""
 
 
 @calculation
-def calculate_elastic_constants_with_minimization(
-    lmp,
-    structure,
-    potential_dataframe,
-    num_of_point=5,
-    eps_range=0.005,
-    sqrt_eta=True,
-    fit_order=2,
-):
-    structure_optimized = optimize_structure(
-        lmp=lmp, structure=structure, potential_dataframe=potential_dataframe
-    )
-    return calculate_elastic_constants(
-        lmp=lmp,
-        structure=structure_optimized,
-        potential_dataframe=potential_dataframe,
-        num_of_point=num_of_point,
-        eps_range=eps_range,
-        sqrt_eta=sqrt_eta,
-        fit_order=fit_order,
-    )
-
-
-@calculation
 def calculate_energy_volume_curve(
     lmp,
     structure,
@@ -130,9 +126,10 @@ def calculate_energy_volume_curve(
     num_points=11,
     fit_type="polynomial",
     fit_order=3,
-    vol_range=0.1,
+    vol_range=0.05,
     axes=["x", "y", "z"],
     strains=None,
+    minimization_activated=False,
 ):
     lammps_input_calc_static = """\
 variable thermotime equal 100
@@ -141,9 +138,17 @@ thermo_modify format float %20.15g
 thermo ${thermotime}
 run 0"""
 
+    # Optimize structure
+    structure_opt = _optimize_structure_optional(
+        lmp=lmp,
+        structure=structure,
+        potential_dataframe=potential_dataframe,
+        minimization_activated=minimization_activated,
+    )
+
     # Generate structures
-    calculator = EnergyVolumeCurveCalculator(
-        basis_ref=structure.copy(),
+    calculator = EnergyVolumeCurveWorkflow(
+        structure=structure_opt.copy(),
         num_points=num_points,
         fit_type=fit_type,
         fit_order=fit_order,
@@ -155,7 +160,7 @@ run 0"""
 
     # run calculation
     energy_tot_lst = {}
-    for key, struct in structure_dict.items():
+    for key, struct in structure_dict["calc_energy"].items():
         lmp = _run_simulation(
             lmp=lmp,
             structure=struct,
@@ -168,31 +173,3 @@ run 0"""
     # fit
     calculator.analyse_structures(energy_tot_lst)
     return calculator.fit_dict
-
-
-@calculation
-def calculate_energy_volume_curve_with_minimization(
-    lmp,
-    structure,
-    potential_dataframe,
-    num_points=11,
-    fit_type="polynomial",
-    fit_order=3,
-    vol_range=0.1,
-    axes=["x", "y", "z"],
-    strains=None,
-):
-    structure_optimized = optimize_structure(
-        lmp=lmp, structure=structure, potential_dataframe=potential_dataframe
-    )
-    return calculate_energy_volume_curve(
-        lmp=lmp,
-        structure=structure_optimized,
-        potential_dataframe=potential_dataframe,
-        num_points=num_points,
-        fit_type=fit_type,
-        fit_order=fit_order,
-        vol_range=vol_range,
-        axes=axes,
-        strains=strains,
-    )
