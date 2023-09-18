@@ -34,7 +34,7 @@ setup(
         'numpy==1.23.5',
         'pandas==2.1.0',
         'pylammpsmpi==0.2.2',
-        'pympipool==0.6.2',
+        'pympipool==0.7.0',
     ],
     cmdclass=versioneer.get_cmdclass(),
 )
