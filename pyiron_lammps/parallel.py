@@ -45,10 +45,10 @@ def _parallel_execution(function, input_parameter_lst, cores=1):
         ]
     elif cores > 1:
         with PyMPIExecutor(max_workers=cores) as p:
-            return p.map(
+            return list(p.map(
                 function,
                 [input_parameter + [True] for input_parameter in input_parameter_lst],
-            )
+            ))
     else:
         raise ValueError("The number of cores has to be a positive integer.")
 
