@@ -30,13 +30,11 @@ setup(
     packages=find_packages(exclude=["*tests*", "*docs*", "*binder*", "*conda*", "*notebooks*", "*.ci_support*"]),
     install_requires=[
         'ase==3.22.1',
-        'numpy==1.25.2',
-        'pandas==2.0.2',
-        'pylammpsmpi==0.2.1',
-        'pympipool==0.6.2',
-        'scipy==1.11.1',
-        'spglib==2.0.2',
-        'structuretoolkit==0.0.8',
+        'atomistics==0.0.5',
+        'numpy==1.26.0',
+        'pandas==2.1.1',
+        'pylammpsmpi==0.2.3',
+        'pympipool==0.7.0',
     ],
     cmdclass=versioneer.get_cmdclass(),
 )

@@ -7,13 +7,13 @@ import structuretoolkit as stk
 
 def validate_fitdict(fit_dict):
     lst = [
-        fit_dict['b_prime_eq'] > 3.1,
-        fit_dict['b_prime_eq'] < 4.1,
-        fit_dict['bulkmodul_eq'] > 177,
-        fit_dict['bulkmodul_eq'] < 188,
+        fit_dict['b_prime_eq'] > 1.5,
+        fit_dict['b_prime_eq'] < 3.0,
+        fit_dict['bulkmodul_eq'] > 174,
+        fit_dict['bulkmodul_eq'] < 184,
         fit_dict['energy_eq'] > -453.9,
-        fit_dict['energy_eq'] < -453.6,
-        fit_dict['volume_eq'] > 1208,
+        fit_dict['energy_eq'] < -453.5,
+        fit_dict['volume_eq'] > 1207,
         fit_dict['volume_eq'] < 1213,
     ]
     if not all(lst):
@@ -74,9 +74,10 @@ class TestEvCurePoly(unittest.TestCase):
             num_points=11,
             fit_type="polynomial",
             fit_order=3,
-            vol_range=0.1,
+            vol_range=0.05,
             axes=["x", "y", "z"],
             strains=None,
+            minimization_activated=False,
         )
         self.assertTrue(all(validate_fitdict(fit_dict=ev_curve_fit_dict)))
 
@@ -98,9 +99,10 @@ class TestEvCurePoly(unittest.TestCase):
             num_points=11,
             fit_type="polynomial",
             fit_order=3,
-            vol_range=0.1,
+            vol_range=0.05,
             axes=["x", "y", "z"],
             strains=None,
+            minimization_activated=False,
         )
         self.assertTrue(all(validate_fitdict(fit_dict=ev_curve_fit_dict)))
 
@@ -121,9 +123,10 @@ class TestEvCurePoly(unittest.TestCase):
                 num_points=11,
                 fit_type="polynomial",
                 fit_order=3,
-                vol_range=0.1,
+                vol_range=0.05,
                 axes=["x", "y", "z"],
                 strains=None,
+                minimization_activated=False,
             )
 
         self.assertEqual(len(structure_opt), sum(self.count_lst))
@@ -131,16 +134,17 @@ class TestEvCurePoly(unittest.TestCase):
 
     def test_example_evcurve_with_minimization(self):
         with pyr.get_lammps_engine() as lmp:
-            ev_curve_fit_dict = pyr.calculate_energy_volume_curve_with_minimization(
+            ev_curve_fit_dict = pyr.calculate_energy_volume_curve(
                 lmp=lmp,
                 structure=self.structure.copy(),
                 potential_dataframe=self.df_pot_selected,
                 num_points=11,
                 fit_type="polynomial",
                 fit_order=3,
-                vol_range=0.1,
+                vol_range=0.05,
                 axes=["x", "y", "z"],
                 strains=None,
+                minimization_activated=True,
             )
 
         self.assertTrue(all(validate_fitdict(fit_dict=ev_curve_fit_dict)))
@@ -199,9 +203,10 @@ class TestEquationOfState(unittest.TestCase):
             num_points=11,
             fit_type="vinet",
             fit_order=3,
-            vol_range=0.1,
+            vol_range=0.05,
             axes=["x", "y", "z"],
             strains=None,
+            minimization_activated=False,
         )
         self.assertTrue(all(validate_fitdict(fit_dict=ev_curve_fit_dict)))
 
@@ -227,9 +232,10 @@ class TestEquationOfState(unittest.TestCase):
             num_points=11,
             fit_type="pouriertarantola",
             fit_order=3,
-            vol_range=0.1,
+            vol_range=0.05,
             axes=["x", "y", "z"],
             strains=None,
+            minimization_activated=False,
         )
         self.assertTrue(all(validate_fitdict(fit_dict=ev_curve_fit_dict)))
 
@@ -255,9 +261,10 @@ class TestEquationOfState(unittest.TestCase):
             num_points=11,
             fit_type="murnaghan",
             fit_order=3,
-            vol_range=0.1,
+            vol_range=0.05,
             axes=["x", "y", "z"],
             strains=None,
+            minimization_activated=False,
         )
         self.assertTrue(all(validate_fitdict(fit_dict=ev_curve_fit_dict)))
 
@@ -283,9 +290,10 @@ class TestEquationOfState(unittest.TestCase):
             num_points=11,
             fit_type="birchmurnaghan",
             fit_order=3,
-            vol_range=0.1,
+            vol_range=0.05,
             axes=["x", "y", "z"],
             strains=None,
+            minimization_activated=False,
         )
         self.assertTrue(all(validate_fitdict(fit_dict=ev_curve_fit_dict)))
 
@@ -311,9 +319,10 @@ class TestEquationOfState(unittest.TestCase):
             num_points=11,
             fit_type="birch",
             fit_order=3,
-            vol_range=0.1,
+            vol_range=0.05,
             axes=["x", "y", "z"],
             strains=None,
+            minimization_activated=False,
         )
         self.assertTrue(all(validate_fitdict(fit_dict=ev_curve_fit_dict)))
 
