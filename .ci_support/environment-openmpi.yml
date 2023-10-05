@@ -4,7 +4,7 @@ dependencies:
 - coverage
 - coveralls =3.3.1
 - ase =3.22.1
-- atomistics =0.0.5
+- atomistics =0.0.6
 - lammps =2023.08.02
 - numpy =1.26.0
 - openmpi
