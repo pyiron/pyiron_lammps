@@ -33,7 +33,7 @@ setup(
         'atomistics==0.0.6',
         'numpy==1.26.0',
         'pandas==2.1.1',
-        'pylammpsmpi==0.2.4',
+        'pylammpsmpi==0.2.5',
         'pympipool==0.7.1',
     ],
     cmdclass=versioneer.get_cmdclass(),
