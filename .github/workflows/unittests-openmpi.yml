@@ -46,16 +46,13 @@ jobs:
       run: mamba env update -n my-env -f environment-openmpi.yml
     - name: Setup
       shell: bash -l {0}
-      run: |
-        pip install --no-deps .
+      run: pip install --no-deps .
     - name: Test
       shell: bash -l {0}
       timeout-minutes: 30
-      run: for f in $(ls tests/*.py); do if [[ "$f" == *"tests/test_"* ]];then echo $f; coverage run -m unittest $f; fi; done
-    - name: Coverage
-      continue-on-error: True
-      shell: bash -l {0}
       run: |
+        cd tests
+        coverage run -m unittest discover .
         coverage combine
-        coveralls
-        coverage xml
+    - name: Coveralls
+      uses: coverallsapp/github-action@v2
