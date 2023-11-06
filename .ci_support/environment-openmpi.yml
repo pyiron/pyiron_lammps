@@ -9,7 +9,7 @@ dependencies:
 - numpy =1.26.0
 - openmpi
 - pandas =2.1.2
-- pympipool =0.7.1
-- pylammpsmpi =0.2.4
+- pympipool =0.7.2
+- pylammpsmpi =0.2.5
 - sqsgenerator =0.3
 - structuretoolkit =0.0.11
