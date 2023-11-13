@@ -7,7 +7,7 @@ dependencies:
 - mpich
 - numpy =1.26.0
 - pandas =2.1.2
-- pympipool =0.7.2
+- pympipool =0.7.3
 - pylammpsmpi =0.2.5
 - sqsgenerator =0.3
 - structuretoolkit =0.0.11
