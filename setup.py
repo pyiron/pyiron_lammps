@@ -30,7 +30,7 @@ setup(
     packages=find_packages(exclude=["*tests*", "*docs*", "*binder*", "*conda*", "*notebooks*", "*.ci_support*"]),
     install_requires=[
         'ase==3.22.1',
-        'atomistics==0.0.6',
+        'atomistics==0.0.7',
         'numpy==1.26.0',
         'pandas==2.1.3',
         'pylammpsmpi==0.2.5',
