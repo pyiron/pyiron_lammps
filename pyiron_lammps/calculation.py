@@ -2,7 +2,9 @@ from pyiron_lammps.decorator import calculation
 from atomistics.calculators.lammps import evaluate_with_lammps_library
 from atomistics.workflows.elastic.workflow import ElasticMatrixWorkflow
 from atomistics.workflows.evcurve.workflow import EnergyVolumeCurveWorkflow
-from atomistics.workflows.structure_optimization.workflow import optimize_positions_and_volume
+from atomistics.workflows.structure_optimization.workflow import (
+    optimize_positions_and_volume,
+)
 
 
 def _run_simulation(structure, potential_dataframe, input_template, lmp):
