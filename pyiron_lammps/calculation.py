@@ -45,6 +45,7 @@ def optimize_structure(lmp, structure, potential_dataframe):
         task_dict=task_dict,
         potential_dataframe=potential_dataframe,
         lmp=lmp,
+        lmp_optimizer_kwargs={},
     )["structure_with_optimized_positions_and_volume"]
 
     # clean memory
