@@ -30,11 +30,11 @@ setup(
     packages=find_packages(exclude=["*tests*", "*docs*", "*binder*", "*conda*", "*notebooks*", "*.ci_support*"]),
     install_requires=[
         'ase==3.22.1',
-        'atomistics==0.0.6',
+        'atomistics==0.1.2',
         'numpy==1.26.0',
         'pandas==2.1.3',
         'pylammpsmpi==0.2.5',
-        'pympipool==0.7.3',
+        'pympipool==0.7.5',
     ],
     cmdclass=versioneer.get_cmdclass(),
 )
