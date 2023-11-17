@@ -1,6 +1,10 @@
 from pyiron_lammps.decorator import calculation
-from atomistics.workflows.elastic.workflow import ElasticMatrixWorkflow
-from atomistics.workflows.evcurve.workflow import EnergyVolumeCurveWorkflow
+from atomistics.calculators import evaluate_with_lammps_library
+from atomistics.workflows import (
+    ElasticMatrixWorkflow,
+    EnergyVolumeCurveWorkflow,
+    optimize_positions_and_volume,
+)
 
 
 def _run_simulation(structure, potential_dataframe, input_template, lmp):
@@ -38,26 +42,13 @@ def _optimize_structure_optional(
 
 @calculation
 def optimize_structure(lmp, structure, potential_dataframe):
-    lammps_input_template_minimize_cell = """\
-fix ensemble all box/relax iso 0.0
-variable thermotime equal 100
-thermo_style custom step temp pe etotal pxx pxy pxz pyy pyz pzz vol
-thermo_modify format float %20.15g
-thermo ${thermotime}
-min_style cg
-minimize 0.0 0.0001 100000 10000000"""
-
-    lmp = _run_simulation(
-        structure=structure,
+    task_dict = optimize_positions_and_volume(structure=structure)
+    structure_copy = evaluate_with_lammps_library(
+        task_dict=task_dict,
         potential_dataframe=potential_dataframe,
-        input_template=lammps_input_template_minimize_cell,
         lmp=lmp,
-    )
-
-    # get final structure
-    structure_copy = structure.copy()
-    structure_copy.set_cell(lmp.interactive_cells_getter(), scale_atoms=True)
-    structure_copy.positions = lmp.interactive_positions_getter()
+        lmp_optimizer_kwargs={},
+    )["structure_with_optimized_positions_and_volume"]
 
     # clean memory
     lmp.interactive_lib_command("clear")
