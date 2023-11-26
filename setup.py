@@ -31,7 +31,7 @@ setup(
     install_requires=[
         'ase==3.22.1',
         'atomistics==0.1.3',
-        'numpy==1.26.0',
+        'numpy==1.26.2',
         'pandas==2.1.3',
         'pylammpsmpi==0.2.6',
         'pympipool==0.7.5',
