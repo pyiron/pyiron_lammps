@@ -105,7 +105,7 @@ minimize 0.0 0.0001 100000 10000000"""
         lmp.interactive_lib_command("clear")
 
     # fit
-    calculator.analyse_structures(energy_tot_lst)
+    calculator.analyse_structures({"energy": energy_tot_lst})
     return calculator._data["C"]
 
 
@@ -118,7 +118,7 @@ def calculate_energy_volume_curve(
     fit_type="polynomial",
     fit_order=3,
     vol_range=0.05,
-    axes=["x", "y", "z"],
+    axes=("x", "y", "z"),
     strains=None,
     minimization_activated=False,
 ):
@@ -162,5 +162,5 @@ run 0"""
         lmp.interactive_lib_command("clear")
 
     # fit
-    calculator.analyse_structures(energy_tot_lst)
+    calculator.analyse_structures({"energy": energy_tot_lst})
     return calculator.fit_dict
