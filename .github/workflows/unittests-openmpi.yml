@@ -41,7 +41,8 @@ jobs:
       shell: bash -l {0}
       timeout-minutes: 30
       run: |
-        pip install --no-deps .
+        pip install versioneer[toml]==0.29
+        pip install . --no-deps --no-build-isolation
         for f in $(ls tests/*.py); do if [[ "$f" == *"tests/test_"* ]];then echo $f; coverage run -m unittest $f; fi; done
         coverage combine
     - name: Coveralls
