@@ -8,10 +8,6 @@ on:
   pull_request:
     branches: [ main ]
 
-env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
-
 jobs:
   build:
 
@@ -30,9 +26,7 @@ jobs:
           prefix: /usr/share/miniconda3/envs/my-env
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup environment
-      run: cp .ci_support/environment-openmpi.yml environment-openmpi.yml
+    - uses: actions/checkout@v4
     - name: Setup Mambaforge
       uses: conda-incubator/setup-miniconda@v2
       with:
@@ -41,17 +35,13 @@ jobs:
         channels: conda-forge
         channel-priority: strict
         activate-environment: my-env
+        environment-file: .ci_support/environment-openmpi.yml
         use-mamba: true
-    - name: Update environment
-      run: mamba env update -n my-env -f environment-openmpi.yml
-    - name: Setup
-      shell: bash -l {0}
-      run: |
-        pip install --no-deps .
     - name: Test
       shell: bash -l {0}
       timeout-minutes: 30
       run: |
+        pip install --no-deps .
         for f in $(ls tests/*.py); do if [[ "$f" == *"tests/test_"* ]];then echo $f; coverage run -m unittest $f; fi; done
         coverage combine
     - name: Coveralls
