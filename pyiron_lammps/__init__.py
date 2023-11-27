@@ -1,7 +1,5 @@
-from atomistics.calculators.lammps import (
-    get_potential_dataframe,
-)
-from pylammpsmpi import LammpsASELibrary
+from . import _version
+
 from pyiron_lammps.calculation import (
     optimize_structure,
     calculate_elastic_constants,
@@ -13,6 +11,13 @@ from pyiron_lammps.parallel import (
     calculate_energy_volume_curve_parallel,
 )
 
+try:
+    from atomistics.calculators.lammps import (
+        get_potential_dataframe,
+    )
+except ImportError:
+    pass
+
 
 def get_lammps_engine(
     working_directory=None,
@@ -23,6 +28,8 @@ def get_lammps_engine(
     library=None,
     diable_log_file=True,
 ):
+    from pylammpsmpi import LammpsASELibrary
+
     return LammpsASELibrary(
         working_directory=working_directory,
         cores=cores,
@@ -32,3 +39,6 @@ def get_lammps_engine(
         library=library,
         diable_log_file=diable_log_file,
     )
+
+
+__version__ = _version.get_versions()["version"]

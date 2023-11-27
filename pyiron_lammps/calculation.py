@@ -1,5 +1,4 @@
 from pyiron_lammps.decorator import calculation
-from atomistics.calculators import evaluate_with_lammps_library
 from atomistics.workflows import (
     ElasticMatrixWorkflow,
     EnergyVolumeCurveWorkflow,
@@ -42,6 +41,8 @@ def _optimize_structure_optional(
 
 @calculation
 def optimize_structure(lmp, structure, potential_dataframe):
+    from atomistics.calculators import evaluate_with_lammps_library
+
     task_dict = optimize_positions_and_volume(structure=structure)
     structure_copy = evaluate_with_lammps_library(
         task_dict=task_dict,
