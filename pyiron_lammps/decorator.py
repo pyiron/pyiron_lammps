@@ -1,9 +1,9 @@
 def calculation(funct):
-    from pylammpsmpi import LammpsASELibrary
-
     def funct_return(lmp=None, *args, **kwargs):
         # Create temporary LAMMPS instance if necessary
         if lmp is None:
+            from pylammpsmpi import LammpsASELibrary
+
             close_lmp_after_calculation = True
             lmp = LammpsASELibrary()
         else:
