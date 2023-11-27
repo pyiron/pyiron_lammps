@@ -1,0 +1,52 @@
+[build-system]
+requires = ["ase", "atomistics", "numpy", "pandas", "setuptools", "versioneer[toml]==0.29"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyiron_lammps"
+description = "Vector-oriented LAMMPS interface to rapidly iterate over series of atomistic structures or interatomic potentials."
+authors = [
+    { name = "Jan Janssen", email = "janssen@mpie.de" },
+]
+readme = "README.md"
+license = { file = "LICENSE" }
+keywords = ["pyiron"]
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Topic :: Scientific/Engineering :: Physics",
+    "License :: OSI Approved :: BSD License",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+dependencies = [
+    "ase==3.22.1",
+    "atomistics==0.1.3",
+    "numpy==1.26.2",
+    "pandas==2.1.3",
+    "pylammpsmpi==0.2.6",
+    "pympipool==0.7.5",
+]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/pyiron/pyiron_lammps"
+Documentation = "https://github.com/pyiron/pyiron_lammps"
+Repository = "https://github.com/pyiron/pyiron_lammps"
+
+[tool.setuptools.packages.find]
+include = ["pyiron_lammps*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "pyiron_lammps.__version__"}
+
+[tool.versioneer]
+VCS = "git"
+style = "pep440-pre"
+versionfile_source = "pyiron_lammps/_version.py"
+parentdir_prefix = "pyiron_lammps"
+tag_prefix = "pyiron_lammps-"

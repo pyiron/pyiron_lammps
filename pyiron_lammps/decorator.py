@@ -1,7 +1,6 @@
-from pylammpsmpi import LammpsASELibrary
-
-
 def calculation(funct):
+    from pylammpsmpi import LammpsASELibrary
+
     def funct_return(lmp=None, *args, **kwargs):
         # Create temporary LAMMPS instance if necessary
         if lmp is None:
