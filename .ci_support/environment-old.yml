@@ -6,6 +6,7 @@ dependencies:
 - lammps =2022.06.23
 - numpy =1.26.0
 - openmpi
+- jinja2 =2.11.3
 - pandas =1.5.3
 - pympipool =0.7.2
 - pylammpsmpi =0.2.5

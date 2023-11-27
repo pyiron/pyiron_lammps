@@ -1,5 +1,5 @@
 [build-system]
-requires = ["ase", "atomistics", "numpy", "pandas", "setuptools", "versioneer[toml]==0.29"]
+requires = ["ase", "atomistics", "jinja2", "numpy", "pandas", "setuptools", "versioneer[toml]==0.29"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -28,6 +28,7 @@ dependencies = [
     "atomistics==0.1.3",
     "numpy==1.26.2",
     "pandas==2.1.3",
+    "jinja2==3.1.2",
     "pylammpsmpi==0.2.6",
     "pympipool==0.7.5",
 ]
