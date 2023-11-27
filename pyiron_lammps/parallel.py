@@ -1,6 +1,8 @@
 import numpy as np
 from ase.atoms import Atoms
 from pandas import DataFrame, Series
+from pympipool.mpi import PyMPIExecutor
+from pylammpsmpi import LammpsASELibrary
 
 from pyiron_lammps.calculation import (
     optimize_structure,
@@ -10,8 +12,6 @@ from pyiron_lammps.calculation import (
 
 
 def _get_lammps_mpi(enable_mpi=True):
-    from pylammpsmpi import LammpsASELibrary
-
     if enable_mpi:
         # To get the right instance of MPI.COMM_SELF it is necessary to import it inside the function.
         from mpi4py import MPI
@@ -44,8 +44,6 @@ def _parallel_execution(function, input_parameter_lst, cores=1):
             for input_parameter in input_parameter_lst
         ]
     elif cores > 1:
-        from pympipool.mpi import PyMPIExecutor
-
         with PyMPIExecutor(max_workers=cores) as p:
             return list(
                 p.map(
