@@ -64,7 +64,10 @@ def calculate_molecular_dynamics_thermal_expansion(
     )
 
     # Optimize structure
-    temperature_lst, volume_md_lst = calc_molecular_dynamics_thermal_expansion_with_lammps(
+    (
+        temperature_lst,
+        volume_md_lst,
+    ) = calc_molecular_dynamics_thermal_expansion_with_lammps(
         structure=structure_opt.copy(),
         potential_dataframe=potential_dataframe,
         Tstart=Tstart,
