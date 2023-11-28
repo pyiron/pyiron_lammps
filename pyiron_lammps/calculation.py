@@ -71,7 +71,7 @@ def calculate_elastic_constants(
     )
 
     # fit
-    calculator.analyse_structures({"energy": energy_tot_lst})
+    calculator.analyse_structures(energy_tot_lst)
     return calculator._data["C"]
 
 
