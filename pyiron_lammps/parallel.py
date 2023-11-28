@@ -118,60 +118,14 @@ def _calculate_energy_volume_curve_serial(input_parameter):
 
 
 def optimize_structure_parallel(structure_list, potential_dataframe_list, cores=1):
-    if isinstance(structure_list, (list, np.ndarray)):
-        if isinstance(potential_dataframe_list, (list, np.ndarray)):
-            if len(structure_list) == len(potential_dataframe_list):
-                return _parallel_execution(
-                    function=_optimize_structure_serial,
-                    input_parameter_lst=[
-                        [structure, potential]
-                        for structure, potential in zip(
-                            structure_list, potential_dataframe_list
-                        )
-                    ],
-                    cores=cores,
-                )
-            else:
-                raise ValueError(
-                    "Input lists have len(structure_list) != len(potential_dataframe_list) ."
-                )
-        elif isinstance(potential_dataframe_list, (DataFrame, Series)):
-            return _parallel_execution(
-                function=_optimize_structure_serial,
-                input_parameter_lst=[
-                    [structure, potential_dataframe_list]
-                    for structure in structure_list
-                ],
-                cores=cores,
-            )
-        else:
-            raise TypeError(
-                "potential_dataframe_list should either be an pandas.DataFrame object or a list of those. "
-            )
-    elif isinstance(structure_list, Atoms):
-        if isinstance(potential_dataframe_list, (list, np.ndarray)):
-            return _parallel_execution(
-                function=_optimize_structure_serial,
-                input_parameter_lst=[
-                    [structure_list, potential]
-                    for potential in potential_dataframe_list
-                ],
-                cores=cores,
-            )
-        elif isinstance(potential_dataframe_list, (DataFrame, Series)):
-            return optimize_structure(
-                lmp=_get_lammps_mpi(enable_mpi=False),
-                structure=structure_list,
-                potential_dataframe=potential_dataframe_list,
-            )
-        else:
-            raise TypeError(
-                "potential_dataframe_list should either be an pandas.DataFrame object or a list of those. "
-            )
-    else:
-        raise TypeError(
-            "structure_list should either be an ase.atoms.Atoms object or a list of those."
-        )
+    return _parallel_execution(
+        function=_optimize_structure_serial,
+        input_parameter_lst=combine_structure_and_potential(
+            structure_list=structure_list,
+            potential_dataframe_list=potential_dataframe_list,
+        ),
+        cores=cores,
+    )
 
 
 def calculate_elastic_constants_parallel(
@@ -184,89 +138,25 @@ def calculate_elastic_constants_parallel(
     minimization_activated=False,
     cores=1,
 ):
-    if isinstance(structure_list, (list, np.ndarray)):
-        if isinstance(potential_dataframe_list, (list, np.ndarray)):
-            if len(structure_list) == len(potential_dataframe_list):
-                return _parallel_execution(
-                    function=_calculate_elastic_constants_serial,
-                    input_parameter_lst=[
-                        [
-                            structure,
-                            potential,
-                            num_of_point,
-                            eps_range,
-                            sqrt_eta,
-                            fit_order,
-                            minimization_activated,
-                        ]
-                        for structure, potential in zip(
-                            structure_list, potential_dataframe_list
-                        )
-                    ],
-                    cores=cores,
-                )
-            else:
-                raise ValueError(
-                    "Input lists have len(structure_list) != len(potential_dataframe_list) ."
-                )
-        elif isinstance(potential_dataframe_list, (DataFrame, Series)):
-            return _parallel_execution(
-                function=_calculate_elastic_constants_serial,
-                input_parameter_lst=[
-                    [
-                        structure,
-                        potential_dataframe_list,
-                        num_of_point,
-                        eps_range,
-                        sqrt_eta,
-                        fit_order,
-                        minimization_activated,
-                    ]
-                    for structure in structure_list
-                ],
-                cores=cores,
+    return _parallel_execution(
+        function=_calculate_elastic_constants_serial,
+        input_parameter_lst=[
+            [
+                structure,
+                potential,
+                num_of_point,
+                eps_range,
+                sqrt_eta,
+                fit_order,
+                minimization_activated,
+            ]
+            for structure, potential in combine_structure_and_potential(
+                structure_list=structure_list,
+                potential_dataframe_list=potential_dataframe_list,
             )
-        else:
-            raise TypeError(
-                "potential_dataframe_list should either be an pandas.DataFrame object or a list of those. "
-            )
-    elif isinstance(structure_list, Atoms):
-        if isinstance(potential_dataframe_list, (list, np.ndarray)):
-            return _parallel_execution(
-                function=_calculate_elastic_constants_serial,
-                input_parameter_lst=[
-                    [
-                        structure_list,
-                        potential,
-                        num_of_point,
-                        eps_range,
-                        sqrt_eta,
-                        fit_order,
-                        minimization_activated,
-                    ]
-                    for potential in potential_dataframe_list
-                ],
-                cores=cores,
-            )
-        elif isinstance(potential_dataframe_list, (DataFrame, Series)):
-            return calculate_elastic_constants(
-                lmp=_get_lammps_mpi(enable_mpi=False),
-                structure=structure_list,
-                potential_dataframe=potential_dataframe_list,
-                num_of_point=num_of_point,
-                eps_range=eps_range,
-                sqrt_eta=sqrt_eta,
-                fit_order=fit_order,
-                minimization_activated=minimization_activated,
-            )
-        else:
-            raise TypeError(
-                "potential_dataframe_list should either be an pandas.DataFrame object or a list of those. "
-            )
-    else:
-        raise TypeError(
-            "structure_list should either be an ase.atoms.Atoms object or a list of those."
-        )
+        ],
+        cores=cores,
+    )
 
 
 def calculate_energy_volume_curve_parallel(
@@ -281,89 +171,59 @@ def calculate_energy_volume_curve_parallel(
     minimization_activated=False,
     cores=1,
 ):
+    return _parallel_execution(
+        function=_calculate_energy_volume_curve_serial,
+        input_parameter_lst=[
+            [
+                structure,
+                potential,
+                num_points,
+                fit_type,
+                fit_order,
+                vol_range,
+                axes,
+                strains,
+                minimization_activated,
+            ]
+            for structure, potential in combine_structure_and_potential(
+                structure_list=structure_list,
+                potential_dataframe_list=potential_dataframe_list,
+            )
+        ],
+        cores=cores,
+    )
+
+
+def combine_structure_and_potential(structure_list, potential_dataframe_list):
     if isinstance(structure_list, (list, np.ndarray)):
         if isinstance(potential_dataframe_list, (list, np.ndarray)):
             if len(structure_list) == len(potential_dataframe_list):
-                return _parallel_execution(
-                    function=_calculate_energy_volume_curve_serial,
-                    input_parameter_lst=[
-                        [
-                            structure,
-                            potential,
-                            num_points,
-                            fit_type,
-                            fit_order,
-                            vol_range,
-                            axes,
-                            strains,
-                            minimization_activated,
-                        ]
-                        for structure, potential in zip(
-                            structure_list, potential_dataframe_list
-                        )
-                    ],
-                    cores=cores,
-                )
+                return [
+                    [structure, potential_dataframe]
+                    for structure, potential_dataframe in zip(
+                        structure_list, potential_dataframe_list
+                    )
+                ]
             else:
                 raise ValueError(
                     "Input lists have len(structure_list) != len(potential_dataframe_list) ."
                 )
         elif isinstance(potential_dataframe_list, (DataFrame, Series)):
-            return _parallel_execution(
-                function=_calculate_energy_volume_curve_serial,
-                input_parameter_lst=[
-                    [
-                        structure,
-                        potential_dataframe_list,
-                        num_points,
-                        fit_type,
-                        fit_order,
-                        vol_range,
-                        axes,
-                        strains,
-                        minimization_activated,
-                    ]
-                    for structure in structure_list
-                ],
-                cores=cores,
-            )
+            return [
+                [structure, potential_dataframe_list] for structure in structure_list
+            ]
         else:
             raise TypeError(
                 "potential_dataframe_list should either be an pandas.DataFrame object or a list of those. "
             )
     elif isinstance(structure_list, Atoms):
         if isinstance(potential_dataframe_list, (list, np.ndarray)):
-            return _parallel_execution(
-                function=_calculate_energy_volume_curve_serial,
-                input_parameter_lst=[
-                    [
-                        structure_list,
-                        potential,
-                        num_points,
-                        fit_type,
-                        fit_order,
-                        vol_range,
-                        axes,
-                        strains,
-                        minimization_activated,
-                    ]
-                    for potential in potential_dataframe_list
-                ],
-                cores=cores,
-            )
+            return [
+                [structure_list, potential_dataframe]
+                for potential_dataframe in potential_dataframe_list
+            ]
         elif isinstance(potential_dataframe_list, (DataFrame, Series)):
-            return calculate_energy_volume_curve(
-                lmp=_get_lammps_mpi(enable_mpi=False),
-                structure=structure_list,
-                potential_dataframe=potential_dataframe_list,
-                num_points=num_points,
-                fit_type=fit_type,
-                fit_order=fit_order,
-                vol_range=vol_range,
-                axes=axes,
-                strains=strains,
-                minimization_activated=minimization_activated,
-            )
+            return [[structure_list, potential_dataframe_list]]
         else:
             raise TypeError(
                 "potential_dataframe_list should either be an pandas.DataFrame object or a list of those. "
