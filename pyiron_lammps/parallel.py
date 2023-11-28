@@ -55,7 +55,9 @@ def _parallel_execution(function, input_parameter_lst, cores=1, lmp=None):
                 )
             )
     elif cores > 1 and lmp is not None:
-        raise ValueError("The external LAMMPS instance can only be used for serial execution.")
+        raise ValueError(
+            "The external LAMMPS instance can only be used for serial execution."
+        )
     else:
         raise ValueError("The number of cores has to be a positive integer.")
 
