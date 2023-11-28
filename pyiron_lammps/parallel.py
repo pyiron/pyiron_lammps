@@ -37,34 +37,43 @@ def _get_lammps_mpi(enable_mpi=True):
         )
 
 
-def _parallel_execution(function, input_parameter_lst, cores=1):
+def _parallel_execution(function, input_parameter_lst, cores=1, lmp=None):
     if cores == 1:
         return [
-            function(input_parameter=input_parameter + [False])
+            function(input_parameter=input_parameter + [False, lmp])
             for input_parameter in input_parameter_lst
         ]
-    elif cores > 1:
+    elif cores > 1 and lmp is None:
         with PyMPIExecutor(max_workers=cores) as p:
             return list(
                 p.map(
                     function,
                     [
-                        input_parameter + [True]
+                        input_parameter + [True, None]
                         for input_parameter in input_parameter_lst
                     ],
                 )
             )
+    elif cores > 1 and lmp is not None:
+        raise ValueError("The external LAMMPS instance can only be used for serial execution.")
     else:
         raise ValueError("The number of cores has to be a positive integer.")
 
 
 def _optimize_structure_serial(input_parameter):
-    structure, potential_dataframe, enable_mpi = input_parameter
-    return optimize_structure(
-        lmp=_get_lammps_mpi(enable_mpi=enable_mpi),
-        structure=structure,
-        potential_dataframe=potential_dataframe,
-    )
+    structure, potential_dataframe, enable_mpi, lmp = input_parameter
+    if lmp is None:
+        return optimize_structure(
+            lmp=_get_lammps_mpi(enable_mpi=enable_mpi),
+            structure=structure,
+            potential_dataframe=potential_dataframe,
+        )
+    else:
+        return optimize_structure(
+            lmp=lmp,
+            structure=structure,
+            potential_dataframe=potential_dataframe,
+        )
 
 
 def _calculate_elastic_constants_serial(input_parameter):
@@ -77,17 +86,30 @@ def _calculate_elastic_constants_serial(input_parameter):
         fit_order,
         minimization_activated,
         enable_mpi,
+        lmp,
     ) = input_parameter
-    return calculate_elastic_constants(
-        lmp=_get_lammps_mpi(enable_mpi=enable_mpi),
-        structure=structure,
-        potential_dataframe=potential_dataframe,
-        num_of_point=num_of_point,
-        eps_range=eps_range,
-        sqrt_eta=sqrt_eta,
-        fit_order=fit_order,
-        minimization_activated=minimization_activated,
-    )
+    if lmp is None:
+        return calculate_elastic_constants(
+            lmp=_get_lammps_mpi(enable_mpi=enable_mpi),
+            structure=structure,
+            potential_dataframe=potential_dataframe,
+            num_of_point=num_of_point,
+            eps_range=eps_range,
+            sqrt_eta=sqrt_eta,
+            fit_order=fit_order,
+            minimization_activated=minimization_activated,
+        )
+    else:
+        return calculate_elastic_constants(
+            lmp=lmp,
+            structure=structure,
+            potential_dataframe=potential_dataframe,
+            num_of_point=num_of_point,
+            eps_range=eps_range,
+            sqrt_eta=sqrt_eta,
+            fit_order=fit_order,
+            minimization_activated=minimization_activated,
+        )
 
 
 def _calculate_energy_volume_curve_serial(input_parameter):
@@ -102,22 +124,37 @@ def _calculate_energy_volume_curve_serial(input_parameter):
         strains,
         minimization_activated,
         enable_mpi,
+        lmp,
     ) = input_parameter
-    return calculate_energy_volume_curve(
-        lmp=_get_lammps_mpi(enable_mpi=enable_mpi),
-        structure=structure,
-        potential_dataframe=potential_dataframe,
-        num_points=num_points,
-        fit_type=fit_type,
-        fit_order=fit_order,
-        vol_range=vol_range,
-        axes=axes,
-        strains=strains,
-        minimization_activated=minimization_activated,
-    )
+    if lmp is None:
+        return calculate_energy_volume_curve(
+            lmp=_get_lammps_mpi(enable_mpi=enable_mpi),
+            structure=structure,
+            potential_dataframe=potential_dataframe,
+            num_points=num_points,
+            fit_type=fit_type,
+            fit_order=fit_order,
+            vol_range=vol_range,
+            axes=axes,
+            strains=strains,
+            minimization_activated=minimization_activated,
+        )
+    else:
+        return calculate_energy_volume_curve(
+            lmp=_get_lammps_mpi(enable_mpi=enable_mpi),
+            structure=structure,
+            potential_dataframe=potential_dataframe,
+            num_points=num_points,
+            fit_type=fit_type,
+            fit_order=fit_order,
+            vol_range=vol_range,
+            axes=axes,
+            strains=strains,
+            minimization_activated=minimization_activated,
+        )
 
 
-def optimize_structure_parallel(structure, potential_dataframe, cores=1):
+def optimize_structure_parallel(structure, potential_dataframe, cores=1, lmp=None):
     if isinstance(structure, (list, np.ndarray)):
         if isinstance(potential_dataframe, (list, np.ndarray)):
             if len(structure) == len(potential_dataframe):
@@ -126,6 +163,7 @@ def optimize_structure_parallel(structure, potential_dataframe, cores=1):
                     input_parameter_lst=[
                         [s, p] for s, p in zip(structure, potential_dataframe)
                     ],
+                    lmp=lmp,
                     cores=cores,
                 )
             else:
@@ -136,6 +174,7 @@ def optimize_structure_parallel(structure, potential_dataframe, cores=1):
             return _parallel_execution(
                 function=_optimize_structure_serial,
                 input_parameter_lst=[[s, potential_dataframe] for s in structure],
+                lmp=lmp,
                 cores=cores,
             )
         else:
@@ -147,14 +186,22 @@ def optimize_structure_parallel(structure, potential_dataframe, cores=1):
             return _parallel_execution(
                 function=_optimize_structure_serial,
                 input_parameter_lst=[[structure, p] for p in potential_dataframe],
+                lmp=lmp,
                 cores=cores,
             )
         elif isinstance(potential_dataframe, (DataFrame, Series)):
-            return optimize_structure(
-                lmp=_get_lammps_mpi(enable_mpi=False),
-                structure=structure,
-                potential_dataframe=potential_dataframe,
-            )
+            if lmp is None:
+                return optimize_structure(
+                    lmp=_get_lammps_mpi(enable_mpi=False),
+                    structure=structure,
+                    potential_dataframe=potential_dataframe,
+                )
+            else:
+                return optimize_structure(
+                    lmp=lmp,
+                    structure=structure,
+                    potential_dataframe=potential_dataframe,
+                )
         else:
             raise TypeError(
                 "potential_dataframe should either be an pandas.DataFrame object or a list of those. "
@@ -174,6 +221,7 @@ def calculate_elastic_constants_parallel(
     fit_order=2,
     minimization_activated=False,
     cores=1,
+    lmp=None,
 ):
     if isinstance(structure, (list, np.ndarray)):
         if isinstance(potential_dataframe, (list, np.ndarray)):
@@ -193,6 +241,7 @@ def calculate_elastic_constants_parallel(
                         for s, p in zip(structure, potential_dataframe)
                     ],
                     cores=cores,
+                    lmp=lmp,
                 )
             else:
                 raise ValueError(
@@ -214,6 +263,7 @@ def calculate_elastic_constants_parallel(
                     for s in structure
                 ],
                 cores=cores,
+                lmp=lmp,
             )
         else:
             raise TypeError(
@@ -236,18 +286,31 @@ def calculate_elastic_constants_parallel(
                     for p in potential_dataframe
                 ],
                 cores=cores,
+                lmp=lmp,
             )
         elif isinstance(potential_dataframe, (DataFrame, Series)):
-            return calculate_elastic_constants(
-                lmp=_get_lammps_mpi(enable_mpi=False),
-                structure=structure,
-                potential_dataframe=potential_dataframe,
-                num_of_point=num_of_point,
-                eps_range=eps_range,
-                sqrt_eta=sqrt_eta,
-                fit_order=fit_order,
-                minimization_activated=minimization_activated,
-            )
+            if lmp is None:
+                return calculate_elastic_constants(
+                    lmp=_get_lammps_mpi(enable_mpi=False),
+                    structure=structure,
+                    potential_dataframe=potential_dataframe,
+                    num_of_point=num_of_point,
+                    eps_range=eps_range,
+                    sqrt_eta=sqrt_eta,
+                    fit_order=fit_order,
+                    minimization_activated=minimization_activated,
+                )
+            else:
+                return calculate_elastic_constants(
+                    lmp=lmp,
+                    structure=structure,
+                    potential_dataframe=potential_dataframe,
+                    num_of_point=num_of_point,
+                    eps_range=eps_range,
+                    sqrt_eta=sqrt_eta,
+                    fit_order=fit_order,
+                    minimization_activated=minimization_activated,
+                )
         else:
             raise TypeError(
                 "potential_dataframe should either be an pandas.DataFrame object or a list of those. "
@@ -265,10 +328,11 @@ def calculate_energy_volume_curve_parallel(
     fit_type="polynomial",
     fit_order=3,
     vol_range=0.05,
-    axes=["x", "y", "z"],
+    axes=("x", "y", "z"),
     strains=None,
     minimization_activated=False,
     cores=1,
+    lmp=None,
 ):
     if isinstance(structure, (list, np.ndarray)):
         if isinstance(potential_dataframe, (list, np.ndarray)):
@@ -290,6 +354,7 @@ def calculate_energy_volume_curve_parallel(
                         for s, p in zip(structure, potential_dataframe)
                     ],
                     cores=cores,
+                    lmp=lmp,
                 )
             else:
                 raise ValueError(
@@ -313,6 +378,7 @@ def calculate_energy_volume_curve_parallel(
                     for s in structure
                 ],
                 cores=cores,
+                lmp=lmp,
             )
         else:
             raise TypeError(
@@ -337,20 +403,35 @@ def calculate_energy_volume_curve_parallel(
                     for p in potential_dataframe
                 ],
                 cores=cores,
+                lmp=lmp,
             )
         elif isinstance(potential_dataframe, (DataFrame, Series)):
-            return calculate_energy_volume_curve(
-                lmp=_get_lammps_mpi(enable_mpi=False),
-                structure=structure,
-                potential_dataframe=potential_dataframe,
-                num_points=num_points,
-                fit_type=fit_type,
-                fit_order=fit_order,
-                vol_range=vol_range,
-                axes=axes,
-                strains=strains,
-                minimization_activated=minimization_activated,
-            )
+            if lmp is None:
+                return calculate_energy_volume_curve(
+                    lmp=_get_lammps_mpi(enable_mpi=False),
+                    structure=structure,
+                    potential_dataframe=potential_dataframe,
+                    num_points=num_points,
+                    fit_type=fit_type,
+                    fit_order=fit_order,
+                    vol_range=vol_range,
+                    axes=axes,
+                    strains=strains,
+                    minimization_activated=minimization_activated,
+                )
+            else:
+                return calculate_energy_volume_curve(
+                    lmp=lmp,
+                    structure=structure,
+                    potential_dataframe=potential_dataframe,
+                    num_points=num_points,
+                    fit_type=fit_type,
+                    fit_order=fit_order,
+                    vol_range=vol_range,
+                    axes=axes,
+                    strains=strains,
+                    minimization_activated=minimization_activated,
+                )
         else:
             raise TypeError(
                 "potential_dataframe should either be an pandas.DataFrame object or a list of those. "
