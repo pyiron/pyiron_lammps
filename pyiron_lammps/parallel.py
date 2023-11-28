@@ -191,10 +191,8 @@ def calculate_elastic_constants_parallel(
                 fit_order,
                 minimization_activated,
             ]
-            for s, p in zip(
-                combine_structure_and_potential(
-                    structure=structure, potential_dataframe=potential_dataframe
-                )
+            for s, p in combine_structure_and_potential(
+                structure=structure, potential_dataframe=potential_dataframe
             )
         ],
         cores=cores,
@@ -229,10 +227,8 @@ def calculate_energy_volume_curve_parallel(
                 strains,
                 minimization_activated,
             ]
-            for s, p in zip(
-                combine_structure_and_potential(
-                    structure=structure, potential_dataframe=potential_dataframe
-                )
+            for s, p in combine_structure_and_potential(
+                structure=structure, potential_dataframe=potential_dataframe
             )
         ],
         cores=cores,
