@@ -56,16 +56,16 @@ class TestParallelTwoCores(unittest.TestCase):
         self.assertEqual(len(self.structure), sum(self.count_lst))
 
     def test_example_elastic_constants_parallel_cores_two(self):
-        structure_opt_lst = pyr.optimize_structure_parallel(
-            structure_list=[self.structure.copy()],
-            potential_dataframe_list=[self.df_pot_selected],
+        structure_opt_lst = pyr.optimize_structure(
+            structure=[self.structure.copy()],
+            potential_dataframe=[self.df_pot_selected],
             cores=2
         )
 
         # Calculate Elastic Constants
-        fit_dict = pyr.calculate_energy_volume_curve_parallel(
-            structure_list=structure_opt_lst,
-            potential_dataframe_list=[self.df_pot_selected],
+        fit_dict = pyr.calculate_energy_volume_curve(
+            structure=structure_opt_lst,
+            potential_dataframe=[self.df_pot_selected],
             num_points=11,
             fit_type="polynomial",
             fit_order=3,
@@ -80,9 +80,9 @@ class TestParallelTwoCores(unittest.TestCase):
         self.assertTrue(all(validate_fitdict(fit_dict=fit_dict)))
 
     def test_example_elastic_constants_with_minimization_parallel_cores_two(self):
-        fit_dict = pyr.calculate_energy_volume_curve_parallel(
-            structure_list=[self.structure.copy()],
-            potential_dataframe_list=[self.df_pot_selected],
+        fit_dict = pyr.calculate_energy_volume_curve(
+            structure=[self.structure.copy()],
+            potential_dataframe=[self.df_pot_selected],
             num_points=11,
             fit_type="polynomial",
             fit_order=3,
