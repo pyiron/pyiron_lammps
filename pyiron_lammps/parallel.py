@@ -343,119 +343,41 @@ def calculate_molecular_dynamics_thermal_expansion_parallel(
     minimization_activated=False,
     cores=1,
 ):
-    if isinstance(structure, (list, np.ndarray)):
-        if isinstance(potential_dataframe, (list, np.ndarray)):
-            if len(structure) == len(potential_dataframe):
-                return _parallel_execution(
-                    function=_calculate_energy_volume_curve_serial,
-                    input_parameter_lst=[
-                        [
-                            s,
-                            p,
-                            Tstart,
-                            Tstop,
-                            Tstep,
-                            Tdamp,
-                            run,
-                            thermo,
-                            timestep,
-                            Pstart,
-                            Pstop,
-                            Pdamp,
-                            seed,
-                            dist,
-                            minimization_activated,
-                        ]
-                        for s, p in zip(structure, potential_dataframe)
-                    ],
-                    cores=cores,
-                )
-            else:
-                raise ValueError(
-                    "Input lists have len(structure) != len(potential_dataframe) ."
-                )
-        elif isinstance(potential_dataframe, (DataFrame, Series)):
-            return _parallel_execution(
-                function=_calculate_energy_volume_curve_serial,
-                input_parameter_lst=[
-                    [
-                        s,
-                        potential_dataframe,
-                        Tstart,
-                        Tstop,
-                        Tstep,
-                        Tdamp,
-                        run,
-                        thermo,
-                        timestep,
-                        Pstart,
-                        Pstop,
-                        Pdamp,
-                        seed,
-                        dist,
-                        minimization_activated,
-                    ]
-                    for s in structure
-                ],
-                cores=cores,
-            )
-        else:
-            raise TypeError(
-                "potential_dataframe should either be an pandas.DataFrame object or a list of those. "
-            )
-    elif isinstance(structure, Atoms):
-        if isinstance(potential_dataframe, (list, np.ndarray)):
-            return _parallel_execution(
-                function=_calculate_energy_volume_curve_serial,
-                input_parameter_lst=[
-                    [
-                        structure,
-                        p,
-                        Tstart,
-                        Tstop,
-                        Tstep,
-                        Tdamp,
-                        run,
-                        thermo,
-                        timestep,
-                        Pstart,
-                        Pstop,
-                        Pdamp,
-                        seed,
-                        dist,
-                        minimization_activated,
-                    ]
-                    for p in potential_dataframe
-                ],
-                cores=cores,
-            )
-        elif isinstance(potential_dataframe, (DataFrame, Series)):
-            return calculate_molecular_dynamics_thermal_expansion(
-                lmp=_get_lammps_mpi(enable_mpi=False),
-                structure=structure,
-                potential_dataframe=_get_lammps_mpi(enable_mpi=False),
-                Tstart=Tstart,
-                Tstop=Tstop,
-                Tstep=Tstep,
-                Tdamp=Tdamp,
-                run=run,
-                thermo=thermo,
-                timestep=timestep,
-                Pstart=Pstart,
-                Pstop=Pstop,
-                Pdamp=Pdamp,
-                seed=seed,
-                dist=dist,
-                minimization_activated=minimization_activated,
-            )
-        else:
-            raise TypeError(
-                "potential_dataframe should either be an pandas.DataFrame object or a list of those. "
-            )
-    else:
-        raise TypeError(
-            "structure should either be an ase.atoms.Atoms object or a list of those."
+    combo_lst, output_as_lst = combine_structure_and_potential(
+        structure=structure, potential_dataframe=potential_dataframe
+    )
+    input_parameter_lst = [
+        [
+            s,
+            p,
+            Tstart,
+            Tstop,
+            Tstep,
+            Tdamp,
+            run,
+            thermo,
+            timestep,
+            Pstart,
+            Pstop,
+            Pdamp,
+            seed,
+            dist,
+            minimization_activated,
+        ]
+        for s, p in combo_lst
+    ]
+    if output_as_lst:
+        return _parallel_execution(
+            function=_calculate_energy_volume_curve_serial,
+            input_parameter_lst=input_parameter_lst,
+            cores=cores,
         )
+    else:
+        return _parallel_execution(
+            function=_calculate_energy_volume_curve_serial,
+            input_parameter_lst=input_parameter_lst,
+            cores=cores,
+        )[0]
 
 
 def combine_structure_and_potential(structure, potential_dataframe):
