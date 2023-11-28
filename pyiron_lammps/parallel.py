@@ -157,11 +157,10 @@ def _calculate_energy_volume_curve_serial(input_parameter):
 
 
 def optimize_structure_parallel(structure, potential_dataframe, cores=1, lmp=None):
-    input_parameter_lst = combine_structure_and_potential(
-        structure=structure,
-        potential_dataframe=potential_dataframe,
+    input_parameter_lst, output_as_lst = combine_structure_and_potential(
+        structure=structure, potential_dataframe=potential_dataframe
     )
-    if len(input_parameter_lst) > 1:
+    if output_as_lst:
         return _parallel_execution(
             function=_optimize_structure_serial,
             input_parameter_lst=input_parameter_lst,
@@ -188,6 +187,9 @@ def calculate_elastic_constants_parallel(
     cores=1,
     lmp=None,
 ):
+    combo_lst, output_as_lst = combine_structure_and_potential(
+        structure=structure, potential_dataframe=potential_dataframe
+    )
     input_parameter_lst = [
         [
             s,
@@ -198,11 +200,9 @@ def calculate_elastic_constants_parallel(
             fit_order,
             minimization_activated,
         ]
-        for s, p in combine_structure_and_potential(
-            structure=structure, potential_dataframe=potential_dataframe
-        )
+        for s, p in combo_lst
     ]
-    if len(input_parameter_lst) > 1:
+    if output_as_lst:
         return _parallel_execution(
             function=_calculate_elastic_constants_serial,
             input_parameter_lst=input_parameter_lst,
@@ -231,6 +231,9 @@ def calculate_energy_volume_curve_parallel(
     cores=1,
     lmp=None,
 ):
+    combo_lst, output_as_lst = combine_structure_and_potential(
+        structure=structure, potential_dataframe=potential_dataframe
+    )
     input_parameter_lst = [
         [
             s,
@@ -243,11 +246,9 @@ def calculate_energy_volume_curve_parallel(
             strains,
             minimization_activated,
         ]
-        for s, p in combine_structure_and_potential(
-            structure=structure, potential_dataframe=potential_dataframe
-        )
+        for s, p in combo_lst
     ]
-    if len(input_parameter_lst) > 1:
+    if output_as_lst:
         return _parallel_execution(
             function=_calculate_energy_volume_curve_serial,
             input_parameter_lst=input_parameter_lst,
@@ -267,22 +268,22 @@ def combine_structure_and_potential(structure, potential_dataframe):
     if isinstance(structure, (list, np.ndarray)):
         if isinstance(potential_dataframe, (list, np.ndarray)):
             if len(structure) == len(potential_dataframe):
-                return [[s, p] for s, p in zip(structure, potential_dataframe)]
+                return [[s, p] for s, p in zip(structure, potential_dataframe)], True
             else:
                 raise ValueError(
                     "Input lists have len(structure) != len(potential_dataframe) ."
                 )
         elif isinstance(potential_dataframe, (DataFrame, Series)):
-            return [[s, potential_dataframe] for s in structure]
+            return [[s, potential_dataframe] for s in structure], True
         else:
             raise TypeError(
                 "potential_dataframe should either be an pandas.DataFrame object or a list of those. "
             )
     elif isinstance(structure, Atoms):
         if isinstance(potential_dataframe, (list, np.ndarray)):
-            return [[structure, p] for p in potential_dataframe]
+            return [[structure, p] for p in potential_dataframe], True
         elif isinstance(potential_dataframe, (DataFrame, Series)):
-            return [[structure, potential_dataframe]]
+            return [[structure, potential_dataframe]], False
         else:
             raise TypeError(
                 "potential_dataframe should either be an pandas.DataFrame object or a list of those. "
