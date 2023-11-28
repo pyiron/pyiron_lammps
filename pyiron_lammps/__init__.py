@@ -3,16 +3,11 @@ from atomistics.calculators.lammps import (
     get_potential_dataframe,
 )
 from pylammpsmpi import LammpsASELibrary
-from pyiron_lammps.calculation import (
-    optimize_structure,
-    calculate_elastic_constants,
-    calculate_energy_volume_curve,
-)
 from pyiron_lammps.parallel import (
-    optimize_structure_parallel,
-    calculate_elastic_constants_parallel,
-    calculate_energy_volume_curve_parallel,
-    calculate_molecular_dynamics_thermal_expansion_parallel,
+    optimize_structure_parallel as optimize_structure,
+    calculate_elastic_constants_parallel as calculate_elastic_constants,
+    calculate_energy_volume_curve_parallel as calculate_energy_volume_curve,
+    calculate_molecular_dynamics_thermal_expansion_parallel as calculate_molecular_dynamics_thermal_expansion,
 )
 
 
