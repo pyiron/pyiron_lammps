@@ -4,7 +4,10 @@ from atomistics.workflows import (
     EnergyVolumeCurveWorkflow,
     optimize_positions_and_volume,
 )
-from atomistics.calculators import evaluate_with_lammps_library
+from atomistics.calculators import (
+    calc_molecular_dynamics_thermal_expansion_with_lammps,
+    evaluate_with_lammps_library,
+)
 
 
 def _optimize_structure_optional(
@@ -31,6 +34,57 @@ def optimize_structure(lmp, structure, potential_dataframe):
     # clean memory
     lmp.interactive_lib_command("clear")
     return structure_copy
+
+
+@calculation
+def calculate_molecular_dynamics_thermal_expansion(
+    lmp,
+    structure,
+    potential_dataframe,
+    Tstart=15,
+    Tstop=1500,
+    Tstep=5,
+    Tdamp=0.1,
+    run=100,
+    thermo=100,
+    timestep=0.001,
+    Pstart=0.0,
+    Pstop=0.0,
+    Pdamp=1.0,
+    seed=4928459,
+    dist="gaussian",
+    minimization_activated=False,
+):
+    # Optimize structure
+    structure_opt = _optimize_structure_optional(
+        lmp=lmp,
+        structure=structure,
+        potential_dataframe=potential_dataframe,
+        minimization_activated=minimization_activated,
+    )
+
+    # Optimize structure
+    temperature_lst, volume_md_lst = calc_molecular_dynamics_thermal_expansion_with_lammps(
+        structure=structure_opt.copy(),
+        potential_dataframe=potential_dataframe,
+        Tstart=Tstart,
+        Tstop=Tstop,
+        Tstep=Tstep,
+        Tdamp=Tdamp,
+        run=run,
+        thermo=thermo,
+        timestep=timestep,
+        Pstart=Pstart,
+        Pstop=Pstop,
+        Pdamp=Pdamp,
+        seed=seed,
+        dist=dist,
+        lmp=lmp,
+    )
+
+    # clean memory
+    lmp.interactive_lib_command("clear")
+    return temperature_lst, volume_md_lst
 
 
 @calculation

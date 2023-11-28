@@ -8,6 +8,7 @@ from pyiron_lammps.calculation import (
     optimize_structure,
     calculate_elastic_constants,
     calculate_energy_volume_curve,
+    calculate_molecular_dynamics_thermal_expansion,
 )
 
 
@@ -113,6 +114,46 @@ def _calculate_energy_volume_curve_serial(input_parameter):
         vol_range=vol_range,
         axes=axes,
         strains=strains,
+        minimization_activated=minimization_activated,
+    )
+
+
+def _calc_molecular_dynamics_thermal_expansion_serial(input_parameter):
+    (
+        structure,
+        potential_dataframe,
+        Tstart,
+        Tstop,
+        Tstep,
+        Tdamp,
+        run,
+        thermo,
+        timestep,
+        Pstart,
+        Pstop,
+        Pdamp,
+        seed,
+        dist,
+        minimization_activated,
+        enable_mpi,
+        minimization_activated,
+    ) = input_parameter
+    return calculate_molecular_dynamics_thermal_expansion(
+        lmp=_get_lammps_mpi(enable_mpi=enable_mpi),
+        structure=structure,
+        potential_dataframe=potential_dataframe,
+        Tstart=Tstart,
+        Tstop=Tstop,
+        Tstep=Tstep,
+        Tdamp=Tdamp,
+        run=run,
+        thermo=thermo,
+        timestep=timestep,
+        Pstart=Pstart,
+        Pstop=Pstop,
+        Pdamp=Pdamp,
+        seed=seed,
+        dist=dist,
         minimization_activated=minimization_activated,
     )
 
@@ -362,6 +403,141 @@ def calculate_energy_volume_curve_parallel(
                 vol_range=vol_range,
                 axes=axes,
                 strains=strains,
+                minimization_activated=minimization_activated,
+            )
+        else:
+            raise TypeError(
+                "potential_dataframe_list should either be an pandas.DataFrame object or a list of those. "
+            )
+    else:
+        raise TypeError(
+            "structure_list should either be an ase.atoms.Atoms object or a list of those."
+        )
+
+
+def calculate_molecular_dynamics_thermal_expansion_parallel(
+    structure_list,
+    potential_dataframe_list,
+    Tstart=15,
+    Tstop=1500,
+    Tstep=5,
+    Tdamp=0.1,
+    run=100,
+    thermo=100,
+    timestep=0.001,
+    Pstart=0.0,
+    Pstop=0.0,
+    Pdamp=1.0,
+    seed=4928459,
+    dist="gaussian",
+    minimization_activated=False,
+    cores=1,
+):
+    if isinstance(structure_list, (list, np.ndarray)):
+        if isinstance(potential_dataframe_list, (list, np.ndarray)):
+            if len(structure_list) == len(potential_dataframe_list):
+                return _parallel_execution(
+                    function=_calculate_energy_volume_curve_serial,
+                    input_parameter_lst=[
+                        [
+                            structure,
+                            potential,
+                            Tstart,
+                            Tstop,
+                            Tstep,
+                            Tdamp,
+                            run,
+                            thermo,
+                            timestep,
+                            Pstart,
+                            Pstop,
+                            Pdamp,
+                            seed,
+                            dist,
+                            minimization_activated,
+                        ]
+                        for structure, potential in zip(
+                            structure_list, potential_dataframe_list
+                        )
+                    ],
+                    cores=cores,
+                )
+            else:
+                raise ValueError(
+                    "Input lists have len(structure_list) != len(potential_dataframe_list) ."
+                )
+        elif isinstance(potential_dataframe_list, (DataFrame, Series)):
+            return _parallel_execution(
+                function=_calculate_energy_volume_curve_serial,
+                input_parameter_lst=[
+                    [
+                        structure,
+                        potential_dataframe_list,
+                        Tstart,
+                        Tstop,
+                        Tstep,
+                        Tdamp,
+                        run,
+                        thermo,
+                        timestep,
+                        Pstart,
+                        Pstop,
+                        Pdamp,
+                        seed,
+                        dist,
+                        minimization_activated,
+                    ]
+                    for structure in structure_list
+                ],
+                cores=cores,
+            )
+        else:
+            raise TypeError(
+                "potential_dataframe_list should either be an pandas.DataFrame object or a list of those. "
+            )
+    elif isinstance(structure_list, Atoms):
+        if isinstance(potential_dataframe_list, (list, np.ndarray)):
+            return _parallel_execution(
+                function=_calculate_energy_volume_curve_serial,
+                input_parameter_lst=[
+                    [
+                        structure_list,
+                        potential,
+                        Tstart,
+                        Tstop,
+                        Tstep,
+                        Tdamp,
+                        run,
+                        thermo,
+                        timestep,
+                        Pstart,
+                        Pstop,
+                        Pdamp,
+                        seed,
+                        dist,
+                        minimization_activated,
+                    ]
+                    for potential in potential_dataframe_list
+                ],
+                cores=cores,
+            )
+        elif isinstance(potential_dataframe_list, (DataFrame, Series)):
+            return calculate_molecular_dynamics_thermal_expansion(
+                lmp=_get_lammps_mpi(enable_mpi=False),
+                structure=structure_list,
+                potential_dataframe=_get_lammps_mpi(enable_mpi=False),
+                Tstart=Tstart,
+                Tstop=Tstop,
+                Tstep=Tstep,
+                Tdamp=Tdamp,
+                run=run,
+                thermo=thermo,
+                timestep=timestep,
+                Pstart=Pstart,
+                Pstop=Pstop,
+                Pdamp=Pdamp,
+                seed=seed,
+                dist=dist,
                 minimization_activated=minimization_activated,
             )
         else:
