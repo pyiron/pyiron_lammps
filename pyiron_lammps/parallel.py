@@ -157,15 +157,24 @@ def _calculate_energy_volume_curve_serial(input_parameter):
 
 
 def optimize_structure_parallel(structure, potential_dataframe, cores=1, lmp=None):
-    return _parallel_execution(
-        function=_optimize_structure_serial,
-        input_parameter_lst=combine_structure_and_potential(
-            structure=structure,
-            potential_dataframe=potential_dataframe,
-        ),
-        lmp=lmp,
-        cores=cores,
+    input_parameter_lst = combine_structure_and_potential(
+        structure=structure,
+        potential_dataframe=potential_dataframe,
     )
+    if len(input_parameter_lst) > 1:
+        return _parallel_execution(
+            function=_optimize_structure_serial,
+            input_parameter_lst=input_parameter_lst,
+            lmp=lmp,
+            cores=cores,
+        )
+    else:
+        return _parallel_execution(
+            function=_optimize_structure_serial,
+            input_parameter_lst=input_parameter_lst,
+            lmp=lmp,
+            cores=cores,
+        )[0]
 
 
 def calculate_elastic_constants_parallel(
@@ -179,25 +188,34 @@ def calculate_elastic_constants_parallel(
     cores=1,
     lmp=None,
 ):
-    return _parallel_execution(
-        function=_calculate_elastic_constants_serial,
-        input_parameter_lst=[
-            [
-                s,
-                p,
-                num_of_point,
-                eps_range,
-                sqrt_eta,
-                fit_order,
-                minimization_activated,
-            ]
-            for s, p in combine_structure_and_potential(
-                structure=structure, potential_dataframe=potential_dataframe
-            )
-        ],
-        cores=cores,
-        lmp=lmp,
-    )
+    input_parameter_lst = [
+        [
+            s,
+            p,
+            num_of_point,
+            eps_range,
+            sqrt_eta,
+            fit_order,
+            minimization_activated,
+        ]
+        for s, p in combine_structure_and_potential(
+            structure=structure, potential_dataframe=potential_dataframe
+        )
+    ]
+    if len(input_parameter_lst) > 1:
+        return _parallel_execution(
+            function=_calculate_elastic_constants_serial,
+            input_parameter_lst=input_parameter_lst,
+            cores=cores,
+            lmp=lmp,
+        )
+    else:
+        return _parallel_execution(
+            function=_calculate_elastic_constants_serial,
+            input_parameter_lst=input_parameter_lst,
+            cores=cores,
+            lmp=lmp,
+        )[0]
 
 
 def calculate_energy_volume_curve_parallel(
@@ -213,27 +231,36 @@ def calculate_energy_volume_curve_parallel(
     cores=1,
     lmp=None,
 ):
-    return _parallel_execution(
-        function=_calculate_energy_volume_curve_serial,
-        input_parameter_lst=[
-            [
-                s,
-                p,
-                num_points,
-                fit_type,
-                fit_order,
-                vol_range,
-                axes,
-                strains,
-                minimization_activated,
-            ]
-            for s, p in combine_structure_and_potential(
-                structure=structure, potential_dataframe=potential_dataframe
-            )
-        ],
-        cores=cores,
-        lmp=lmp,
-    )
+    input_parameter_lst = [
+        [
+            s,
+            p,
+            num_points,
+            fit_type,
+            fit_order,
+            vol_range,
+            axes,
+            strains,
+            minimization_activated,
+        ]
+        for s, p in combine_structure_and_potential(
+            structure=structure, potential_dataframe=potential_dataframe
+        )
+    ]
+    if len(input_parameter_lst) > 1:
+        return _parallel_execution(
+            function=_calculate_energy_volume_curve_serial,
+            input_parameter_lst=input_parameter_lst,
+            cores=cores,
+            lmp=lmp,
+        )
+    else:
+        return _parallel_execution(
+            function=_calculate_energy_volume_curve_serial,
+            input_parameter_lst=input_parameter_lst,
+            cores=cores,
+            lmp=lmp,
+        )[0]
 
 
 def combine_structure_and_potential(structure, potential_dataframe):
