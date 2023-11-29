@@ -1,7 +1,7 @@
 import numpy as np
 from ase.atoms import Atoms
 from pandas import DataFrame, Series
-from pympipool.mpi import PyMPIExecutor
+from pympipool import Executor
 from pylammpsmpi import LammpsASELibrary
 
 from pyiron_lammps.calculation import (
@@ -44,7 +44,7 @@ def _parallel_execution(function, input_parameter_lst, cores=1, lmp=None):
             for input_parameter in input_parameter_lst
         ]
     elif cores > 1 and lmp is None:
-        with PyMPIExecutor(max_workers=cores) as p:
+        with Executor(max_workers=cores) as p:
             return list(
                 p.map(
                     function,
