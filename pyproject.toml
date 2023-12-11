@@ -29,7 +29,7 @@ dependencies = [
     "numpy==1.26.2",
     "pandas==2.1.3",
     "jinja2==3.1.2",
-    "pylammpsmpi==0.2.9",
+    "pylammpsmpi==0.2.10",
     "pympipool==0.7.9",
 ]
 dynamic = ["version"]
