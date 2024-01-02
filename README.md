@@ -1,6 +1,6 @@
 # pyiron_lammps
 
-[![Python package](https://github.com/pyiron/pyiron_lammps/actions/workflows/unittests.yml/badge.svg)](https://github.com/pyiron/pyiron_lammps/actions)
+[![Unittests](https://github.com/pyiron/pyiron_lammps/actions/workflows/unittests-openmpi.yml/badge.svg?branch=main)](https://github.com/pyiron/pyiron_lammps/actions)
 [![Coverage Status](https://coveralls.io/repos/github/pyiron/pyiron_lammps/badge.svg?branch=main)](https://coveralls.io/github/pyiron/pyiron_lammps?branch=main)
 
 ## Disclaimer
