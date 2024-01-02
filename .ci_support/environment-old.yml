@@ -9,6 +9,6 @@ dependencies:
 - jinja2 =2.11.3
 - pandas =1.5.3
 - pympipool =0.7.3
-- pylammpsmpi =0.2.5
+- pylammpsmpi =0.2.10
 - sqsgenerator =0.2
 - structuretoolkit =0.0.11
