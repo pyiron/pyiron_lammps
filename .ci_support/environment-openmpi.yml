@@ -4,7 +4,7 @@ dependencies:
 - coverage
 - ase =3.22.1
 - atomistics =0.1.20
-- lammps =2023.08.02=*mpi*
+- lammps =2023.08.02=*_mpi_openmpi_*
 - numpy =1.26.3
 - openmpi
 - pandas =2.2.0
