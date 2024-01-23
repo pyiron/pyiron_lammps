@@ -1,32 +1,10 @@
 from pyiron_lammps.decorator import calculation
-from atomistics.calculators import evaluate_with_lammps_library
 from atomistics.workflows import (
     ElasticMatrixWorkflow,
     EnergyVolumeCurveWorkflow,
     optimize_positions_and_volume,
 )
-
-
-def _run_simulation(structure, potential_dataframe, input_template, lmp):
-    # write structure to LAMMPS
-    lmp.interactive_structure_setter(
-        structure=structure,
-        units="metal",
-        dimension=3,
-        boundary=" ".join(["p" if coord else "f" for coord in structure.pbc]),
-        atom_style="atomic",
-        el_eam_lst=potential_dataframe.Species,
-        calc_md=False,
-    )
-
-    # execute calculation
-    for c in potential_dataframe.Config:
-        lmp.interactive_lib_command(c)
-
-    for l in input_template.split("\n"):
-        lmp.interactive_lib_command(l)
-
-    return lmp
+from atomistics.calculators import evaluate_with_lammps_library
 
 
 def _optimize_structure_optional(
@@ -66,14 +44,6 @@ def calculate_elastic_constants(
     fit_order=2,
     minimization_activated=False,
 ):
-    lammps_input_template_minimize_pos = """\
-variable thermotime equal 100
-thermo_style custom step temp pe etotal pxx pxy pxz pyy pyz pzz vol
-thermo_modify format float %20.15g
-thermo ${thermotime}
-min_style cg
-minimize 0.0 0.0001 100000 10000000"""
-
     # Optimize structure
     structure_opt = _optimize_structure_optional(
         lmp=lmp,
@@ -93,20 +63,19 @@ minimize 0.0 0.0001 100000 10000000"""
     structure_dict = calculator.generate_structures()
 
     # run calculation
-    energy_tot_lst = {}
-    for key, struct in structure_dict["calc_energy"].items():
-        lmp = _run_simulation(
-            lmp=lmp,
-            structure=struct,
-            potential_dataframe=potential_dataframe,
-            input_template=lammps_input_template_minimize_pos,
-        )
-        energy_tot_lst[key] = lmp.interactive_energy_tot_getter()
-        lmp.interactive_lib_command("clear")
+    energy_tot_lst = evaluate_with_lammps_library(
+        task_dict=structure_dict,
+        potential_dataframe=potential_dataframe,
+        lmp=lmp,
+        lmp_optimizer_kwargs={},
+    )
 
     # fit
-    calculator.analyse_structures(energy_tot_lst)
-    return calculator._data["C"]
+    result_dict = calculator.analyse_structures(
+        output_dict=energy_tot_lst,
+        output_keys=("elastic_matrix",),
+    )
+    return result_dict["elastic_matrix"]
 
 
 @calculation
@@ -118,17 +87,10 @@ def calculate_energy_volume_curve(
     fit_type="polynomial",
     fit_order=3,
     vol_range=0.05,
-    axes=["x", "y", "z"],
+    axes=("x", "y", "z"),
     strains=None,
     minimization_activated=False,
 ):
-    lammps_input_calc_static = """\
-variable thermotime equal 100
-thermo_style custom step temp pe etotal pxx pxy pxz pyy pyz pzz vol
-thermo_modify format float %20.15g
-thermo ${thermotime}
-run 0"""
-
     # Optimize structure
     structure_opt = _optimize_structure_optional(
         lmp=lmp,
@@ -150,16 +112,11 @@ run 0"""
     structure_dict = calculator.generate_structures()
 
     # run calculation
-    energy_tot_lst = {}
-    for key, struct in structure_dict["calc_energy"].items():
-        lmp = _run_simulation(
-            lmp=lmp,
-            structure=struct,
-            potential_dataframe=potential_dataframe,
-            input_template=lammps_input_calc_static,
-        )
-        energy_tot_lst[key] = lmp.interactive_energy_tot_getter()
-        lmp.interactive_lib_command("clear")
+    energy_tot_lst = evaluate_with_lammps_library(
+        task_dict=structure_dict,
+        potential_dataframe=potential_dataframe,
+        lmp=lmp,
+    )
 
     # fit
     calculator.analyse_structures(energy_tot_lst)
