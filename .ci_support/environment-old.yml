@@ -2,7 +2,7 @@ channels:
 - conda-forge
 dependencies:
 - ase =3.22.1
-- atomistics =0.1.10
+- atomistics =0.1.21
 - lammps =2022.06.23
 - numpy =1.26.0
 - openmpi
