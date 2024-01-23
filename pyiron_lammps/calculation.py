@@ -128,8 +128,11 @@ def calculate_elastic_constants(
     )
 
     # fit
-    calculator.analyse_structures(energy_tot_lst)
-    return calculator._data["C"]
+    result_dict = calculator.analyse_structures(
+        output_dict=energy_tot_lst,
+        output_keys=("elastic_matrix",),
+    )
+    return result_dict["elastic_matrix"]
 
 
 @calculation
