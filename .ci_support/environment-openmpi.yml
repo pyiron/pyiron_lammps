@@ -12,4 +12,4 @@ dependencies:
 - pympipool =0.7.9
 - pylammpsmpi =0.2.11
 - sqsgenerator =0.3
-- structuretoolkit =0.0.17
+- structuretoolkit =0.0.18
