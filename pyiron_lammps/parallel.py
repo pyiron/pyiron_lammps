@@ -154,7 +154,9 @@ def _calculate_energy_volume_curve_serial(input_parameter):
         )
 
 
-def optimize_structure_parallel(structure, potential_dataframe, lmp=None, executor=None):
+def optimize_structure_parallel(
+    structure, potential_dataframe, lmp=None, executor=None
+):
     input_parameter_lst, output_as_lst = combine_structure_and_potential(
         structure=structure, potential_dataframe=potential_dataframe
     )
