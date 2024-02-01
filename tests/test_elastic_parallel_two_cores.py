@@ -3,6 +3,7 @@ import unittest
 from ase.build import bulk
 import pyiron_lammps as pyr
 import structuretoolkit as stk
+from pympipool import Executor
 
 
 def validate_elastic_constants(elastic_matrix):
@@ -54,38 +55,40 @@ class TestParallelTwoCores(unittest.TestCase):
         self.assertEqual(len(self.structure), sum(self.count_lst))
 
     def test_example_elastic_constants_parallel_cores_two(self):
-        structure_opt_lst = pyr.optimize_structure(
-            structure=[self.structure.copy()],
-            potential_dataframe=[self.df_pot_selected],
-            cores=2
-        )
+        with Executor(max_workers=2, hostname_localhost=True) as exe:
+            structure_opt_lst = pyr.optimize_structure(
+                structure=[self.structure.copy()],
+                potential_dataframe=[self.df_pot_selected],
+                executor=exe,
+            )
 
-        # Calculate Elastic Constants
-        elastic_matrix = pyr.calculate_elastic_constants(
-            structure=structure_opt_lst,
-            potential_dataframe=[self.df_pot_selected],
-            num_of_point=5,
-            eps_range=0.005,
-            sqrt_eta=True,
-            fit_order=2,
-            cores=2,
-            minimization_activated=False,
-        )[0]
+            # Calculate Elastic Constants
+            elastic_matrix = pyr.calculate_elastic_constants(
+                structure=structure_opt_lst,
+                potential_dataframe=[self.df_pot_selected],
+                num_of_point=5,
+                eps_range=0.005,
+                sqrt_eta=True,
+                fit_order=2,
+                executor=exe,
+                minimization_activated=False,
+            )[0]
 
         self.assertEqual(len(structure_opt_lst[0]), sum(self.count_lst))
         self.assertTrue(all(validate_elastic_constants(elastic_matrix=elastic_matrix)))
 
     def test_example_elastic_constants_with_minimization_parallel_cores_two(self):
-        elastic_matrix = pyr.calculate_elastic_constants(
-            structure=[self.structure.copy()],
-            potential_dataframe=[self.df_pot_selected],
-            num_of_point=5,
-            eps_range=0.005,
-            sqrt_eta=True,
-            fit_order=2,
-            cores=2,
-            minimization_activated=True,
-        )[0]
+        with Executor(max_workers=2, hostname_localhost=True) as exe:
+            elastic_matrix = pyr.calculate_elastic_constants(
+                structure=[self.structure.copy()],
+                potential_dataframe=[self.df_pot_selected],
+                num_of_point=5,
+                eps_range=0.005,
+                sqrt_eta=True,
+                fit_order=2,
+                executor=exe,
+                minimization_activated=True,
+            )[0]
         self.assertTrue(all(validate_elastic_constants(elastic_matrix=elastic_matrix)))
 
 

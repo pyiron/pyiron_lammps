@@ -1,7 +1,6 @@
 import numpy as np
 from ase.atoms import Atoms
 from pandas import DataFrame, Series
-from pympipool import Executor
 from pylammpsmpi import LammpsASELibrary
 
 from pyiron_lammps.calculation import (
@@ -37,24 +36,23 @@ def _get_lammps_mpi(enable_mpi=True):
         )
 
 
-def _parallel_execution(function, input_parameter_lst, cores=1, lmp=None):
-    if cores == 1:
+def _parallel_execution(function, input_parameter_lst, lmp=None, executor=None):
+    if executor is None:
         return [
             function(input_parameter=input_parameter + [False, lmp])
             for input_parameter in input_parameter_lst
         ]
-    elif cores > 1 and lmp is None:
-        with Executor(max_workers=cores) as p:
-            return list(
-                p.map(
-                    function,
-                    [
-                        input_parameter + [True, None]
-                        for input_parameter in input_parameter_lst
-                    ],
-                )
+    elif executor is not None and lmp is None:
+        return list(
+            executor.map(
+                function,
+                [
+                    input_parameter + [True, None]
+                    for input_parameter in input_parameter_lst
+                ],
             )
-    elif cores > 1 and lmp is not None:
+        )
+    elif executor is not None and lmp is not None:
         raise ValueError(
             "The external LAMMPS instance can only be used for serial execution."
         )
@@ -156,7 +154,7 @@ def _calculate_energy_volume_curve_serial(input_parameter):
         )
 
 
-def optimize_structure_parallel(structure, potential_dataframe, cores=1, lmp=None):
+def optimize_structure_parallel(structure, potential_dataframe, lmp=None, executor=None):
     input_parameter_lst, output_as_lst = combine_structure_and_potential(
         structure=structure, potential_dataframe=potential_dataframe
     )
@@ -165,14 +163,14 @@ def optimize_structure_parallel(structure, potential_dataframe, cores=1, lmp=Non
             function=_optimize_structure_serial,
             input_parameter_lst=input_parameter_lst,
             lmp=lmp,
-            cores=cores,
+            executor=executor,
         )
     else:
         return _parallel_execution(
             function=_optimize_structure_serial,
             input_parameter_lst=input_parameter_lst,
             lmp=lmp,
-            cores=cores,
+            executor=executor,
         )[0]
 
 
@@ -184,7 +182,7 @@ def calculate_elastic_constants_parallel(
     sqrt_eta=True,
     fit_order=2,
     minimization_activated=False,
-    cores=1,
+    executor=None,
     lmp=None,
 ):
     combo_lst, output_as_lst = combine_structure_and_potential(
@@ -206,14 +204,14 @@ def calculate_elastic_constants_parallel(
         return _parallel_execution(
             function=_calculate_elastic_constants_serial,
             input_parameter_lst=input_parameter_lst,
-            cores=cores,
+            executor=executor,
             lmp=lmp,
         )
     else:
         return _parallel_execution(
             function=_calculate_elastic_constants_serial,
             input_parameter_lst=input_parameter_lst,
-            cores=cores,
+            executor=executor,
             lmp=lmp,
         )[0]
 
@@ -228,7 +226,7 @@ def calculate_energy_volume_curve_parallel(
     axes=("x", "y", "z"),
     strains=None,
     minimization_activated=False,
-    cores=1,
+    executor=None,
     lmp=None,
 ):
     combo_lst, output_as_lst = combine_structure_and_potential(
@@ -252,14 +250,14 @@ def calculate_energy_volume_curve_parallel(
         return _parallel_execution(
             function=_calculate_energy_volume_curve_serial,
             input_parameter_lst=input_parameter_lst,
-            cores=cores,
+            executor=executor,
             lmp=lmp,
         )
     else:
         return _parallel_execution(
             function=_calculate_energy_volume_curve_serial,
             input_parameter_lst=input_parameter_lst,
-            cores=cores,
+            executor=executor,
             lmp=lmp,
         )[0]
 
