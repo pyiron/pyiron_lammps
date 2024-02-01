@@ -57,7 +57,7 @@ class TestParallelSingleCore(unittest.TestCase):
         structure_opt_lst = pyr.optimize_structure(
             structure=[self.structure.copy()],
             potential_dataframe=self.df_pot_selected,
-            cores=1
+            executor=None,
         )
 
         # Calculate Elastic Constants
@@ -68,7 +68,7 @@ class TestParallelSingleCore(unittest.TestCase):
             eps_range=0.005,
             sqrt_eta=True,
             fit_order=2,
-            cores=1,
+            executor=None,
             minimization_activated=False,
         )[0]
 
@@ -83,7 +83,7 @@ class TestParallelSingleCore(unittest.TestCase):
             eps_range=0.005,
             sqrt_eta=True,
             fit_order=2,
-            cores=1,
+            executor=None,
             minimization_activated=True,
         )[0]
         self.assertTrue(all(validate_elastic_constants(elastic_matrix=elastic_matrix)))
