@@ -25,7 +25,7 @@ classifiers = [
 ]
 dependencies = [
     "ase==3.22.1",
-    "atomistics==0.1.21",
+    "atomistics==0.1.22",
     "numpy==1.26.3",
     "pandas==2.2.0",
     "jinja2==3.1.3",
