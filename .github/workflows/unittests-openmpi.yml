@@ -43,8 +43,7 @@ jobs:
       run: |
         pip install versioneer[toml]==0.29
         pip install . --no-deps --no-build-isolation
-        for f in $(ls tests/*.py); do if [[ "$f" == *"tests/test_"* ]];then echo $f; coverage run -m unittest $f; fi; done
-        coverage combine
+        for f in $(ls tests/*.py); do if [[ "$f" == *"tests/test_"* ]];then echo $f; coverage run --omit="pyiron_lammps/_version.py,tests/*" -m unittest $f; fi; done
     - name: Coveralls
       if:  matrix.label == 'linux-64-py-3-11'
       uses: coverallsapp/github-action@v2
