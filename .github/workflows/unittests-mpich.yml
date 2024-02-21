@@ -43,4 +43,4 @@ jobs:
       run: |
         pip install versioneer[toml]==0.29
         pip install . --no-deps --no-build-isolation
-        for f in $(ls tests/*.py); do echo $f; python $f; done
+        python -m unittest discover tests
