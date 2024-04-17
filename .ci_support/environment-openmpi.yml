@@ -3,7 +3,7 @@ channels:
 dependencies:
 - coverage
 - ase =3.22.1
-- atomistics =0.1.25
+- atomistics =0.1.26
 - lammps =2024.02.07=*_mpi_openmpi_*
 - numpy =1.26.4
 - openmpi
