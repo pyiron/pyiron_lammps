@@ -57,7 +57,7 @@ class TestParallelTwoCores(unittest.TestCase):
         self.assertEqual(len(self.structure), sum(self.count_lst))
 
     def test_example_elastic_constants_parallel_cores_two(self):
-        with Executor(max_workers=2, hostname_localhost=True) as exe:
+        with Executor(max_cores=2, hostname_localhost=True) as exe:
             structure_opt_lst = pyr.optimize_structure(
                 structure=[self.structure.copy()],
                 potential_dataframe=[self.df_pot_selected],
@@ -82,7 +82,7 @@ class TestParallelTwoCores(unittest.TestCase):
         self.assertTrue(all(validate_fitdict(fit_dict=fit_dict)))
 
     def test_example_elastic_constants_with_minimization_parallel_cores_two(self):
-        with Executor(max_workers=2, hostname_localhost=True) as exe:
+        with Executor(max_cores=2, hostname_localhost=True) as exe:
             fit_dict = pyr.calculate_energy_volume_curve(
                 structure=[self.structure.copy()],
                 potential_dataframe=[self.df_pot_selected],
