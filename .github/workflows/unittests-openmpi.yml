@@ -46,5 +46,5 @@ jobs:
         coverage run --omit="pyiron_lammps/_version.py,tests/*" -m unittest discover tests
         coverage xml
     - name: Coveralls
-      if:  matrix.label == 'linux-64-py-3-11'
+      if:  matrix.label == 'linux-64-py-3-12'
       uses: coverallsapp/github-action@v2
