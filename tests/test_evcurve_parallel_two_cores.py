@@ -8,14 +8,14 @@ from pympipool import Executor
 
 def validate_fitdict(fit_dict):
     lst = [
-        fit_dict['b_prime_eq'] > 1.5,
-        fit_dict['b_prime_eq'] < 3.0,
-        fit_dict['bulkmodul_eq'] > 174,
-        fit_dict['bulkmodul_eq'] < 184,
-        fit_dict['energy_eq'] > -453.9,
-        fit_dict['energy_eq'] < -453.5,
-        fit_dict['volume_eq'] > 1207,
-        fit_dict['volume_eq'] < 1213,
+        fit_dict["b_prime_eq"] > 1.5,
+        fit_dict["b_prime_eq"] < 3.0,
+        fit_dict["bulkmodul_eq"] > 174,
+        fit_dict["bulkmodul_eq"] < 184,
+        fit_dict["energy_eq"] > -453.9,
+        fit_dict["energy_eq"] < -453.5,
+        fit_dict["volume_eq"] > 1207,
+        fit_dict["volume_eq"] < 1213,
     ]
     if not all(lst):
         print(fit_dict)
@@ -27,7 +27,7 @@ class TestParallelTwoCores(unittest.TestCase):
     def setUpClass(cls):
         count_lst = [22, 22, 22, 21, 21]
         element_lst = ["Fe", "Ni", "Cr", "Co", "Cu"]
-        potential = '2021--Deluigi-O-R--Fe-Ni-Cr-Co-Cu--LAMMPS--ipr1'
+        potential = "2021--Deluigi-O-R--Fe-Ni-Cr-Co-Cu--LAMMPS--ipr1"
         resource_path = os.path.join(os.path.dirname(__file__), "static")
 
         # Generate SQS Structure
@@ -42,8 +42,7 @@ class TestParallelTwoCores(unittest.TestCase):
 
         # Select potential
         df_pot = pyr.get_potential_dataframe(
-            structure=structure,
-            resource_path=resource_path
+            structure=structure, resource_path=resource_path
         )
 
         # Assign variable
@@ -98,5 +97,5 @@ class TestParallelTwoCores(unittest.TestCase):
         self.assertTrue(all(validate_fitdict(fit_dict=fit_dict)))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

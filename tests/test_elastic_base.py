@@ -24,7 +24,7 @@ class TestIntegration(unittest.TestCase):
     def setUpClass(cls):
         count_lst = [22, 22, 22, 21, 21]
         element_lst = ["Fe", "Ni", "Cr", "Co", "Cu"]
-        potential = '2021--Deluigi-O-R--Fe-Ni-Cr-Co-Cu--LAMMPS--ipr1'
+        potential = "2021--Deluigi-O-R--Fe-Ni-Cr-Co-Cu--LAMMPS--ipr1"
         resource_path = os.path.join(os.path.dirname(__file__), "static")
 
         # Generate SQS Structure
@@ -39,8 +39,7 @@ class TestIntegration(unittest.TestCase):
 
         # Select potential
         df_pot = pyr.get_potential_dataframe(
-            structure=structure,
-            resource_path=resource_path
+            structure=structure, resource_path=resource_path
         )
 
         # Assign variable
@@ -61,7 +60,7 @@ class TestIntegration(unittest.TestCase):
         structure_opt = pyr.optimize_structure(
             lmp=lmp,
             structure=self.structure.copy(),
-            potential_dataframe=self.df_pot_selected
+            potential_dataframe=self.df_pot_selected,
         )
         self.assertEqual(len(structure_opt), sum(self.count_lst))
 
@@ -84,8 +83,7 @@ class TestIntegration(unittest.TestCase):
     def test_example_elastic_constants_with_separate_executable(self):
         # Optimize Structure
         structure_opt = pyr.optimize_structure(
-            structure=self.structure.copy(),
-            potential_dataframe=self.df_pot_selected
+            structure=self.structure.copy(), potential_dataframe=self.df_pot_selected
         )
         self.assertEqual(len(structure_opt), sum(self.count_lst))
 
@@ -107,7 +105,7 @@ class TestIntegration(unittest.TestCase):
             structure_opt = pyr.optimize_structure(
                 lmp=lmp,
                 structure=self.structure.copy(),
-                potential_dataframe=self.df_pot_selected
+                potential_dataframe=self.df_pot_selected,
             )
 
             # Calculate Elastic Constants
@@ -141,5 +139,5 @@ class TestIntegration(unittest.TestCase):
         self.assertTrue(all(validate_elastic_constants(elastic_matrix=elastic_matrix)))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
