@@ -24,7 +24,7 @@ class TestParallelSingleCore(unittest.TestCase):
     def setUpClass(cls):
         count_lst = [22, 22, 22, 21, 21]
         element_lst = ["Fe", "Ni", "Cr", "Co", "Cu"]
-        potential = '2021--Deluigi-O-R--Fe-Ni-Cr-Co-Cu--LAMMPS--ipr1'
+        potential = "2021--Deluigi-O-R--Fe-Ni-Cr-Co-Cu--LAMMPS--ipr1"
         resource_path = os.path.join(os.path.dirname(__file__), "static")
 
         # Generate SQS Structure
@@ -39,8 +39,7 @@ class TestParallelSingleCore(unittest.TestCase):
 
         # Select potential
         df_pot = pyr.get_potential_dataframe(
-            structure=structure,
-            resource_path=resource_path
+            structure=structure, resource_path=resource_path
         )
 
         # Assign variable
@@ -89,5 +88,5 @@ class TestParallelSingleCore(unittest.TestCase):
         self.assertTrue(all(validate_elastic_constants(elastic_matrix=elastic_matrix)))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

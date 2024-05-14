@@ -12,21 +12,16 @@ class TestErrorMessages(unittest.TestCase):
         potential_dataframe = pandas.DataFrame({"a": [1], "b": [2]})
         with self.assertRaises(TypeError):
             combine_structure_and_potential(
-                structure=1,
-                potential_dataframe=potential_dataframe
+                structure=1, potential_dataframe=potential_dataframe
             )
         with self.assertRaises(ValueError):
             combine_structure_and_potential(
                 structure=[structure],
-                potential_dataframe=[potential_dataframe, potential_dataframe]
+                potential_dataframe=[potential_dataframe, potential_dataframe],
             )
         with self.assertRaises(TypeError):
             combine_structure_and_potential(
-                structure=[structure],
-                potential_dataframe=1
+                structure=[structure], potential_dataframe=1
             )
         with self.assertRaises(TypeError):
-            combine_structure_and_potential(
-                structure=structure,
-                potential_dataframe=1
-            )
+            combine_structure_and_potential(structure=structure, potential_dataframe=1)

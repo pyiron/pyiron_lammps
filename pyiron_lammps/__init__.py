@@ -10,6 +10,14 @@ from pyiron_lammps.parallel import (
 )
 
 
+__all__ = [
+    get_potential_dataframe,
+    optimize_structure,
+    calculate_elastic_constants,
+    calculate_energy_volume_curve,
+]
+
+
 def get_lammps_engine(
     working_directory=None,
     cores=1,

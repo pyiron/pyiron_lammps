@@ -7,14 +7,14 @@ import structuretoolkit as stk
 
 def validate_fitdict(fit_dict):
     lst = [
-        fit_dict['b_prime_eq'] > 1.5,
-        fit_dict['b_prime_eq'] < 3.0,
-        fit_dict['bulkmodul_eq'] > 174,
-        fit_dict['bulkmodul_eq'] < 184,
-        fit_dict['energy_eq'] > -453.9,
-        fit_dict['energy_eq'] < -453.5,
-        fit_dict['volume_eq'] > 1207,
-        fit_dict['volume_eq'] < 1213,
+        fit_dict["b_prime_eq"] > 1.5,
+        fit_dict["b_prime_eq"] < 3.0,
+        fit_dict["bulkmodul_eq"] > 174,
+        fit_dict["bulkmodul_eq"] < 184,
+        fit_dict["energy_eq"] > -453.9,
+        fit_dict["energy_eq"] < -453.5,
+        fit_dict["volume_eq"] > 1207,
+        fit_dict["volume_eq"] < 1213,
     ]
     if not all(lst):
         print(fit_dict)
@@ -26,7 +26,7 @@ class TestEvCurePoly(unittest.TestCase):
     def setUpClass(cls):
         count_lst = [22, 22, 22, 21, 21]
         element_lst = ["Fe", "Ni", "Cr", "Co", "Cu"]
-        potential = '2021--Deluigi-O-R--Fe-Ni-Cr-Co-Cu--LAMMPS--ipr1'
+        potential = "2021--Deluigi-O-R--Fe-Ni-Cr-Co-Cu--LAMMPS--ipr1"
         resource_path = os.path.join(os.path.dirname(__file__), "static")
 
         # Generate SQS Structure
@@ -41,8 +41,7 @@ class TestEvCurePoly(unittest.TestCase):
 
         # Select potential
         df_pot = pyr.get_potential_dataframe(
-            structure=structure,
-            resource_path=resource_path
+            structure=structure, resource_path=resource_path
         )
 
         # Assign variable
@@ -63,7 +62,7 @@ class TestEvCurePoly(unittest.TestCase):
         structure_opt = pyr.optimize_structure(
             lmp=lmp,
             structure=self.structure.copy(),
-            potential_dataframe=self.df_pot_selected
+            potential_dataframe=self.df_pot_selected,
         )
         self.assertEqual(len(structure_opt), sum(self.count_lst))
 
@@ -87,8 +86,7 @@ class TestEvCurePoly(unittest.TestCase):
     def test_example_evcurve_with_separate_executable(self):
         # Optimize Structure
         structure_opt = pyr.optimize_structure(
-            structure=self.structure.copy(),
-            potential_dataframe=self.df_pot_selected
+            structure=self.structure.copy(), potential_dataframe=self.df_pot_selected
         )
         self.assertEqual(len(structure_opt), sum(self.count_lst))
 
@@ -112,7 +110,7 @@ class TestEvCurePoly(unittest.TestCase):
             structure_opt = pyr.optimize_structure(
                 lmp=lmp,
                 structure=self.structure.copy(),
-                potential_dataframe=self.df_pot_selected
+                potential_dataframe=self.df_pot_selected,
             )
 
             # Calculate Elastic Constants
@@ -155,7 +153,7 @@ class TestEquationOfState(unittest.TestCase):
     def setUpClass(cls):
         count_lst = [22, 22, 22, 21, 21]
         element_lst = ["Fe", "Ni", "Cr", "Co", "Cu"]
-        potential = '2021--Deluigi-O-R--Fe-Ni-Cr-Co-Cu--LAMMPS--ipr1'
+        potential = "2021--Deluigi-O-R--Fe-Ni-Cr-Co-Cu--LAMMPS--ipr1"
         resource_path = os.path.join(os.path.dirname(__file__), "static")
 
         # Generate SQS Structure
@@ -170,8 +168,7 @@ class TestEquationOfState(unittest.TestCase):
 
         # Select potential
         df_pot = pyr.get_potential_dataframe(
-            structure=structure,
-            resource_path=resource_path
+            structure=structure, resource_path=resource_path
         )
 
         # Assign variable
@@ -192,7 +189,7 @@ class TestEquationOfState(unittest.TestCase):
         structure_opt = pyr.optimize_structure(
             lmp=lmp,
             structure=self.structure.copy(),
-            potential_dataframe=self.df_pot_selected
+            potential_dataframe=self.df_pot_selected,
         )
         self.assertEqual(len(structure_opt), sum(self.count_lst))
 
@@ -221,7 +218,7 @@ class TestEquationOfState(unittest.TestCase):
         structure_opt = pyr.optimize_structure(
             lmp=lmp,
             structure=self.structure.copy(),
-            potential_dataframe=self.df_pot_selected
+            potential_dataframe=self.df_pot_selected,
         )
         self.assertEqual(len(structure_opt), sum(self.count_lst))
 
@@ -250,7 +247,7 @@ class TestEquationOfState(unittest.TestCase):
         structure_opt = pyr.optimize_structure(
             lmp=lmp,
             structure=self.structure.copy(),
-            potential_dataframe=self.df_pot_selected
+            potential_dataframe=self.df_pot_selected,
         )
         self.assertEqual(len(structure_opt), sum(self.count_lst))
 
@@ -279,7 +276,7 @@ class TestEquationOfState(unittest.TestCase):
         structure_opt = pyr.optimize_structure(
             lmp=lmp,
             structure=self.structure.copy(),
-            potential_dataframe=self.df_pot_selected
+            potential_dataframe=self.df_pot_selected,
         )
         self.assertEqual(len(structure_opt), sum(self.count_lst))
 
@@ -308,7 +305,7 @@ class TestEquationOfState(unittest.TestCase):
         structure_opt = pyr.optimize_structure(
             lmp=lmp,
             structure=self.structure.copy(),
-            potential_dataframe=self.df_pot_selected
+            potential_dataframe=self.df_pot_selected,
         )
         self.assertEqual(len(structure_opt), sum(self.count_lst))
 
@@ -330,5 +327,5 @@ class TestEquationOfState(unittest.TestCase):
         lmp.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
