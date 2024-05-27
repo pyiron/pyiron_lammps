@@ -2,7 +2,7 @@ channels:
 - conda-forge
 dependencies:
 - ase =3.22.1
-- atomistics =0.1.27
+- atomistics =0.1.28
 - lammps =2024.02.07=*_mpi_mpich_*
 - mpich
 - numpy =1.26.4
