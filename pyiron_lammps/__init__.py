@@ -1,14 +1,19 @@
-from . import _version
 from atomistics.calculators.lammps import (
     get_potential_dataframe,
 )
 from pylammpsmpi import LammpsASELibrary
+
 from pyiron_lammps.parallel import (
-    optimize_structure_parallel as optimize_structure,
     calculate_elastic_constants_parallel as calculate_elastic_constants,
+)
+from pyiron_lammps.parallel import (
     calculate_energy_volume_curve_parallel as calculate_energy_volume_curve,
 )
+from pyiron_lammps.parallel import (
+    optimize_structure_parallel as optimize_structure,
+)
 
+from . import _version
 
 __all__ = [
     get_potential_dataframe,
