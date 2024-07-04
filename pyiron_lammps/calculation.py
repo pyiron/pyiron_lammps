@@ -1,10 +1,11 @@
-from pyiron_lammps.decorator import calculation
+from atomistics.calculators import evaluate_with_lammps_library
 from atomistics.workflows import (
     ElasticMatrixWorkflow,
     EnergyVolumeCurveWorkflow,
     optimize_positions_and_volume,
 )
-from atomistics.calculators import evaluate_with_lammps_library
+
+from pyiron_lammps.decorator import calculation
 
 
 def _optimize_structure_optional(

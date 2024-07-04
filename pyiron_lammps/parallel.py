@@ -4,9 +4,9 @@ from pandas import DataFrame, Series
 from pylammpsmpi import LammpsASELibrary
 
 from pyiron_lammps.calculation import (
-    optimize_structure,
     calculate_elastic_constants,
     calculate_energy_volume_curve,
+    optimize_structure,
 )
 
 
