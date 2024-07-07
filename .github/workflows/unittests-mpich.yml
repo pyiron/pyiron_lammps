@@ -16,18 +16,14 @@ jobs:
         include:
         - operating-system: macos-latest
           python-version: '3.12'
-          label: osx-64-py-3-12
-          prefix: /Users/runner/miniconda3/envs/my-env
 
         - operating-system: ubuntu-latest
           python-version: '3.12'
-          label: linux-64-py-3-12
-          prefix: /usr/share/miniconda3/envs/my-env
 
     steps:
     - uses: actions/checkout@v4
     - name: Setup Mambaforge
-      uses: conda-incubator/setup-miniconda@v2
+      uses: conda-incubator/setup-miniconda@v3
       with:
         python-version: ${{ matrix.python-version }}
         miniforge-variant: Mambaforge
