@@ -3,7 +3,7 @@ import unittest
 from ase.build import bulk
 import pyiron_lammps as pyr
 import structuretoolkit as stk
-from pympipool import Executor
+from executorlib import Executor
 
 
 def validate_fitdict(fit_dict):
