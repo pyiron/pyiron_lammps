@@ -5,7 +5,7 @@ dependencies:
 - atomistics =0.1.31
 - lammps =2024.06.27=*_mpi_mpich_*
 - mpich =4.2.2
-- numpy =1.26.4
+- numpy =2.0.1
 - pandas =2.2.2
 - jinja2 =3.1.4
 - executorlib =0.0.1
