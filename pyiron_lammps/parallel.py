@@ -1,3 +1,6 @@
+from concurrent.futures import Executor
+from typing import Any, Callable, List, Optional, Tuple, Union
+
 import numpy as np
 from ase.atoms import Atoms
 from pandas import DataFrame, Series
@@ -10,7 +13,17 @@ from pyiron_lammps.calculation import (
 )
 
 
-def _get_lammps_mpi(enable_mpi=True):
+def _get_lammps_mpi(enable_mpi: bool = True) -> LammpsASELibrary:
+    """
+    Get an instance of LammpsASELibrary for parallel execution using MPI.
+
+    Args:
+        enable_mpi (bool): Flag to enable MPI. Default is True.
+
+    Returns:
+        LammpsASELibrary: An instance of LammpsASELibrary.
+
+    """
     if enable_mpi:
         # To get the right instance of MPI.COMM_SELF it is necessary to import it inside the function.
         from mpi4py import MPI
@@ -36,7 +49,28 @@ def _get_lammps_mpi(enable_mpi=True):
         )
 
 
-def _parallel_execution(function, input_parameter_lst, lmp=None, executor=None):
+def _parallel_execution(
+    function: Callable[..., Any],
+    input_parameter_lst: List[List[Any]],
+    lmp: Optional[LammpsASELibrary] = None,
+    executor: Optional[Executor] = None,
+) -> List[Any]:
+    """
+    Execute a function in parallel using either a provided executor or the default executor.
+
+    Args:
+        function (Callable): The function to be executed in parallel.
+        input_parameter_lst (List[List[Any]]): A list of input parameters for each function call.
+        lmp (Optional[LammpsASELibrary]): An optional instance of LammpsASELibrary for serial execution.
+        executor (Optional[Executor]): An optional executor for parallel execution.
+
+    Returns:
+        List[Any]: A list of results from each function call.
+
+    Raises:
+        ValueError: If the external LAMMPS instance is provided for parallel execution.
+        ValueError: If the number of cores is not a positive integer.
+    """
     if executor is None:
         return [
             function(input_parameter=input_parameter + [False, lmp])
@@ -60,7 +94,21 @@ def _parallel_execution(function, input_parameter_lst, lmp=None, executor=None):
         raise ValueError("The number of cores has to be a positive integer.")
 
 
-def _optimize_structure_serial(input_parameter):
+def _optimize_structure_serial(
+    input_parameter: Tuple[
+        Atoms, Union[List[DataFrame], DataFrame], bool, Optional[LammpsASELibrary]
+    ],
+) -> Any:
+    """
+    Optimize the structure using serial execution.
+
+    Args:
+        input_parameter (Tuple[Atoms, Union[List[DataFrame], DataFrame], bool, Optional[LammpsASELibrary]]): The input parameters for optimization.
+
+    Returns:
+        Any: The result of the optimization.
+
+    """
     structure, potential_dataframe, enable_mpi, lmp = input_parameter
     if lmp is None:
         return optimize_structure(
@@ -76,7 +124,29 @@ def _optimize_structure_serial(input_parameter):
         )
 
 
-def _calculate_elastic_constants_serial(input_parameter):
+def _calculate_elastic_constants_serial(
+    input_parameter: Tuple[
+        Atoms,
+        Union[List[DataFrame], DataFrame],
+        int,
+        float,
+        bool,
+        int,
+        bool,
+        bool,
+        Optional[LammpsASELibrary],
+    ],
+) -> Any:
+    """
+    Calculate the elastic constants using serial execution.
+
+    Args:
+        input_parameter (Tuple[Atoms, Union[List[DataFrame], DataFrame], int, float, bool, int, bool, bool, Optional[LammpsASELibrary]]): The input parameters for calculating elastic constants.
+
+    Returns:
+        Any: The result of calculating elastic constants.
+
+    """
     (
         structure,
         potential_dataframe,
@@ -112,7 +182,31 @@ def _calculate_elastic_constants_serial(input_parameter):
         )
 
 
-def _calculate_energy_volume_curve_serial(input_parameter):
+def _calculate_energy_volume_curve_serial(
+    input_parameter: Tuple[
+        Atoms,
+        Union[List[DataFrame], DataFrame],
+        int,
+        str,
+        int,
+        float,
+        Tuple[str, str, str],
+        Optional[List[float]],
+        bool,
+        bool,
+        Optional[LammpsASELibrary],
+    ],
+) -> Any:
+    """
+    Calculate the energy volume curve using serial execution.
+
+    Args:
+        input_parameter (Tuple[Atoms, Union[List[DataFrame], DataFrame], int, str, int, float, Tuple[str, str, str], Optional[List[float]], bool, bool, Optional[LammpsASELibrary]]): The input parameters for calculating the energy volume curve.
+
+    Returns:
+        Any: The result of calculating the energy volume curve.
+
+    """
     (
         structure,
         potential_dataframe,
@@ -155,8 +249,24 @@ def _calculate_energy_volume_curve_serial(input_parameter):
 
 
 def optimize_structure_parallel(
-    structure, potential_dataframe, lmp=None, executor=None
-):
+    structure: Any,
+    potential_dataframe: Union[List[DataFrame], DataFrame],
+    lmp: Optional[LammpsASELibrary] = None,
+    executor: Optional[Executor] = None,
+) -> Union[Any, List[Any]]:
+    """
+    Optimize the structure in parallel using either a provided executor or the default executor.
+
+    Args:
+        structure (Any): The structure to be optimized.
+        potential_dataframe (Union[List[DataFrame], DataFrame]): The potential dataframe.
+        lmp (Optional[LammpsASELibrary]): An optional instance of LammpsASELibrary for serial execution.
+        executor (Optional[Executor]): An optional executor for parallel execution.
+
+    Returns:
+        Union[Any, List[Any]]: The result of the optimization.
+
+    """
     input_parameter_lst, output_as_lst = combine_structure_and_potential(
         structure=structure, potential_dataframe=potential_dataframe
     )
@@ -177,16 +287,34 @@ def optimize_structure_parallel(
 
 
 def calculate_elastic_constants_parallel(
-    structure,
-    potential_dataframe,
-    num_of_point=5,
-    eps_range=0.005,
-    sqrt_eta=True,
-    fit_order=2,
-    minimization_activated=False,
-    executor=None,
-    lmp=None,
-):
+    structure: Any,
+    potential_dataframe: Union[List[DataFrame], DataFrame],
+    num_of_point: int = 5,
+    eps_range: float = 0.005,
+    sqrt_eta: bool = True,
+    fit_order: int = 2,
+    minimization_activated: bool = False,
+    executor: Optional[Executor] = None,
+    lmp: Optional[LammpsASELibrary] = None,
+) -> Union[Any, List[Any]]:
+    """
+    Calculate the elastic constants in parallel using either a provided executor or the default executor.
+
+    Args:
+        structure (Any): The structure for calculating elastic constants.
+        potential_dataframe (Union[List[DataFrame], DataFrame]): The potential dataframe.
+        num_of_point (int): The number of points for calculating elastic constants.
+        eps_range (float): The range of strain for calculating elastic constants.
+        sqrt_eta (bool): Whether to take the square root of eta for calculating elastic constants.
+        fit_order (int): The order of polynomial fit for calculating elastic constants.
+        minimization_activated (bool): Whether to activate minimization for calculating elastic constants.
+        executor (Optional[Executor]): An optional executor for parallel execution.
+        lmp (Optional[LammpsASELibrary]): An optional instance of LammpsASELibrary for serial execution.
+
+    Returns:
+        Union[Any, List[Any]]: The result of calculating the elastic constants.
+
+    """
     combo_lst, output_as_lst = combine_structure_and_potential(
         structure=structure, potential_dataframe=potential_dataframe
     )
@@ -219,18 +347,38 @@ def calculate_elastic_constants_parallel(
 
 
 def calculate_energy_volume_curve_parallel(
-    structure,
-    potential_dataframe,
-    num_points=11,
-    fit_type="polynomial",
-    fit_order=3,
-    vol_range=0.05,
-    axes=("x", "y", "z"),
-    strains=None,
-    minimization_activated=False,
-    executor=None,
-    lmp=None,
-):
+    structure: Any,
+    potential_dataframe: Union[List[DataFrame], DataFrame],
+    num_points: int = 11,
+    fit_type: str = "polynomial",
+    fit_order: int = 3,
+    vol_range: float = 0.05,
+    axes: Tuple[str, str, str] = ("x", "y", "z"),
+    strains: Optional[List[float]] = None,
+    minimization_activated: bool = False,
+    executor: Optional[Executor] = None,
+    lmp: Optional[LammpsASELibrary] = None,
+) -> Union[Any, List[Any]]:
+    """
+    Calculate the energy volume curve in parallel using either a provided executor or the default executor.
+
+    Args:
+        structure (Any): The structure for calculating the energy volume curve.
+        potential_dataframe (Union[List[DataFrame], DataFrame]): The potential dataframe.
+        num_points (int): The number of points for calculating the energy volume curve.
+        fit_type (str): The type of fit for calculating the energy volume curve.
+        fit_order (int): The order of polynomial fit for calculating the energy volume curve.
+        vol_range (float): The range of volume for calculating the energy volume curve.
+        axes (Tuple[str, str, str]): The axes for calculating the energy volume curve.
+        strains (Optional[List[float]]): The strains for calculating the energy volume curve.
+        minimization_activated (bool): Whether to activate minimization for calculating the energy volume curve.
+        executor (Optional[Executor]): An optional executor for parallel execution.
+        lmp (Optional[LammpsASELibrary]): An optional instance of LammpsASELibrary for serial execution.
+
+    Returns:
+        Union[Any, List[Any]]: The result of calculating the energy volume curve.
+
+    """
     combo_lst, output_as_lst = combine_structure_and_potential(
         structure=structure, potential_dataframe=potential_dataframe
     )
@@ -264,7 +412,25 @@ def calculate_energy_volume_curve_parallel(
         )[0]
 
 
-def combine_structure_and_potential(structure, potential_dataframe):
+def combine_structure_and_potential(
+    structure: Union[List[Atoms], np.ndarray],
+    potential_dataframe: Union[List[DataFrame], DataFrame, Series],
+) -> Tuple[List[List[Any]], bool]:
+    """
+    Combine the structure and potential dataframe into a list of input parameters.
+
+    Args:
+        structure (Union[List[Atoms], np.ndarray]): The structure to be combined.
+        potential_dataframe (Union[List[DataFrame], DataFrame, Series]): The potential dataframe to be combined.
+
+    Returns:
+        Tuple[List[List[Any]], bool]: The combined input parameters and a flag indicating if the output should be a list.
+
+    Raises:
+        ValueError: If the length of structure and potential_dataframe is not equal.
+        TypeError: If the types of structure and potential_dataframe are not valid.
+
+    """
     if isinstance(structure, (list, np.ndarray)):
         if isinstance(potential_dataframe, (list, np.ndarray)):
             if len(structure) == len(potential_dataframe):
@@ -277,7 +443,7 @@ def combine_structure_and_potential(structure, potential_dataframe):
             return [[s, potential_dataframe] for s in structure], True
         else:
             raise TypeError(
-                "potential_dataframe should either be an pandas.DataFrame object or a list of those. "
+                "potential_dataframe should either be a pandas.DataFrame object or a list of those. "
             )
     elif isinstance(structure, Atoms):
         if isinstance(potential_dataframe, (list, np.ndarray)):
@@ -286,7 +452,7 @@ def combine_structure_and_potential(structure, potential_dataframe):
             return [[structure, potential_dataframe]], False
         else:
             raise TypeError(
-                "potential_dataframe should either be an pandas.DataFrame object or a list of those. "
+                "potential_dataframe should either be a pandas.DataFrame object or a list of those. "
             )
     else:
         raise TypeError(
