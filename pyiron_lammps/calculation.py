@@ -1,12 +1,12 @@
 from typing import Any, Dict, List, Optional, Tuple
 
+import numpy as np
 from atomistics.calculators import evaluate_with_lammps_library
 from atomistics.workflows import (
     ElasticMatrixWorkflow,
     EnergyVolumeCurveWorkflow,
     optimize_positions_and_volume,
 )
-import numpy as np
 
 from pyiron_lammps.decorator import calculation
 
