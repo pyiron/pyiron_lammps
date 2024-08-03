@@ -53,7 +53,7 @@ def _parallel_execution(
     function: Callable[..., Any],
     input_parameter_lst: List[List[Any]],
     lmp: Optional[LammpsASELibrary] = None,
-    executor: Optional[Executor] = None
+    executor: Optional[Executor] = None,
 ) -> List[Any]:
     """
     Execute a function in parallel using either a provided executor or the default executor.
@@ -94,7 +94,11 @@ def _parallel_execution(
         raise ValueError("The number of cores has to be a positive integer.")
 
 
-def _optimize_structure_serial(input_parameter: Tuple[Atoms, Union[List[DataFrame], DataFrame], bool, Optional[LammpsASELibrary]]) -> Any:
+def _optimize_structure_serial(
+    input_parameter: Tuple[
+        Atoms, Union[List[DataFrame], DataFrame], bool, Optional[LammpsASELibrary]
+    ],
+) -> Any:
     """
     Optimize the structure using serial execution.
 
@@ -120,7 +124,19 @@ def _optimize_structure_serial(input_parameter: Tuple[Atoms, Union[List[DataFram
         )
 
 
-def _calculate_elastic_constants_serial(input_parameter: Tuple[Atoms, Union[List[DataFrame], DataFrame], int, float, bool, int, bool, bool, Optional[LammpsASELibrary]]) -> Any:
+def _calculate_elastic_constants_serial(
+    input_parameter: Tuple[
+        Atoms,
+        Union[List[DataFrame], DataFrame],
+        int,
+        float,
+        bool,
+        int,
+        bool,
+        bool,
+        Optional[LammpsASELibrary],
+    ],
+) -> Any:
     """
     Calculate the elastic constants using serial execution.
 
@@ -166,7 +182,21 @@ def _calculate_elastic_constants_serial(input_parameter: Tuple[Atoms, Union[List
         )
 
 
-def _calculate_energy_volume_curve_serial(input_parameter: Tuple[Atoms, Union[List[DataFrame], DataFrame], int, str, int, float, Tuple[str, str, str], Optional[List[float]], bool, bool, Optional[LammpsASELibrary]]) -> Any:
+def _calculate_energy_volume_curve_serial(
+    input_parameter: Tuple[
+        Atoms,
+        Union[List[DataFrame], DataFrame],
+        int,
+        str,
+        int,
+        float,
+        Tuple[str, str, str],
+        Optional[List[float]],
+        bool,
+        bool,
+        Optional[LammpsASELibrary],
+    ],
+) -> Any:
     """
     Calculate the energy volume curve using serial execution.
 
@@ -222,7 +252,7 @@ def optimize_structure_parallel(
     structure: Any,
     potential_dataframe: Union[List[DataFrame], DataFrame],
     lmp: Optional[LammpsASELibrary] = None,
-    executor: Optional[Executor] = None
+    executor: Optional[Executor] = None,
 ) -> Union[Any, List[Any]]:
     """
     Optimize the structure in parallel using either a provided executor or the default executor.
@@ -382,7 +412,10 @@ def calculate_energy_volume_curve_parallel(
         )[0]
 
 
-def combine_structure_and_potential(structure: Union[List[Atoms], np.ndarray], potential_dataframe: Union[List[DataFrame], DataFrame, Series]) -> Tuple[List[List[Any]], bool]:
+def combine_structure_and_potential(
+    structure: Union[List[Atoms], np.ndarray],
+    potential_dataframe: Union[List[DataFrame], DataFrame, Series],
+) -> Tuple[List[List[Any]], bool]:
     """
     Combine the structure and potential dataframe into a list of input parameters.
 
