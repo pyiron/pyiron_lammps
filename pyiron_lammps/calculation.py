@@ -6,6 +6,7 @@ from atomistics.workflows import (
     EnergyVolumeCurveWorkflow,
     optimize_positions_and_volume,
 )
+import numpy as np
 
 from pyiron_lammps.decorator import calculation
 
