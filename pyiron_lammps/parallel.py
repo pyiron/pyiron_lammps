@@ -35,7 +35,7 @@ def _get_lammps_mpi(enable_mpi: bool = True) -> LammpsASELibrary:
             logger=None,
             log_file=None,
             library=None,
-            diable_log_file=True,
+            disable_log_file=True,
         )
     else:
         return LammpsASELibrary(
@@ -45,7 +45,7 @@ def _get_lammps_mpi(enable_mpi: bool = True) -> LammpsASELibrary:
             logger=None,
             log_file=None,
             library=None,
-            diable_log_file=True,
+            disable_log_file=True,
         )
 
 
