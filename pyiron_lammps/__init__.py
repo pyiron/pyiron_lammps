@@ -30,7 +30,7 @@ def get_lammps_engine(
     logger=None,
     log_file=None,
     library=None,
-    diable_log_file=True,
+    disable_log_file=True,
 ):
     return LammpsASELibrary(
         working_directory=working_directory,
@@ -39,7 +39,7 @@ def get_lammps_engine(
         logger=logger,
         log_file=log_file,
         library=library,
-        diable_log_file=diable_log_file,
+        disable_log_file=disable_log_file,
     )
 
 
