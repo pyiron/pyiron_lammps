@@ -12,4 +12,4 @@ dependencies:
 - executorlib =0.0.2
 - pylammpsmpi =0.2.25
 - sqsgenerator =0.3
-- structuretoolkit =0.0.25
+- structuretoolkit =0.0.28
