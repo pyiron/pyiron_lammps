@@ -24,19 +24,14 @@ jobs:
     - uses: conda-incubator/setup-miniconda@v3
       with:
         python-version: "3.12"
-        mamba-version: "*"
-        channels: conda-forge
-        miniforge-variant: Mambaforge
-        channel-priority: strict
-        auto-update-conda: true
+        miniforge-version: latest
+        condarc-file: .condarc
         environment-file: .ci_support/environment-openmpi.yml
-    - name: Convert dependencies
-      run: |
-        cp .ci_support/environment-old.yml environment.yml
-        python .ci_support/release.py; cat pyproject.toml
     - name: Build
       shell: bash -l {0}
       run: |
+        cp .ci_support/environment-old.yml environment.yml
+        python .ci_support/release.py; cat pyproject.toml
         pip install versioneer[toml]==0.29
         python setup.py sdist bdist_wheel
     - name: Publish distribution 📦 to PyPI
