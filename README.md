@@ -4,12 +4,12 @@
 [![Coverage Status](https://coveralls.io/repos/github/pyiron/pyiron_lammps/badge.svg?branch=main)](https://coveralls.io/github/pyiron/pyiron_lammps?branch=main)
 
 ## Disclaimer
-The `pyiron_lammps` package is under development. 
+The `pyiron_lammps` package is archived - please use the [atomistics](https://github.com/pyiron/atomistics) package instead.  
 
 ## Idea
 * The `pyiron_lammps` package is designed to calculate concentration dependent material properties, like the elastic constants, energy-volume curves and phonons for interatomic potentials. 
 * It uses `mpi4py` for parallel execution, does not write any files to the file system and does not use any database. With this combination is it one order of magnitude faster than competing software packages for evaluating material properties for interatomic potentials. 
-* In contrast to all other `pyiron_*` packages, `pyiron_lammps` does not depent on `pyiron_base`. Overall the dependencies are designed to be minimal. 
+* In contrast to all other `pyiron_*` packages, `pyiron_lammps` does not depend on `pyiron_base`. Overall the dependencies are designed to be minimal. 
 
 ## Example
 ```python
