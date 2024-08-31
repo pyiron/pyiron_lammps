@@ -285,21 +285,20 @@ def calculate_elastic_constants_parallel(
     combo_lst, output_as_lst = combine_structure_and_potential(
         structure=structure, potential_dataframe=potential_dataframe
     )
-    input_parameter_lst = [
-        [
-            s,
-            p,
-            num_of_point,
-            eps_range,
-            sqrt_eta,
-            fit_order,
-            minimization_activated,
-        ]
-        for s, p in combo_lst
-    ]
     return _parallel_execution(
         function=_calculate_elastic_constants_serial,
-        input_parameter_lst=input_parameter_lst,
+        input_parameter_lst=[
+            [
+                s,
+                p,
+                num_of_point,
+                eps_range,
+                sqrt_eta,
+                fit_order,
+                minimization_activated,
+            ]
+            for s, p in combo_lst
+        ],
         executor=executor,
         lmp=lmp,
         output_as_lst=output_as_lst,
@@ -342,23 +341,22 @@ def calculate_energy_volume_curve_parallel(
     combo_lst, output_as_lst = combine_structure_and_potential(
         structure=structure, potential_dataframe=potential_dataframe
     )
-    input_parameter_lst = [
-        [
-            s,
-            p,
-            num_points,
-            fit_type,
-            fit_order,
-            vol_range,
-            axes,
-            strains,
-            minimization_activated,
-        ]
-        for s, p in combo_lst
-    ]
     return _parallel_execution(
         function=_calculate_energy_volume_curve_serial,
-        input_parameter_lst=input_parameter_lst,
+        input_parameter_lst=[
+            [
+                s,
+                p,
+                num_points,
+                fit_type,
+                fit_order,
+                vol_range,
+                axes,
+                strains,
+                minimization_activated,
+            ]
+            for s, p in combo_lst
+        ],
         executor=executor,
         lmp=lmp,
         output_as_lst=output_as_lst,
