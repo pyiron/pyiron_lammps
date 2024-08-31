@@ -1,24 +1,56 @@
 from concurrent.futures import Executor, Future
-from typing import Any, Callable, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-import numpy as np
 from ase.atoms import Atoms
-from pandas import DataFrame, Series
-from pylammpsmpi import LammpsASELibrary
-
-from pyiron_lammps.calculation import (
-    calculate_elastic_constants,
-    calculate_energy_volume_curve,
-    optimize_structure,
+from atomistics.calculators import evaluate_with_lammps_library
+from atomistics.workflows import (
+    ElasticMatrixWorkflow,
+    EnergyVolumeCurveWorkflow,
+    optimize_positions_and_volume,
 )
+from pandas import DataFrame, Series
+import numpy as np
+from pylammpsmpi import LammpsASELibrary
 
 
 class InProcessExecutor:
     @staticmethod
-    def submit(funct, *args, **kwargs):
+    def submit(funct: Callable, *args, **kwargs):
         f = Future()
         f.set_result(funct(*args, **kwargs))
         return f
+
+
+def _get_lmp(lmp: Optional[LammpsASELibrary] = None, enable_mpi: bool = False) -> Tuple[LammpsASELibrary, bool]:
+    # Create temporary LAMMPS instance if necessary
+    if lmp is None:
+        close_lmp_after_calculation = True
+        if enable_mpi:
+            # To get the right instance of MPI.COMM_SELF it is necessary to import it inside the function.
+            from mpi4py import MPI
+
+            lmp = LammpsASELibrary(
+                working_directory=None,
+                cores=1,
+                comm=MPI.COMM_SELF,
+                logger=None,
+                log_file=None,
+                library=None,
+                disable_log_file=True,
+            )
+        else:
+            lmp = LammpsASELibrary(
+                working_directory=None,
+                cores=1,
+                comm=None,
+                logger=None,
+                log_file=None,
+                library=None,
+                disable_log_file=True,
+            )
+    else:
+        close_lmp_after_calculation = False
+    return lmp, close_lmp_after_calculation
 
 
 def _check_mpi(
@@ -37,44 +69,193 @@ def _check_mpi(
     return enable_mpi, lmp
 
 
-def _get_lammps_mpi(
-    lmp: Optional[LammpsASELibrary] = None, enable_mpi: bool = True
-) -> LammpsASELibrary:
+def _optimize_structure_optional(
+    lmp: Optional[LammpsASELibrary], structure: Atoms, potential_dataframe: DataFrame, minimization_activated=True
+):
     """
-    Get an instance of LammpsASELibrary for parallel execution using MPI.
+    Optimize the structure using LAMMPS if minimization is activated, otherwise return the original structure.
 
     Args:
-        enable_mpi (bool): Flag to enable MPI. Default is True.
+        lmp (LammpsLibrary): The LAMMPS library object.
+        structure (Structure): The structure to be optimized.
+        potential_dataframe (pandas.DataFrame): The potential dataframe.
+        minimization_activated (bool, optional): Flag to activate minimization. Defaults to True.
 
     Returns:
-        LammpsASELibrary: An instance of LammpsASELibrary.
-
+        Structure: The optimized structure if minimization is activated, otherwise the original structure.
     """
-    if lmp is not None:
-        return lmp
-    elif enable_mpi:
-        # To get the right instance of MPI.COMM_SELF it is necessary to import it inside the function.
-        from mpi4py import MPI
-
-        return LammpsASELibrary(
-            working_directory=None,
-            cores=1,
-            comm=MPI.COMM_SELF,
-            logger=None,
-            log_file=None,
-            library=None,
-            disable_log_file=True,
+    if minimization_activated:
+        return optimize_structure(
+            lmp=lmp, structure=structure, potential_dataframe=potential_dataframe
         )
     else:
-        return LammpsASELibrary(
-            working_directory=None,
-            cores=1,
-            comm=None,
-            logger=None,
-            log_file=None,
-            library=None,
-            disable_log_file=True,
-        )
+        return structure
+
+
+def optimize_structure(lmp: Optional[LammpsASELibrary], structure: Atoms, potential_dataframe: DataFrame, enable_mpi: bool = False):
+    """
+    Optimize the structure by optimizing positions and volume using LAMMPS.
+
+    Args:
+        lmp (LammpsLibrary): The LAMMPS library object.
+        structure (Structure): The structure to be optimized.
+        potential_dataframe (pandas.DataFrame): The potential dataframe.
+        enable_mpi (bool): Flag to enable MPI. Default is False.
+
+    Returns:
+        Structure: The optimized structure with optimized positions and volume.
+    """
+    lmp, close_lmp_after_calculation = _get_lmp(lmp=lmp, enable_mpi=enable_mpi)
+    task_dict = optimize_positions_and_volume(structure=structure)
+    structure_copy = evaluate_with_lammps_library(
+        task_dict=task_dict,
+        potential_dataframe=potential_dataframe,
+        lmp=lmp,
+        lmp_optimizer_kwargs={},
+    )["structure_with_optimized_positions_and_volume"]
+
+    # clean memory
+    lmp.interactive_lib_command("clear")
+    if close_lmp_after_calculation:
+        lmp.close()
+    return structure_copy
+
+
+def calculate_elastic_constants(
+    lmp: Optional[LammpsASELibrary],
+    structure: Atoms,
+    potential_dataframe: DataFrame,
+    num_of_point: int = 5,
+    eps_range: float = 0.005,
+    sqrt_eta: bool = True,
+    fit_order: int = 2,
+    minimization_activated: bool = False,
+    enable_mpi: bool = False,
+) -> np.ndarray:
+    """
+    Calculate the elastic constants of a structure using LAMMPS.
+
+    Args:
+        lmp (LammpsLibrary): The LAMMPS library object.
+        structure (Structure): The structure to calculate the elastic constants for.
+        potential_dataframe (pandas.DataFrame): The potential dataframe.
+        num_of_point (int, optional): The number of strain points to use. Defaults to 5.
+        eps_range (float, optional): The range of strain to use. Defaults to 0.005.
+        sqrt_eta (bool, optional): Flag to use square root of eta. Defaults to True.
+        fit_order (int, optional): The order of the polynomial fit. Defaults to 2.
+        minimization_activated (bool, optional): Flag to activate minimization. Defaults to False.
+        enable_mpi (bool): Flag to enable MPI. Default is False.
+
+    Returns:
+        np.ndarray: The elastic constants matrix.
+    """
+    lmp, close_lmp_after_calculation = _get_lmp(lmp=lmp, enable_mpi=enable_mpi)
+
+    # Optimize structure
+    structure_opt = _optimize_structure_optional(
+        lmp=lmp,
+        structure=structure,
+        potential_dataframe=potential_dataframe,
+        minimization_activated=minimization_activated,
+    )
+
+    # Generate structures
+    calculator = ElasticMatrixWorkflow(
+        structure=structure_opt.copy(),
+        num_of_point=num_of_point,
+        eps_range=eps_range,
+        sqrt_eta=sqrt_eta,
+        fit_order=fit_order,
+    )
+    structure_dict = calculator.generate_structures()
+
+    # run calculation
+    energy_tot_lst = evaluate_with_lammps_library(
+        task_dict=structure_dict,
+        potential_dataframe=potential_dataframe,
+        lmp=lmp,
+        lmp_optimizer_kwargs={},
+    )
+
+    # fit
+    result_dict = calculator.analyse_structures(
+        output_dict=energy_tot_lst,
+        output_keys=("elastic_matrix",),
+    )
+
+    if close_lmp_after_calculation:
+        lmp.close()
+    return result_dict["elastic_matrix"]
+
+
+def calculate_energy_volume_curve(
+    lmp: Optional[LammpsASELibrary],
+    structure: Atoms,
+    potential_dataframe: DataFrame,
+    num_points: int = 11,
+    fit_type: str = "polynomial",
+    fit_order: int = 3,
+    vol_range: float = 0.05,
+    axes: Tuple[str, str, str] = ("x", "y", "z"),
+    strains: Optional[List[float]] = None,
+    minimization_activated: bool = False,
+    enable_mpi: bool = False,
+) -> Dict[str, Any]:
+    """
+    Calculate the energy-volume curve of a structure using LAMMPS.
+
+    Args:
+        lmp (LammpsLibrary): The LAMMPS library object.
+        structure (Structure): The structure to calculate the energy-volume curve for.
+        potential_dataframe (pandas.DataFrame): The potential dataframe.
+        num_points (int, optional): The number of volume points to use. Defaults to 11.
+        fit_type (str, optional): The type of fit to use. Defaults to "polynomial".
+        fit_order (int, optional): The order of the fit. Defaults to 3.
+        vol_range (float, optional): The range of volume to use. Defaults to 0.05.
+        axes (Tuple[str, str, str], optional): The axes to vary the volume along. Defaults to ("x", "y", "z").
+        strains (List[float], optional): The strains to apply to the structure. Defaults to None.
+        minimization_activated (bool, optional): Flag to activate minimization. Defaults to False.
+        enable_mpi (bool): Flag to enable MPI. Default is False.
+
+    Returns:
+        Dict[str, Any]: The fit results.
+    """
+    lmp, close_lmp_after_calculation = _get_lmp(lmp=lmp, enable_mpi=enable_mpi)
+
+    # Optimize structure
+    structure_opt = _optimize_structure_optional(
+        lmp=lmp,
+        structure=structure,
+        potential_dataframe=potential_dataframe,
+        minimization_activated=minimization_activated,
+    )
+
+    # Generate structures
+    calculator = EnergyVolumeCurveWorkflow(
+        structure=structure_opt.copy(),
+        num_points=num_points,
+        fit_type=fit_type,
+        fit_order=fit_order,
+        vol_range=vol_range,
+        axes=axes,
+        strains=strains,
+    )
+    structure_dict = calculator.generate_structures()
+
+    # run calculation
+    energy_tot_lst = evaluate_with_lammps_library(
+        task_dict=structure_dict,
+        potential_dataframe=potential_dataframe,
+        lmp=lmp,
+    )
+
+    # fit
+    calculator.analyse_structures(energy_tot_lst)
+
+    if close_lmp_after_calculation:
+        lmp.close()
+
+    return calculator.fit_dict
 
 
 def optimize_structure_parallel(
