@@ -12,7 +12,9 @@ def calculation(funct: callable) -> callable:
         callable: The wrapped function.
     """
 
-    def funct_return(lmp: LammpsASELibrary = None, enable_mpi: bool = False, *args, **kwargs) -> any:
+    def funct_return(
+        lmp: LammpsASELibrary = None, enable_mpi: bool = False, *args, **kwargs
+    ) -> any:
         """
         The wrapped function that manages the LAMMPS instance.
 

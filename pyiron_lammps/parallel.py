@@ -21,7 +21,9 @@ class InProcessExecutor:
         return f
 
 
-def _check_mpi(executor: Executor, lmp: LammpsASELibrary) -> Tuple[bool, Optional[LammpsASELibrary]]:
+def _check_mpi(
+    executor: Executor, lmp: LammpsASELibrary
+) -> Tuple[bool, Optional[LammpsASELibrary]]:
     if executor is None:
         enable_mpi = False
     elif executor is not None and lmp is None:
@@ -99,13 +101,19 @@ def optimize_structure_parallel(
     )
     enable_mpi, lmp = _check_mpi(executor=executor, lmp=lmp)
     input_parameter_dict = [
-        {"lmp":lmp, "enable_mpi": enable_mpi, "structure": struct, "potential_dataframe": pot}
+        {
+            "lmp": lmp,
+            "enable_mpi": enable_mpi,
+            "structure": struct,
+            "potential_dataframe": pot,
+        }
         for [struct, pot] in input_parameter_lst
     ]
     if executor is None:
         executor = InProcessExecutor()
     result_lst = [
-        fut.result() for fut in [
+        fut.result()
+        for fut in [
             executor.submit(optimize_structure, **kwargs)
             for kwargs in input_parameter_dict
         ]
@@ -151,7 +159,7 @@ def calculate_elastic_constants_parallel(
     enable_mpi, lmp = _check_mpi(executor=executor, lmp=lmp)
     input_parameter_dict = [
         {
-            "lmp":lmp,
+            "lmp": lmp,
             "enable_mpi": enable_mpi,
             "structure": struct,
             "potential_dataframe": pot,
@@ -166,7 +174,8 @@ def calculate_elastic_constants_parallel(
     if executor is None:
         executor = InProcessExecutor()
     result_lst = [
-        fut.result() for fut in [
+        fut.result()
+        for fut in [
             executor.submit(calculate_elastic_constants, **kwargs)
             for kwargs in input_parameter_dict
         ]
@@ -233,7 +242,8 @@ def calculate_energy_volume_curve_parallel(
     if executor is None:
         executor = InProcessExecutor()
     result_lst = [
-        fut.result() for fut in [
+        fut.result()
+        for fut in [
             executor.submit(calculate_energy_volume_curve, **kwargs)
             for kwargs in input_parameter_dict
         ]
