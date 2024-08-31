@@ -1,6 +1,7 @@
 from concurrent.futures import Executor, Future
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
+import numpy as np
 from ase.atoms import Atoms
 from atomistics.calculators import evaluate_with_lammps_library
 from atomistics.workflows import (
@@ -9,7 +10,6 @@ from atomistics.workflows import (
     optimize_positions_and_volume,
 )
 from pandas import DataFrame, Series
-import numpy as np
 from pylammpsmpi import LammpsASELibrary
 
 
@@ -21,7 +21,9 @@ class InProcessExecutor:
         return f
 
 
-def _get_lmp(lmp: Optional[LammpsASELibrary] = None, enable_mpi: bool = False) -> Tuple[LammpsASELibrary, bool]:
+def _get_lmp(
+    lmp: Optional[LammpsASELibrary] = None, enable_mpi: bool = False
+) -> Tuple[LammpsASELibrary, bool]:
     # Create temporary LAMMPS instance if necessary
     if lmp is None:
         close_lmp_after_calculation = True
@@ -70,7 +72,10 @@ def _check_mpi(
 
 
 def _optimize_structure_optional(
-    lmp: Optional[LammpsASELibrary], structure: Atoms, potential_dataframe: DataFrame, minimization_activated=True
+    lmp: Optional[LammpsASELibrary],
+    structure: Atoms,
+    potential_dataframe: DataFrame,
+    minimization_activated=True,
 ):
     """
     Optimize the structure using LAMMPS if minimization is activated, otherwise return the original structure.
@@ -92,7 +97,12 @@ def _optimize_structure_optional(
         return structure
 
 
-def optimize_structure(lmp: Optional[LammpsASELibrary], structure: Atoms, potential_dataframe: DataFrame, enable_mpi: bool = False):
+def optimize_structure(
+    lmp: Optional[LammpsASELibrary],
+    structure: Atoms,
+    potential_dataframe: DataFrame,
+    enable_mpi: bool = False,
+):
     """
     Optimize the structure by optimizing positions and volume using LAMMPS.
 
