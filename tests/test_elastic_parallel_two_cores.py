@@ -1,9 +1,9 @@
 import os
+from concurrent.futures import ProcessPoolExecutor
 import unittest
 from ase.build import bulk
 import pyiron_lammps as pyr
 import structuretoolkit as stk
-from executorlib import Executor
 
 
 def validate_elastic_constants(elastic_matrix):
@@ -54,7 +54,7 @@ class TestParallelTwoCores(unittest.TestCase):
         self.assertEqual(len(self.structure), sum(self.count_lst))
 
     def test_example_elastic_constants_parallel_cores_two(self):
-        with Executor(max_cores=2, hostname_localhost=True) as exe:
+        with ProcessPoolExecutor() as exe:
             structure_opt_lst = pyr.optimize_structure(
                 structure=[self.structure.copy()],
                 potential_dataframe=[self.df_pot_selected],
@@ -77,7 +77,7 @@ class TestParallelTwoCores(unittest.TestCase):
         self.assertTrue(all(validate_elastic_constants(elastic_matrix=elastic_matrix)))
 
     def test_example_elastic_constants_with_minimization_parallel_cores_two(self):
-        with Executor(max_cores=2, hostname_localhost=True) as exe:
+        with ProcessPoolExecutor() as exe:
             elastic_matrix = pyr.calculate_elastic_constants(
                 structure=[self.structure.copy()],
                 potential_dataframe=[self.df_pot_selected],
