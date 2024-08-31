@@ -13,7 +13,9 @@ from pyiron_lammps.calculation import (
 )
 
 
-def _get_lammps_mpi(lmp: Optional[LammpsASELibrary] = None, enable_mpi: bool = True) -> LammpsASELibrary:
+def _get_lammps_mpi(
+    lmp: Optional[LammpsASELibrary] = None, enable_mpi: bool = True
+) -> LammpsASELibrary:
     """
     Get an instance of LammpsASELibrary for parallel execution using MPI.
 
