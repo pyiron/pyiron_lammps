@@ -13,7 +13,7 @@ from pyiron_lammps.calculation import (
 )
 
 
-def _get_lammps_mpi(enable_mpi: bool = True) -> LammpsASELibrary:
+def _get_lammps_mpi(lmp: Optional[LammpsASELibrary] = None, enable_mpi: bool = True) -> LammpsASELibrary:
     """
     Get an instance of LammpsASELibrary for parallel execution using MPI.
 
@@ -24,7 +24,9 @@ def _get_lammps_mpi(enable_mpi: bool = True) -> LammpsASELibrary:
         LammpsASELibrary: An instance of LammpsASELibrary.
 
     """
-    if enable_mpi:
+    if lmp is not None:
+        return lmp
+    elif enable_mpi:
         # To get the right instance of MPI.COMM_SELF it is necessary to import it inside the function.
         from mpi4py import MPI
 
@@ -54,6 +56,7 @@ def _parallel_execution(
     input_parameter_lst: List[List[Any]],
     lmp: Optional[LammpsASELibrary] = None,
     executor: Optional[Executor] = None,
+    output_as_lst: bool = True,
 ) -> List[Any]:
     """
     Execute a function in parallel using either a provided executor or the default executor.
@@ -72,12 +75,12 @@ def _parallel_execution(
         ValueError: If the number of cores is not a positive integer.
     """
     if executor is None:
-        return [
+        output = [
             function(input_parameter=input_parameter + [False, lmp])
             for input_parameter in input_parameter_lst
         ]
     elif executor is not None and lmp is None:
-        return list(
+        output = list(
             executor.map(
                 function,
                 [
@@ -92,6 +95,10 @@ def _parallel_execution(
         )
     else:
         raise ValueError("The number of cores has to be a positive integer.")
+    if output_as_lst:
+        return output
+    else:
+        return output[0]
 
 
 def _optimize_structure_serial(
@@ -110,18 +117,11 @@ def _optimize_structure_serial(
 
     """
     structure, potential_dataframe, enable_mpi, lmp = input_parameter
-    if lmp is None:
-        return optimize_structure(
-            lmp=_get_lammps_mpi(enable_mpi=enable_mpi),
-            structure=structure,
-            potential_dataframe=potential_dataframe,
-        )
-    else:
-        return optimize_structure(
-            lmp=lmp,
-            structure=structure,
-            potential_dataframe=potential_dataframe,
-        )
+    return optimize_structure(
+        lmp=_get_lammps_mpi(lmp=lmp, enable_mpi=enable_mpi),
+        structure=structure,
+        potential_dataframe=potential_dataframe,
+    )
 
 
 def _calculate_elastic_constants_serial(
@@ -158,28 +158,16 @@ def _calculate_elastic_constants_serial(
         enable_mpi,
         lmp,
     ) = input_parameter
-    if lmp is None:
-        return calculate_elastic_constants(
-            lmp=_get_lammps_mpi(enable_mpi=enable_mpi),
-            structure=structure,
-            potential_dataframe=potential_dataframe,
-            num_of_point=num_of_point,
-            eps_range=eps_range,
-            sqrt_eta=sqrt_eta,
-            fit_order=fit_order,
-            minimization_activated=minimization_activated,
-        )
-    else:
-        return calculate_elastic_constants(
-            lmp=lmp,
-            structure=structure,
-            potential_dataframe=potential_dataframe,
-            num_of_point=num_of_point,
-            eps_range=eps_range,
-            sqrt_eta=sqrt_eta,
-            fit_order=fit_order,
-            minimization_activated=minimization_activated,
-        )
+    return calculate_elastic_constants(
+        lmp=_get_lammps_mpi(lmp=lmp, enable_mpi=enable_mpi),
+        structure=structure,
+        potential_dataframe=potential_dataframe,
+        num_of_point=num_of_point,
+        eps_range=eps_range,
+        sqrt_eta=sqrt_eta,
+        fit_order=fit_order,
+        minimization_activated=minimization_activated,
+    )
 
 
 def _calculate_energy_volume_curve_serial(
@@ -220,32 +208,18 @@ def _calculate_energy_volume_curve_serial(
         enable_mpi,
         lmp,
     ) = input_parameter
-    if lmp is None:
-        return calculate_energy_volume_curve(
-            lmp=_get_lammps_mpi(enable_mpi=enable_mpi),
-            structure=structure,
-            potential_dataframe=potential_dataframe,
-            num_points=num_points,
-            fit_type=fit_type,
-            fit_order=fit_order,
-            vol_range=vol_range,
-            axes=axes,
-            strains=strains,
-            minimization_activated=minimization_activated,
-        )
-    else:
-        return calculate_energy_volume_curve(
-            lmp=_get_lammps_mpi(enable_mpi=enable_mpi),
-            structure=structure,
-            potential_dataframe=potential_dataframe,
-            num_points=num_points,
-            fit_type=fit_type,
-            fit_order=fit_order,
-            vol_range=vol_range,
-            axes=axes,
-            strains=strains,
-            minimization_activated=minimization_activated,
-        )
+    return calculate_energy_volume_curve(
+        lmp=_get_lammps_mpi(lmp=lmp, enable_mpi=enable_mpi),
+        structure=structure,
+        potential_dataframe=potential_dataframe,
+        num_points=num_points,
+        fit_type=fit_type,
+        fit_order=fit_order,
+        vol_range=vol_range,
+        axes=axes,
+        strains=strains,
+        minimization_activated=minimization_activated,
+    )
 
 
 def optimize_structure_parallel(
@@ -270,20 +244,13 @@ def optimize_structure_parallel(
     input_parameter_lst, output_as_lst = combine_structure_and_potential(
         structure=structure, potential_dataframe=potential_dataframe
     )
-    if output_as_lst:
-        return _parallel_execution(
-            function=_optimize_structure_serial,
-            input_parameter_lst=input_parameter_lst,
-            lmp=lmp,
-            executor=executor,
-        )
-    else:
-        return _parallel_execution(
-            function=_optimize_structure_serial,
-            input_parameter_lst=input_parameter_lst,
-            lmp=lmp,
-            executor=executor,
-        )[0]
+    return _parallel_execution(
+        function=_optimize_structure_serial,
+        input_parameter_lst=input_parameter_lst,
+        lmp=lmp,
+        executor=executor,
+        output_as_lst=output_as_lst,
+    )
 
 
 def calculate_elastic_constants_parallel(
@@ -330,20 +297,13 @@ def calculate_elastic_constants_parallel(
         ]
         for s, p in combo_lst
     ]
-    if output_as_lst:
-        return _parallel_execution(
-            function=_calculate_elastic_constants_serial,
-            input_parameter_lst=input_parameter_lst,
-            executor=executor,
-            lmp=lmp,
-        )
-    else:
-        return _parallel_execution(
-            function=_calculate_elastic_constants_serial,
-            input_parameter_lst=input_parameter_lst,
-            executor=executor,
-            lmp=lmp,
-        )[0]
+    return _parallel_execution(
+        function=_calculate_elastic_constants_serial,
+        input_parameter_lst=input_parameter_lst,
+        executor=executor,
+        lmp=lmp,
+        output_as_lst=output_as_lst,
+    )
 
 
 def calculate_energy_volume_curve_parallel(
@@ -396,20 +356,13 @@ def calculate_energy_volume_curve_parallel(
         ]
         for s, p in combo_lst
     ]
-    if output_as_lst:
-        return _parallel_execution(
-            function=_calculate_energy_volume_curve_serial,
-            input_parameter_lst=input_parameter_lst,
-            executor=executor,
-            lmp=lmp,
-        )
-    else:
-        return _parallel_execution(
-            function=_calculate_energy_volume_curve_serial,
-            input_parameter_lst=input_parameter_lst,
-            executor=executor,
-            lmp=lmp,
-        )[0]
+    return _parallel_execution(
+        function=_calculate_energy_volume_curve_serial,
+        input_parameter_lst=input_parameter_lst,
+        executor=executor,
+        lmp=lmp,
+        output_as_lst=output_as_lst,
+    )
 
 
 def combine_structure_and_potential(
