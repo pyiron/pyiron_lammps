@@ -3,6 +3,7 @@ channels:
 dependencies:
 - ase =3.22.1
 - atomistics =0.1.21
+- executorlib =0.0.2
 - lammps =2022.06.23
 - numpy =1.26.0
 - openmpi
