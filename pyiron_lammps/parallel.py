@@ -1,227 +1,271 @@
-from concurrent.futures import Executor
-from typing import Any, Callable, List, Optional, Tuple, Union
+from concurrent.futures import Executor, Future
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 from ase.atoms import Atoms
+from atomistics.calculators import evaluate_with_lammps_library
+from atomistics.workflows import (
+    ElasticMatrixWorkflow,
+    EnergyVolumeCurveWorkflow,
+    optimize_positions_and_volume,
+)
 from pandas import DataFrame, Series
 from pylammpsmpi import LammpsASELibrary
 
-from pyiron_lammps.calculation import (
-    calculate_elastic_constants,
-    calculate_energy_volume_curve,
-    optimize_structure,
-)
+
+class InProcessExecutor:
+    @staticmethod
+    def submit(funct: Callable, *args, **kwargs):
+        f = Future()
+        f.set_result(funct(*args, **kwargs))
+        return f
 
 
-def _get_lammps_mpi(
-    lmp: Optional[LammpsASELibrary] = None, enable_mpi: bool = True
-) -> LammpsASELibrary:
-    """
-    Get an instance of LammpsASELibrary for parallel execution using MPI.
+def _get_lmp(
+    lmp: Optional[LammpsASELibrary] = None, enable_mpi: bool = False
+) -> Tuple[LammpsASELibrary, bool]:
+    # Create temporary LAMMPS instance if necessary
+    if lmp is None:
+        close_lmp_after_calculation = True
+        if enable_mpi:
+            # To get the right instance of MPI.COMM_SELF it is necessary to import it inside the function.
+            from mpi4py import MPI
 
-    Args:
-        enable_mpi (bool): Flag to enable MPI. Default is True.
-
-    Returns:
-        LammpsASELibrary: An instance of LammpsASELibrary.
-
-    """
-    if lmp is not None:
-        return lmp
-    elif enable_mpi:
-        # To get the right instance of MPI.COMM_SELF it is necessary to import it inside the function.
-        from mpi4py import MPI
-
-        return LammpsASELibrary(
-            working_directory=None,
-            cores=1,
-            comm=MPI.COMM_SELF,
-            logger=None,
-            log_file=None,
-            library=None,
-            disable_log_file=True,
-        )
-    else:
-        return LammpsASELibrary(
-            working_directory=None,
-            cores=1,
-            comm=None,
-            logger=None,
-            log_file=None,
-            library=None,
-            disable_log_file=True,
-        )
-
-
-def _parallel_execution(
-    function: Callable[..., Any],
-    input_parameter_lst: List[List[Any]],
-    lmp: Optional[LammpsASELibrary] = None,
-    executor: Optional[Executor] = None,
-    output_as_lst: bool = True,
-) -> List[Any]:
-    """
-    Execute a function in parallel using either a provided executor or the default executor.
-
-    Args:
-        function (Callable): The function to be executed in parallel.
-        input_parameter_lst (List[List[Any]]): A list of input parameters for each function call.
-        lmp (Optional[LammpsASELibrary]): An optional instance of LammpsASELibrary for serial execution.
-        executor (Optional[Executor]): An optional executor for parallel execution.
-
-    Returns:
-        List[Any]: A list of results from each function call.
-
-    Raises:
-        ValueError: If the external LAMMPS instance is provided for parallel execution.
-        ValueError: If the number of cores is not a positive integer.
-    """
-    if executor is None:
-        output = [
-            function(input_parameter=input_parameter + [False, lmp])
-            for input_parameter in input_parameter_lst
-        ]
-    elif executor is not None and lmp is None:
-        output = list(
-            executor.map(
-                function,
-                [
-                    input_parameter + [True, None]
-                    for input_parameter in input_parameter_lst
-                ],
+            lmp = LammpsASELibrary(
+                working_directory=None,
+                cores=1,
+                comm=MPI.COMM_SELF,
+                logger=None,
+                log_file=None,
+                library=None,
+                disable_log_file=True,
             )
-        )
+        else:
+            lmp = LammpsASELibrary(
+                working_directory=None,
+                cores=1,
+                comm=None,
+                logger=None,
+                log_file=None,
+                library=None,
+                disable_log_file=True,
+            )
+    else:
+        close_lmp_after_calculation = False
+    return lmp, close_lmp_after_calculation
+
+
+def _check_mpi(
+    executor: Executor, lmp: LammpsASELibrary
+) -> Tuple[bool, Optional[LammpsASELibrary]]:
+    if executor is None:
+        enable_mpi = False
+    elif executor is not None and lmp is None:
+        enable_mpi = True
     elif executor is not None and lmp is not None:
         raise ValueError(
             "The external LAMMPS instance can only be used for serial execution."
         )
     else:
         raise ValueError("The number of cores has to be a positive integer.")
-    if output_as_lst:
-        return output
-    else:
-        return output[0]
+    return enable_mpi, lmp
 
 
-def _optimize_structure_serial(
-    input_parameter: Tuple[
-        Atoms, Union[List[DataFrame], DataFrame], bool, Optional[LammpsASELibrary]
-    ],
-) -> Any:
+def _optimize_structure_optional(
+    lmp: Optional[LammpsASELibrary],
+    structure: Atoms,
+    potential_dataframe: DataFrame,
+    minimization_activated=True,
+):
     """
-    Optimize the structure using serial execution.
+    Optimize the structure using LAMMPS if minimization is activated, otherwise return the original structure.
 
     Args:
-        input_parameter (Tuple[Atoms, Union[List[DataFrame], DataFrame], bool, Optional[LammpsASELibrary]]): The input parameters for optimization.
+        lmp (LammpsLibrary): The LAMMPS library object.
+        structure (Structure): The structure to be optimized.
+        potential_dataframe (pandas.DataFrame): The potential dataframe.
+        minimization_activated (bool, optional): Flag to activate minimization. Defaults to True.
 
     Returns:
-        Any: The result of the optimization.
-
+        Structure: The optimized structure if minimization is activated, otherwise the original structure.
     """
-    structure, potential_dataframe, enable_mpi, lmp = input_parameter
-    return optimize_structure(
-        lmp=_get_lammps_mpi(lmp=lmp, enable_mpi=enable_mpi),
+    if minimization_activated:
+        return optimize_structure(
+            lmp=lmp, structure=structure, potential_dataframe=potential_dataframe
+        )
+    else:
+        return structure
+
+
+def optimize_structure(
+    lmp: Optional[LammpsASELibrary],
+    structure: Atoms,
+    potential_dataframe: DataFrame,
+    enable_mpi: bool = False,
+):
+    """
+    Optimize the structure by optimizing positions and volume using LAMMPS.
+
+    Args:
+        lmp (LammpsLibrary): The LAMMPS library object.
+        structure (Structure): The structure to be optimized.
+        potential_dataframe (pandas.DataFrame): The potential dataframe.
+        enable_mpi (bool): Flag to enable MPI. Default is False.
+
+    Returns:
+        Structure: The optimized structure with optimized positions and volume.
+    """
+    lmp, close_lmp_after_calculation = _get_lmp(lmp=lmp, enable_mpi=enable_mpi)
+    task_dict = optimize_positions_and_volume(structure=structure)
+    structure_copy = evaluate_with_lammps_library(
+        task_dict=task_dict,
+        potential_dataframe=potential_dataframe,
+        lmp=lmp,
+        lmp_optimizer_kwargs={},
+    )["structure_with_optimized_positions_and_volume"]
+
+    # clean memory
+    lmp.interactive_lib_command("clear")
+    if close_lmp_after_calculation:
+        lmp.close()
+    return structure_copy
+
+
+def calculate_elastic_constants(
+    lmp: Optional[LammpsASELibrary],
+    structure: Atoms,
+    potential_dataframe: DataFrame,
+    num_of_point: int = 5,
+    eps_range: float = 0.005,
+    sqrt_eta: bool = True,
+    fit_order: int = 2,
+    minimization_activated: bool = False,
+    enable_mpi: bool = False,
+) -> np.ndarray:
+    """
+    Calculate the elastic constants of a structure using LAMMPS.
+
+    Args:
+        lmp (LammpsLibrary): The LAMMPS library object.
+        structure (Structure): The structure to calculate the elastic constants for.
+        potential_dataframe (pandas.DataFrame): The potential dataframe.
+        num_of_point (int, optional): The number of strain points to use. Defaults to 5.
+        eps_range (float, optional): The range of strain to use. Defaults to 0.005.
+        sqrt_eta (bool, optional): Flag to use square root of eta. Defaults to True.
+        fit_order (int, optional): The order of the polynomial fit. Defaults to 2.
+        minimization_activated (bool, optional): Flag to activate minimization. Defaults to False.
+        enable_mpi (bool): Flag to enable MPI. Default is False.
+
+    Returns:
+        np.ndarray: The elastic constants matrix.
+    """
+    lmp, close_lmp_after_calculation = _get_lmp(lmp=lmp, enable_mpi=enable_mpi)
+
+    # Optimize structure
+    structure_opt = _optimize_structure_optional(
+        lmp=lmp,
         structure=structure,
         potential_dataframe=potential_dataframe,
+        minimization_activated=minimization_activated,
     )
 
-
-def _calculate_elastic_constants_serial(
-    input_parameter: Tuple[
-        Atoms,
-        Union[List[DataFrame], DataFrame],
-        int,
-        float,
-        bool,
-        int,
-        bool,
-        bool,
-        Optional[LammpsASELibrary],
-    ],
-) -> Any:
-    """
-    Calculate the elastic constants using serial execution.
-
-    Args:
-        input_parameter (Tuple[Atoms, Union[List[DataFrame], DataFrame], int, float, bool, int, bool, bool, Optional[LammpsASELibrary]]): The input parameters for calculating elastic constants.
-
-    Returns:
-        Any: The result of calculating elastic constants.
-
-    """
-    (
-        structure,
-        potential_dataframe,
-        num_of_point,
-        eps_range,
-        sqrt_eta,
-        fit_order,
-        minimization_activated,
-        enable_mpi,
-        lmp,
-    ) = input_parameter
-    return calculate_elastic_constants(
-        lmp=_get_lammps_mpi(lmp=lmp, enable_mpi=enable_mpi),
-        structure=structure,
-        potential_dataframe=potential_dataframe,
+    # Generate structures
+    calculator = ElasticMatrixWorkflow(
+        structure=structure_opt.copy(),
         num_of_point=num_of_point,
         eps_range=eps_range,
         sqrt_eta=sqrt_eta,
         fit_order=fit_order,
+    )
+    structure_dict = calculator.generate_structures()
+
+    # run calculation
+    energy_tot_lst = evaluate_with_lammps_library(
+        task_dict=structure_dict,
+        potential_dataframe=potential_dataframe,
+        lmp=lmp,
+        lmp_optimizer_kwargs={},
+    )
+
+    # fit
+    result_dict = calculator.analyse_structures(
+        output_dict=energy_tot_lst,
+        output_keys=("elastic_matrix",),
+    )
+
+    if close_lmp_after_calculation:
+        lmp.close()
+    return result_dict["elastic_matrix"]
+
+
+def calculate_energy_volume_curve(
+    lmp: Optional[LammpsASELibrary],
+    structure: Atoms,
+    potential_dataframe: DataFrame,
+    num_points: int = 11,
+    fit_type: str = "polynomial",
+    fit_order: int = 3,
+    vol_range: float = 0.05,
+    axes: Tuple[str, str, str] = ("x", "y", "z"),
+    strains: Optional[List[float]] = None,
+    minimization_activated: bool = False,
+    enable_mpi: bool = False,
+) -> Dict[str, Any]:
+    """
+    Calculate the energy-volume curve of a structure using LAMMPS.
+
+    Args:
+        lmp (LammpsLibrary): The LAMMPS library object.
+        structure (Structure): The structure to calculate the energy-volume curve for.
+        potential_dataframe (pandas.DataFrame): The potential dataframe.
+        num_points (int, optional): The number of volume points to use. Defaults to 11.
+        fit_type (str, optional): The type of fit to use. Defaults to "polynomial".
+        fit_order (int, optional): The order of the fit. Defaults to 3.
+        vol_range (float, optional): The range of volume to use. Defaults to 0.05.
+        axes (Tuple[str, str, str], optional): The axes to vary the volume along. Defaults to ("x", "y", "z").
+        strains (List[float], optional): The strains to apply to the structure. Defaults to None.
+        minimization_activated (bool, optional): Flag to activate minimization. Defaults to False.
+        enable_mpi (bool): Flag to enable MPI. Default is False.
+
+    Returns:
+        Dict[str, Any]: The fit results.
+    """
+    lmp, close_lmp_after_calculation = _get_lmp(lmp=lmp, enable_mpi=enable_mpi)
+
+    # Optimize structure
+    structure_opt = _optimize_structure_optional(
+        lmp=lmp,
+        structure=structure,
+        potential_dataframe=potential_dataframe,
         minimization_activated=minimization_activated,
     )
 
-
-def _calculate_energy_volume_curve_serial(
-    input_parameter: Tuple[
-        Atoms,
-        Union[List[DataFrame], DataFrame],
-        int,
-        str,
-        int,
-        float,
-        Tuple[str, str, str],
-        Optional[List[float]],
-        bool,
-        bool,
-        Optional[LammpsASELibrary],
-    ],
-) -> Any:
-    """
-    Calculate the energy volume curve using serial execution.
-
-    Args:
-        input_parameter (Tuple[Atoms, Union[List[DataFrame], DataFrame], int, str, int, float, Tuple[str, str, str], Optional[List[float]], bool, bool, Optional[LammpsASELibrary]]): The input parameters for calculating the energy volume curve.
-
-    Returns:
-        Any: The result of calculating the energy volume curve.
-
-    """
-    (
-        structure,
-        potential_dataframe,
-        num_points,
-        fit_type,
-        fit_order,
-        vol_range,
-        axes,
-        strains,
-        minimization_activated,
-        enable_mpi,
-        lmp,
-    ) = input_parameter
-    return calculate_energy_volume_curve(
-        lmp=_get_lammps_mpi(lmp=lmp, enable_mpi=enable_mpi),
-        structure=structure,
-        potential_dataframe=potential_dataframe,
+    # Generate structures
+    calculator = EnergyVolumeCurveWorkflow(
+        structure=structure_opt.copy(),
         num_points=num_points,
         fit_type=fit_type,
         fit_order=fit_order,
         vol_range=vol_range,
         axes=axes,
         strains=strains,
-        minimization_activated=minimization_activated,
     )
+    structure_dict = calculator.generate_structures()
+
+    # run calculation
+    energy_tot_lst = evaluate_with_lammps_library(
+        task_dict=structure_dict,
+        potential_dataframe=potential_dataframe,
+        lmp=lmp,
+    )
+
+    # fit
+    calculator.analyse_structures(energy_tot_lst)
+
+    if close_lmp_after_calculation:
+        lmp.close()
+
+    return calculator.fit_dict
 
 
 def optimize_structure_parallel(
@@ -246,13 +290,29 @@ def optimize_structure_parallel(
     input_parameter_lst, output_as_lst = combine_structure_and_potential(
         structure=structure, potential_dataframe=potential_dataframe
     )
-    return _parallel_execution(
-        function=_optimize_structure_serial,
-        input_parameter_lst=input_parameter_lst,
-        lmp=lmp,
-        executor=executor,
-        output_as_lst=output_as_lst,
-    )
+    enable_mpi, lmp = _check_mpi(executor=executor, lmp=lmp)
+    input_parameter_dict = [
+        {
+            "lmp": lmp,
+            "enable_mpi": enable_mpi,
+            "structure": struct,
+            "potential_dataframe": pot,
+        }
+        for [struct, pot] in input_parameter_lst
+    ]
+    if executor is None:
+        executor = InProcessExecutor()
+    result_lst = [
+        fut.result()
+        for fut in [
+            executor.submit(optimize_structure, **kwargs)
+            for kwargs in input_parameter_dict
+        ]
+    ]
+    if output_as_lst:
+        return result_lst
+    else:
+        return result_lst[0]
 
 
 def calculate_elastic_constants_parallel(
@@ -284,27 +344,37 @@ def calculate_elastic_constants_parallel(
         Union[Any, List[Any]]: The result of calculating the elastic constants.
 
     """
-    combo_lst, output_as_lst = combine_structure_and_potential(
+    input_parameter_lst, output_as_lst = combine_structure_and_potential(
         structure=structure, potential_dataframe=potential_dataframe
     )
-    return _parallel_execution(
-        function=_calculate_elastic_constants_serial,
-        input_parameter_lst=[
-            [
-                s,
-                p,
-                num_of_point,
-                eps_range,
-                sqrt_eta,
-                fit_order,
-                minimization_activated,
-            ]
-            for s, p in combo_lst
-        ],
-        executor=executor,
-        lmp=lmp,
-        output_as_lst=output_as_lst,
-    )
+    enable_mpi, lmp = _check_mpi(executor=executor, lmp=lmp)
+    input_parameter_dict = [
+        {
+            "lmp": lmp,
+            "enable_mpi": enable_mpi,
+            "structure": struct,
+            "potential_dataframe": pot,
+            "num_of_point": num_of_point,
+            "eps_range": eps_range,
+            "sqrt_eta": sqrt_eta,
+            "fit_order": fit_order,
+            "minimization_activated": minimization_activated,
+        }
+        for [struct, pot] in input_parameter_lst
+    ]
+    if executor is None:
+        executor = InProcessExecutor()
+    result_lst = [
+        fut.result()
+        for fut in [
+            executor.submit(calculate_elastic_constants, **kwargs)
+            for kwargs in input_parameter_dict
+        ]
+    ]
+    if output_as_lst:
+        return result_lst
+    else:
+        return result_lst[0]
 
 
 def calculate_energy_volume_curve_parallel(
@@ -340,29 +410,39 @@ def calculate_energy_volume_curve_parallel(
         Union[Any, List[Any]]: The result of calculating the energy volume curve.
 
     """
-    combo_lst, output_as_lst = combine_structure_and_potential(
+    input_parameter_lst, output_as_lst = combine_structure_and_potential(
         structure=structure, potential_dataframe=potential_dataframe
     )
-    return _parallel_execution(
-        function=_calculate_energy_volume_curve_serial,
-        input_parameter_lst=[
-            [
-                s,
-                p,
-                num_points,
-                fit_type,
-                fit_order,
-                vol_range,
-                axes,
-                strains,
-                minimization_activated,
-            ]
-            for s, p in combo_lst
-        ],
-        executor=executor,
-        lmp=lmp,
-        output_as_lst=output_as_lst,
-    )
+    enable_mpi, lmp = _check_mpi(executor=executor, lmp=lmp)
+    input_parameter_dict = [
+        {
+            "lmp": lmp,
+            "enable_mpi": enable_mpi,
+            "structure": struct,
+            "potential_dataframe": pot,
+            "num_points": num_points,
+            "fit_type": fit_type,
+            "fit_order": fit_order,
+            "vol_range": vol_range,
+            "axes": axes,
+            "strains": strains,
+            "minimization_activated": minimization_activated,
+        }
+        for [struct, pot] in input_parameter_lst
+    ]
+    if executor is None:
+        executor = InProcessExecutor()
+    result_lst = [
+        fut.result()
+        for fut in [
+            executor.submit(calculate_energy_volume_curve, **kwargs)
+            for kwargs in input_parameter_dict
+        ]
+    ]
+    if output_as_lst:
+        return result_lst
+    else:
+        return result_lst[0]
 
 
 def combine_structure_and_potential(
