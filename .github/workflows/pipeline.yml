@@ -50,7 +50,7 @@ jobs:
       shell: bash -l {0}
       run: |
         echo -e "channels:\n  - conda-forge\n" > .condarc
-        echo "- coverage\n" >> .ci_support/environment.yml
+        echo -e "- coverage\n" >> .ci_support/environment.yml
     - name: Setup Mambaforge
       uses: conda-incubator/setup-miniconda@v3
       with:
