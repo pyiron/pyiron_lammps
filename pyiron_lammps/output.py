@@ -4,19 +4,17 @@ import os
 import warnings
 from dataclasses import asdict, dataclass, field
 from io import StringIO
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
+from ase.atoms import Atoms
 import h5py
 import numpy as np
 import pandas as pd
 from pyiron_base import extract_data_from_file
 from pyiron_snippets.logger import logger
 
-from pyiron_atomistics.lammps.structure import UnfoldingPrism
-from pyiron_atomistics.lammps.units import UnitConverter
-
-if TYPE_CHECKING:
-    from pyiron_atomistics.atomistics.structure.atoms import Atoms
+from pyiron_lammps.structure import UnfoldingPrism
+from pyiron_lammps.units import UnitConverter
 
 
 @dataclass

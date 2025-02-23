@@ -11,7 +11,7 @@ from collections import OrderedDict
 
 import numpy as np
 
-from pyiron_atomistics.lammps.units import UnitConverter
+from pyiron_lammps.units import UnitConverter
 
 try:
     from ase.calculators.lammps import Prism

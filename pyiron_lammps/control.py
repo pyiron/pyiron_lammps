@@ -9,9 +9,9 @@ import warnings
 from collections import OrderedDict
 
 import numpy as np
-from pyiron_base import GenericParameters, state
+from pyiron_base import GenericParameters
 
-from pyiron_atomistics.lammps.units import LAMMPS_UNIT_CONVERSIONS
+from pyiron_lammps.units import LAMMPS_UNIT_CONVERSIONS
 
 __author__ = "Joerg Neugebauer, Sudarsan Surendralal, Jan Janssen"
 __copyright__ = (
@@ -233,7 +233,7 @@ class LammpsControl(GenericParameters):
 
         max_evaluations = 100 * max_iter
         if n_print > max_iter:
-            state.logger.warning(
+            warnings.warn(
                 "n_print larger than max_iter, adjusting to n_print=max_iter"
             )
             n_print = max_iter
