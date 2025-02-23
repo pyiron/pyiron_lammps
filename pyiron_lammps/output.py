@@ -182,7 +182,7 @@ def _collect_dump_from_text(
                 df = pd.read_csv(
                     buf,
                     nrows=n,
-                    sep="\s+",
+                    sep="\\s+",
                     header=None,
                     names=columns,
                     engine="c",
@@ -331,7 +331,7 @@ def _collect_output_log(
                 if l.startswith("Loop") or l.startswith("ERROR"):
                     read_thermo = False
                     dfs.append(
-                        pd.read_csv(StringIO(thermo_lines), sep="\s+", engine="c")
+                        pd.read_csv(StringIO(thermo_lines), sep="\\s+", engine="c")
                     )
 
                 elif l.startswith("WARNING:"):
@@ -514,19 +514,8 @@ def remap_indices(
     """
     lammps_symbol_order = np.array(potential_elements)
 
-    # If new Lammps indices are present for which we have no species, extend the species list
-    unique_lammps_indices = np.unique(lammps_indices)
-    if len(unique_lammps_indices) > len(np.unique(structure.indices)):
-        unique_lammps_indices -= (
-            1  # Convert from Lammps start counting at 1 to python start counting at 0
-        )
-        new_lammps_symbols = lammps_symbol_order[unique_lammps_indices]
-        structure.set_species(
-            [structure.convert_element(el) for el in new_lammps_symbols]
-        )
-
     # Create a map between the lammps indices and structure indices to preserve species
-    structure_symbol_order = np.array([el.Abbreviation for el in structure.species])
+    structure_symbol_order = np.unique(structure.get_chemical_symbols())
     map_ = np.array(
         [
             int(np.argwhere(lammps_symbol_order == symbol)[0]) + 1
