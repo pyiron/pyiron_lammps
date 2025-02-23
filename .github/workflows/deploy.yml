@@ -26,7 +26,7 @@ jobs:
         python-version: "3.12"
         miniforge-version: latest
         condarc-file: .condarc
-        environment-file: .ci_support/environment-openmpi.yml
+        environment-file: .ci_support/environment.yml
     - name: Build
       shell: bash -l {0}
       run: |
