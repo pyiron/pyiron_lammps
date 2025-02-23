@@ -10,8 +10,6 @@ import h5py
 import numpy as np
 import pandas as pd
 from ase.atoms import Atoms
-from pyiron_base import extract_data_from_file
-from pyiron_snippets.logger import logger
 
 from pyiron_lammps.structure import UnfoldingPrism
 from pyiron_lammps.units import UnitConverter
@@ -305,7 +303,6 @@ def _parse_log(
         (RuntimeError): If there are "ERROR" tags in the log.
     """
     if os.path.exists(log_lammps_full_file_name):
-        _raise_exception_if_errors_found(file_name=log_lammps_full_file_name)
         return _collect_output_log(
             file_name=log_lammps_full_file_name,
             prism=prism,
@@ -338,7 +335,7 @@ def _collect_output_log(
                     )
 
                 elif l.startswith("WARNING:"):
-                    logger.warning(f"A warning was found in the log:\n{l}")
+                    warnings.warn(f"A warning was found in the log:\n{l}")
 
                 else:
                     thermo_lines += l
@@ -436,22 +433,6 @@ def _collect_output_log(
         pressure_dict["mean_pressures"] = pressures
     generic_keys_lst = list(h5_dict.values())
     return generic_keys_lst, pressure_dict, df
-
-
-def _raise_exception_if_errors_found(file_name: str) -> None:
-    """
-    Raises a `RuntimeError` if the `"ERROR"` tag is found in the file.
-
-    Args:
-        file_name (str): The file holding the LAMMPS log
-
-    Raises:
-        (RuntimeError): if at least one "ERROR" tag is found
-    """
-    error = extract_data_from_file(file_name, tag="ERROR", num_args=1000)
-    if len(error) > 0:
-        error = " ".join(error[0])
-        warnings.warn(str(error), RuntimeWarning)
 
 
 def _check_ortho_prism(
