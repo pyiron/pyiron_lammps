@@ -27,7 +27,7 @@ dependencies = [
     "ase==3.23.0",
     "atomistics==0.1.32",
     "numpy==1.26.4",
-    "pandas==2.2.2",
+    "pandas==2.2.3",
     "jinja2==3.1.4",
     "pylammpsmpi==0.2.25",
 ]
