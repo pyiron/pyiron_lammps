@@ -6,10 +6,10 @@ from dataclasses import asdict, dataclass, field
 from io import StringIO
 from typing import Dict, List, Optional, Tuple, Union
 
-from ase.atoms import Atoms
 import h5py
 import numpy as np
 import pandas as pd
+from ase.atoms import Atoms
 from pyiron_base import extract_data_from_file
 from pyiron_snippets.logger import logger
 

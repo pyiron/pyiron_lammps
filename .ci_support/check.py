@@ -10,7 +10,9 @@ if __name__ == "__main__":
         for el in sub_lst:
             lst.append(el)
 
-    data["project"]["dependencies"] += [el for el in set(lst) if not el.startswith("pwtools")]
+    data["project"]["dependencies"] += [
+        el for el in set(lst) if not el.startswith("pwtools")
+    ]
 
     with open("pyproject.toml", "w") as f:
         f.writelines(tomlkit.dumps(data))
