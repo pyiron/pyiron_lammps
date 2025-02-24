@@ -111,7 +111,7 @@ class TestLammpsOutput(unittest.TestCase):
         for l, s, ind in zip(
             ["dump_NiH.out", "dump_AlH.out", "dump_NiAlH.out"],
             [structure_ni, structure_al, structure_all],
-            [np.array([0, 1, 1, 1]), np.array([1, 0, 0, 0]), np.array([0, 0, 1, 2])]
+            [np.array([0, 1, 1, 1]), np.array([1, 0, 0, 0]), np.array([0, 0, 1, 2])],
         ):
             output = _parse_dump(
                 dump_h5_full_file_name="",
@@ -122,12 +122,38 @@ class TestLammpsOutput(unittest.TestCase):
             )
             self.assertEqual(output["steps"], [0])
             self.assertEqual(output["natoms"], [4])
-            self.assertTrue(np.all(np.equal(output['indices'][0], ind)))
-            self.assertTrue(np.all(np.isclose(
-                output["forces"],
-                [np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]])]
-            )))
-            self.assertTrue(np.all(np.isclose(
-                output["velocities"],
-                [np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]])]
-            )))
+            self.assertTrue(np.all(np.equal(output["indices"][0], ind)))
+            self.assertTrue(
+                np.all(
+                    np.isclose(
+                        output["forces"],
+                        [
+                            np.array(
+                                [
+                                    [0.0, 0.0, 0.0],
+                                    [0.0, 0.0, 0.0],
+                                    [0.0, 0.0, 0.0],
+                                    [0.0, 0.0, 0.0],
+                                ]
+                            )
+                        ],
+                    )
+                )
+            )
+            self.assertTrue(
+                np.all(
+                    np.isclose(
+                        output["velocities"],
+                        [
+                            np.array(
+                                [
+                                    [0.0, 0.0, 0.0],
+                                    [0.0, 0.0, 0.0],
+                                    [0.0, 0.0, 0.0],
+                                    [0.0, 0.0, 0.0],
+                                ]
+                            )
+                        ],
+                    )
+                )
+            )
