@@ -25,7 +25,9 @@ class TestLammpsStructure(unittest.TestCase):
         with self.assertRaises(IndexError):
             UnfoldingPrism(cell=np.array([]))
         with self.assertRaises(np.linalg.LinAlgError):
-            UnfoldingPrism(cell=np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]))
+            UnfoldingPrism(
+                cell=np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]])
+            )
         with self.assertRaises(TypeError):
             UnfoldingPrism(cell=[[0.0, 1.0], [1.0, 0.0], [0.0, 0.0]])
         structure = bulk("Al", a=4.05)
