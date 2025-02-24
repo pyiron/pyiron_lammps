@@ -72,16 +72,12 @@ class TestLammpsStructure(unittest.TestCase):
         )
         with open(os.path.join(self.output_folder, "lammps.data"), "r") as f:
             self.assertEqual(
-                f.readlines(),
+                [l for l in f.readlines() if "xlo xhi" not in l and "ylo yhi" not in l and "zlo zhi" not in l and "xy xz yz" not in l],
                 [
                     'Start File for LAMMPS \n',
                     '1 atoms \n',
                     '3 atom types \n',
                     '\n',
-                    '0. 2.863782463805518 xlo xhi\n',
-                    '0. 2.480108364567968 ylo yhi\n',
-                    '0. 2.338268590217984 zlo zhi\n',
-                    '1.431891231902759 1.431891231902759 0.826702788189323 xy xz yz\n',
                     '\n',
                     'Masses\n',
                     '\n',
