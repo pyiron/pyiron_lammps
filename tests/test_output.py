@@ -7,6 +7,7 @@ from pyiron_lammps.output import (
     parse_lammps_output,
     _parse_dump,
     _collect_dump_from_h5md,
+    _collect_output_log,
     to_amat,
 )
 from pyiron_lammps.structure import UnfoldingPrism
@@ -449,3 +450,9 @@ class TestLammpsOutput(unittest.TestCase):
             _collect_dump_from_h5md(
                 file_name="test", prism=UnfoldingPrism(cell=bulk("Al").cell)
             )
+
+    def test_collect_output_log(self):
+        generic_keys_lst, pressure_dict, df = _collect_output_log(file_name=os.path.join(self.static_folder, "no_pressure", "log.lammps"), prism=UnfoldingPrism(cell=bulk("Al").cell))
+        self.assertEqual(generic_keys_lst, ['steps', 'temperature', 'energy_pot', 'energy_tot', 'volume'])
+        self.assertEqual(len(pressure_dict), 0)
+        self.assertEqual(len(df), 1)
