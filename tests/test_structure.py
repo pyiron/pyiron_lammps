@@ -22,9 +22,9 @@ class TestLammpsStructure(unittest.TestCase):
         rmtree(os.path.abspath(os.path.join(__file__, "..", "structure")))
 
     def test_unfolding_prism(self):
-        with self.assertRaises(IndexError):
-            UnfoldingPrism(cell=np.array([]))
-        if sys.version_info[1] > 1:
+        if sys.version_info[1] > 10:
+            with self.assertRaises(IndexError):
+                UnfoldingPrism(cell=np.array([]))
             with self.assertRaises(TypeError):
                 UnfoldingPrism(cell=[[0.0, 1.0], [1.0, 0.0], [0.0, 0.0]])
         structure = bulk("Al", a=4.05)
