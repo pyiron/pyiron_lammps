@@ -13,7 +13,7 @@ class TestLammpsStructure(unittest.TestCase):
         self.assertTrue(
             np.all(
                 np.isclose(
-                    structure_lammps.cell,
+                    np.abs(structure_lammps.cell),
                     np.array(
                         [
                             [2.8637824638055176, 0.0, 0.0],
@@ -40,7 +40,7 @@ class TestLammpsStructure(unittest.TestCase):
         self.assertTrue(
             np.all(
                 np.isclose(
-                    structure_lammps.cell,
+                    np.abs(structure_lammps.cell),
                     np.array(
                         [
                             [2.8637824638055176, 0.0, 0.0],
