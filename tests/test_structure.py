@@ -6,7 +6,7 @@ from pyiron_lammps.structure import structure_to_lammps
 
 class TestLammpsStructure(unittest.TestCase):
     def test_structure_to_lammps_with_velocity(self):
-        structure = bulk("Al")
+        structure = bulk("Al", a=4.05)
         structure.set_velocities([[1.0, 1.0, 1.0]])
         structure_lammps = structure_to_lammps(structure=structure)
         self.assertEqual(len(structure), len(structure_lammps))
@@ -24,7 +24,7 @@ class TestLammpsStructure(unittest.TestCase):
         )))
 
     def test_structure_to_lammps_without_velocity(self):
-        structure = bulk("Al")
+        structure = bulk("Al", a=4.05)
         structure_lammps = structure_to_lammps(structure=structure)
         self.assertEqual(len(structure), len(structure_lammps))
         self.assertTrue(np.all(np.isclose(
