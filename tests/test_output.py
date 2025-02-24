@@ -2,7 +2,7 @@ from ase.build import bulk
 import numpy as np
 import os
 import unittest
-from pyiron_lammps.output import remap_indices_ase, parse_lammps_output, _parse_dump
+from pyiron_lammps.output import remap_indices_ase, parse_lammps_output, _parse_dump, _collect_dump_from_h5md, to_amat
 from pyiron_lammps.structure import UnfoldingPrism
 
 
@@ -425,3 +425,15 @@ class TestLammpsOutput(unittest.TestCase):
                 )
             )
         )
+
+    def test_to_amat(self):
+        out = to_amat([1, 2, 3, 4, 5, 6])
+        self.assertTrue(np.all(np.equal(out, np.array([[1.0, 0, 0], [0.0, 1.0, 0], [0.0, 0.0, 1]]))))
+        out = to_amat([1, 2, 3, 4, 5, 6, 7, 8, 9])
+        self.assertTrue(np.all(np.equal(out, np.array([[-8.0, 0, 0], [3, -8.0, 0], [6, 9, 1]]))))
+        with self.assertRaises(ValueError):
+            to_amat([])
+
+    def test_collect_dump_from_h5md(self):
+        with self.assertRaises(RuntimeError):
+            _collect_dump_from_h5md(file_name="test", prism=UnfoldingPrism(cell=bulk("Al").cell))
