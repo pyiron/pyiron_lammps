@@ -31,6 +31,46 @@ class DumpData:
     computes: Dict = field(default_factory=lambda: {})
 
 
+def remap_indices_ase(
+    lammps_indices: Union[np.ndarray, List],
+    potential_elements: Union[np.ndarray, List],
+    structure: Atoms,
+) -> np.ndarray:
+    """
+    Give the Lammps-dumped indices, re-maps these back onto the structure's indices to preserve the species.
+
+    The issue is that for an N-element potential, Lammps dumps the chemical index from 1 to N based on the order
+    that these species are written in the Lammps input file. But the indices for a given structure are based on the
+    order in which chemical species were added to that structure, and run from 0 up to the number of species
+    currently in that structure. Therefore we need to be a little careful with mapping.
+
+    Args:
+        lammps_indices (numpy.ndarray/list): The Lammps-dumped integers.
+        potential_elements (numpy.ndarray/list):
+        structure (pyiron_atomistics.atomistics.structure.Atoms):
+
+    Returns:
+        numpy.ndarray: Those integers mapped onto the structure.
+    """
+    lammps_symbol_order = np.array(potential_elements)
+
+    # Create a map between the lammps indices and structure indices to preserve species
+    structure_symbol_order = np.unique(structure.get_chemical_symbols())
+    map_ = np.array(
+        [
+            int(np.argwhere(lammps_symbol_order == symbol)[0]) + 1
+            for symbol in structure_symbol_order
+        ]
+    )
+
+    structure_indices = np.array(lammps_indices)
+    for i_struct, i_lammps in enumerate(map_):
+        np.place(structure_indices, lammps_indices == i_lammps, i_struct)
+    # TODO: Vectorize this for-loop for computational efficiency
+
+    return structure_indices
+
+
 def parse_lammps_output(
     working_directory: str,
     structure: Atoms,
@@ -40,6 +80,7 @@ def parse_lammps_output(
     dump_h5_file_name: str = "dump.h5",
     dump_out_file_name: str = "dump.out",
     log_lammps_file_name: str = "log.lammps",
+    remap_indices_funct: callable = remap_indices_ase,
 ) -> Dict:
     if prism is None:
         prism = UnfoldingPrism(structure.cell)
@@ -49,6 +90,7 @@ def parse_lammps_output(
         prism=prism,
         structure=structure,
         potential_elements=potential_elements,
+        remap_indices_funct=remap_indices_funct,
     )
 
     generic_keys_lst, pressure_dict, df = _parse_log(
@@ -94,12 +136,52 @@ def parse_lammps_output(
     return hdf_output
 
 
+def to_amat(l_list: Union[np.ndarray, List]) -> List:
+    lst = np.reshape(l_list, -1)
+    if len(lst) == 9:
+        (
+            xlo_bound,
+            xhi_bound,
+            xy,
+            ylo_bound,
+            yhi_bound,
+            xz,
+            zlo_bound,
+            zhi_bound,
+            yz,
+        ) = lst
+
+    elif len(lst) == 6:
+        xlo_bound, xhi_bound, ylo_bound, yhi_bound, zlo_bound, zhi_bound = lst
+        xy, xz, yz = 0.0, 0.0, 0.0
+    else:
+        raise ValueError("This format for amat not yet implemented: " + str(len(lst)))
+
+    # > xhi_bound - xlo_bound = xhi -xlo  + MAX(0.0, xy, xz, xy + xz) - MIN(0.0, xy, xz, xy + xz)
+    # > xhili = xhi -xlo   = xhi_bound - xlo_bound - MAX(0.0, xy, xz, xy + xz) + MIN(0.0, xy, xz, xy + xz)
+    xhilo = (
+        (xhi_bound - xlo_bound)
+        - max([0.0, xy, xz, xy + xz])
+        + min([0.0, xy, xz, xy + xz])
+    )
+
+    # > yhilo = yhi -ylo = yhi_bound -ylo_bound - MAX(0.0, yz) + MIN(0.0, yz)
+    yhilo = (yhi_bound - ylo_bound) - max([0.0, yz]) + min([0.0, yz])
+
+    # > zhi - zlo = zhi_bound- zlo_bound
+    zhilo = zhi_bound - zlo_bound
+
+    cell = [[xhilo, 0, 0], [xy, yhilo, 0], [xz, yz, zhilo]]
+    return cell
+
+
 def _parse_dump(
     dump_h5_full_file_name: str,
     dump_out_full_file_name: str,
     prism: UnfoldingPrism,
     structure: Atoms,
     potential_elements: Union[np.ndarray, List],
+    remap_indices_funct: callable = remap_indices_ase,
 ) -> Dict:
     if os.path.isfile(dump_h5_full_file_name):
         return _collect_dump_from_h5md(
@@ -112,6 +194,7 @@ def _parse_dump(
             prism=prism,
             structure=structure,
             potential_elements=potential_elements,
+            remap_indices_funct=remap_indices_funct,
         )
     else:
         return {}
@@ -144,6 +227,7 @@ def _collect_dump_from_text(
     prism: UnfoldingPrism,
     structure: Atoms,
     potential_elements: Union[np.ndarray, List],
+    remap_indices_funct: callable = remap_indices_ase,
 ) -> Dict:
     """
     general purpose routine to extract static from a lammps dump file
@@ -182,7 +266,7 @@ def _collect_dump_from_text(
                 df = pd.read_csv(
                     buf,
                     nrows=n,
-                    sep="\s+",
+                    sep="\\s+",
                     header=None,
                     names=columns,
                     engine="c",
@@ -190,7 +274,7 @@ def _collect_dump_from_text(
                 df.sort_values(by="id", ignore_index=True, inplace=True)
                 # Coordinate transform lammps->pyiron
                 dump.indices.append(
-                    remap_indices(
+                    remap_indices_funct(
                         lammps_indices=df["type"].array.astype(int),
                         potential_elements=potential_elements,
                         structure=structure,
@@ -331,7 +415,7 @@ def _collect_output_log(
                 if l.startswith("Loop") or l.startswith("ERROR"):
                     read_thermo = False
                     dfs.append(
-                        pd.read_csv(StringIO(thermo_lines), sep="\s+", engine="c")
+                        pd.read_csv(StringIO(thermo_lines), sep="\\s+", engine="c")
                     )
 
                 elif l.startswith("WARNING:"):
@@ -450,93 +534,3 @@ def _check_ortho_prism(
         boolean: True or False
     """
     return np.isclose(prism.R, np.eye(3), rtol=rtol, atol=atol).all()
-
-
-def to_amat(l_list: Union[np.ndarray, List]) -> List:
-    lst = np.reshape(l_list, -1)
-    if len(lst) == 9:
-        (
-            xlo_bound,
-            xhi_bound,
-            xy,
-            ylo_bound,
-            yhi_bound,
-            xz,
-            zlo_bound,
-            zhi_bound,
-            yz,
-        ) = lst
-
-    elif len(lst) == 6:
-        xlo_bound, xhi_bound, ylo_bound, yhi_bound, zlo_bound, zhi_bound = lst
-        xy, xz, yz = 0.0, 0.0, 0.0
-    else:
-        raise ValueError("This format for amat not yet implemented: " + str(len(lst)))
-
-    # > xhi_bound - xlo_bound = xhi -xlo  + MAX(0.0, xy, xz, xy + xz) - MIN(0.0, xy, xz, xy + xz)
-    # > xhili = xhi -xlo   = xhi_bound - xlo_bound - MAX(0.0, xy, xz, xy + xz) + MIN(0.0, xy, xz, xy + xz)
-    xhilo = (
-        (xhi_bound - xlo_bound)
-        - max([0.0, xy, xz, xy + xz])
-        + min([0.0, xy, xz, xy + xz])
-    )
-
-    # > yhilo = yhi -ylo = yhi_bound -ylo_bound - MAX(0.0, yz) + MIN(0.0, yz)
-    yhilo = (yhi_bound - ylo_bound) - max([0.0, yz]) + min([0.0, yz])
-
-    # > zhi - zlo = zhi_bound- zlo_bound
-    zhilo = zhi_bound - zlo_bound
-
-    cell = [[xhilo, 0, 0], [xy, yhilo, 0], [xz, yz, zhilo]]
-    return cell
-
-
-def remap_indices(
-    lammps_indices: Union[np.ndarray, List],
-    potential_elements: Union[np.ndarray, List],
-    structure: Atoms,
-) -> np.ndarray:
-    """
-    Give the Lammps-dumped indices, re-maps these back onto the structure's indices to preserve the species.
-
-    The issue is that for an N-element potential, Lammps dumps the chemical index from 1 to N based on the order
-    that these species are written in the Lammps input file. But the indices for a given structure are based on the
-    order in which chemical species were added to that structure, and run from 0 up to the number of species
-    currently in that structure. Therefore we need to be a little careful with mapping.
-
-    Args:
-        lammps_indices (numpy.ndarray/list): The Lammps-dumped integers.
-        potential_elements (numpy.ndarray/list):
-        structure (pyiron_atomistics.atomistics.structure.Atoms):
-
-    Returns:
-        numpy.ndarray: Those integers mapped onto the structure.
-    """
-    lammps_symbol_order = np.array(potential_elements)
-
-    # If new Lammps indices are present for which we have no species, extend the species list
-    unique_lammps_indices = np.unique(lammps_indices)
-    if len(unique_lammps_indices) > len(np.unique(structure.indices)):
-        unique_lammps_indices -= (
-            1  # Convert from Lammps start counting at 1 to python start counting at 0
-        )
-        new_lammps_symbols = lammps_symbol_order[unique_lammps_indices]
-        structure.set_species(
-            [structure.convert_element(el) for el in new_lammps_symbols]
-        )
-
-    # Create a map between the lammps indices and structure indices to preserve species
-    structure_symbol_order = np.array([el.Abbreviation for el in structure.species])
-    map_ = np.array(
-        [
-            int(np.argwhere(lammps_symbol_order == symbol)[0]) + 1
-            for symbol in structure_symbol_order
-        ]
-    )
-
-    structure_indices = np.array(lammps_indices)
-    for i_struct, i_lammps in enumerate(map_):
-        np.place(structure_indices, lammps_indices == i_lammps, i_struct)
-    # TODO: Vectorize this for-loop for computational efficiency
-
-    return structure_indices
