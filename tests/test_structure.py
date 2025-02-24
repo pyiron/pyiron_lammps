@@ -67,6 +67,7 @@ class TestLammpsStructure(unittest.TestCase):
 
     def test_structure_atomic_non_cubic(self):
         structure = bulk("Al", a=4.05)
+        structure.set_velocities([[1.0, 1.0, 1.0]])
         write_lammps_datafile(
             structure=structure,
             el_eam_lst=["Ni", "Al", "H"],
@@ -102,7 +103,7 @@ class TestLammpsStructure(unittest.TestCase):
                     "\n",
                     "Velocities\n",
                     "\n",
-                    "1 0.000000 0.000000 0.000000\n",
+                    "1 1414.213562 816.496581 577.350269\n",
                 ],
             )
 
@@ -140,11 +141,5 @@ class TestLammpsStructure(unittest.TestCase):
                     "3 2 2.000000000000000 0.000000000000000 2.000000000000000\n",
                     "4 2 2.000000000000000 2.000000000000000 0.000000000000000\n",
                     "\n",
-                    "Velocities\n",
-                    "\n",
-                    "1 0.000000 0.000000 0.000000\n",
-                    "2 0.000000 0.000000 0.000000\n",
-                    "3 0.000000 0.000000 0.000000\n",
-                    "4 0.000000 0.000000 0.000000\n",
                 ],
             )
