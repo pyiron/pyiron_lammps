@@ -116,7 +116,7 @@ class TestLammpsOutput(unittest.TestCase):
             output = _parse_dump(
                 dump_h5_full_file_name="",
                 dump_out_full_file_name=os.path.join(test_folder, l),
-                prism=None,
+                prism=UnfoldingPrism(cell=s.cell),
                 structure=s,
                 potential_elements=["Ni", "Al", "H"],
                 remap_indices_funct=remap_indices_ase,
@@ -167,7 +167,7 @@ class TestLammpsOutput(unittest.TestCase):
             structure=structure_ni,
             potential_elements=["Ni", "Al", "H"],
             units="metal",
-            prism=UnfoldingPrism(structure_ni.cell),
+            prism=None,
             dump_h5_file_name="dump.h5",
             dump_out_file_name="dump_NiH.out",
             log_lammps_file_name="log.lammps",
