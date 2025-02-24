@@ -192,4 +192,3 @@ class TestLammpsStructure(unittest.TestCase):
             "",
         ]
         self.assertEqual(output_str.split("\n"), reference_str)
-        print(output_str)
