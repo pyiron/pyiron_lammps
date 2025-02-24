@@ -234,7 +234,12 @@ class LammpsStructure(object):
 
     def _get_velocities_input_string(self):
         input_str = ""
-        if not np.all(np.isclose(self._structure.get_velocities(), np.array([[0., 0., 0.]] * len(self._structure)))):
+        if not np.all(
+            np.isclose(
+                self._structure.get_velocities(),
+                np.array([[0.0, 0.0, 0.0]] * len(self._structure)),
+            )
+        ):
             uc = UnitConverter(self._units)
             self._structure.set_velocities(
                 self._structure.get_velocities() * uc.pyiron_to_lammps("velocity")
