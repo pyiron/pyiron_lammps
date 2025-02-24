@@ -8,7 +8,9 @@ class TestUnits(unittest.TestCase):
         uc = UnitConverter(units="metal")
         result = uc.convert_array_to_pyiron_units(array=np.array([1.0]), label="energy")
         self.assertTrue(np.all(np.equal(result, np.array([1.0]))))
-        result = uc.convert_array_to_pyiron_units(array=np.array([1.0]), label="energy_tot")
+        result = uc.convert_array_to_pyiron_units(
+            array=np.array([1.0]), label="energy_tot"
+        )
         self.assertTrue(np.all(np.equal(result, np.array([1.0]))))
         result = uc.convert_array_to_pyiron_units(array=np.array([1.0]), label="time")
         self.assertTrue(np.all(np.equal(result, np.array([1000.0]))))

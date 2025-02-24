@@ -29,7 +29,16 @@ class TestLammpsStructure(unittest.TestCase):
         structure = bulk("Al", a=4.05)
         up = UnfoldingPrism(cell=structure.cell, pbc=[False, False, False])
         up_vec = np.array([float(s) for s in up.get_lammps_prism_str()])
-        ref_vec = np.array([2.8637824638, 2.4801083646, 2.3382685902, 1.4318912319, 1.4318912319, 0.8267027882])
+        ref_vec = np.array(
+            [
+                2.8637824638,
+                2.4801083646,
+                2.3382685902,
+                1.4318912319,
+                1.4318912319,
+                0.8267027882,
+            ]
+        )
         self.assertTrue(np.all(np.isclose(up_vec, ref_vec)))
 
     def test_structure_to_lammps_with_velocity(self):
