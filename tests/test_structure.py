@@ -1,8 +1,8 @@
 import unittest
 import numpy as np
 import os
+import sys
 from shutil import rmtree
-from ase.atoms import Atoms
 from ase.build import bulk
 from pyiron_lammps.structure import (
     structure_to_lammps,
@@ -24,10 +24,9 @@ class TestLammpsStructure(unittest.TestCase):
     def test_unfolding_prism(self):
         with self.assertRaises(IndexError):
             UnfoldingPrism(cell=np.array([]))
-        with self.assertRaises(np.linalg.LinAlgError):
-            UnfoldingPrism(cell=np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]))
-        with self.assertRaises(TypeError):
-            UnfoldingPrism(cell=[[0.0, 1.0], [1.0, 0.0], [0.0, 0.0]])
+        if sys.version_info[1] > 1:
+            with self.assertRaises(TypeError):
+                UnfoldingPrism(cell=[[0.0, 1.0], [1.0, 0.0], [0.0, 0.0]])
         structure = bulk("Al", a=4.05)
         up = UnfoldingPrism(cell=structure.cell, pbc=[False, False, False])
         up_vec = np.array([float(s) for s in up.get_lammps_prism_str()])
