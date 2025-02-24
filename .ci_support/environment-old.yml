@@ -2,7 +2,6 @@ channels:
 - conda-forge
 dependencies:
 - ase =3.22.1
-- pyiron_base =0.10.0
 - h5py =3.9.0
 - numpy =1.26.0
 - pandas =2.0.3
