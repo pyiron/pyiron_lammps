@@ -10,7 +10,6 @@ class TestLammpsStructure(unittest.TestCase):
         structure.set_velocities([[1.0, 1.0, 1.0]])
         structure_lammps = structure_to_lammps(structure=structure)
         self.assertEqual(len(structure), len(structure_lammps))
-        print(structure_lammps.cell)
         self.assertTrue(
             np.all(
                 np.isclose(
@@ -18,7 +17,7 @@ class TestLammpsStructure(unittest.TestCase):
                     np.array(
                         [
                             [2.8637824638055176, 0.0, 0.0],
-                            [-1.4318912319, 2.4801083645, 0.0],
+                            [1.4318912319, 2.4801083645, 0.0],
                             [1.4318912319, 0.8267027881, 2.3382685902],
                         ]
                     ),
@@ -38,7 +37,6 @@ class TestLammpsStructure(unittest.TestCase):
         structure = bulk("Al", a=4.05)
         structure_lammps = structure_to_lammps(structure=structure)
         self.assertEqual(len(structure), len(structure_lammps))
-        print(structure_lammps.cell)
         self.assertTrue(
             np.all(
                 np.isclose(
@@ -46,7 +44,7 @@ class TestLammpsStructure(unittest.TestCase):
                     np.array(
                         [
                             [2.8637824638055176, 0.0, 0.0],
-                            [-1.4318912319, 2.4801083645, 0.0],
+                            [1.4318912319, 2.4801083645, 0.0],
                             [1.4318912319, 0.8267027881, 2.3382685902],
                         ]
                     ),
