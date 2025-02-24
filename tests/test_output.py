@@ -2,7 +2,7 @@ from ase.build import bulk
 import numpy as np
 import os
 import unittest
-from pyiron_lammps.output import remap_indices, _parse_dump
+from pyiron_lammps.output import remap_indices_ase, _parse_dump
 from pyiron_lammps.structure import UnfoldingPrism
 
 
@@ -48,7 +48,7 @@ class TestLammpsOutput(unittest.TestCase):
                 "Ag",
             ]
         )
-        ind = remap_indices(
+        ind = remap_indices_ase(
             lammps_indices=[
                 1,
                 1,
@@ -87,13 +87,13 @@ class TestLammpsOutput(unittest.TestCase):
             structure=structure,
         )
         self.assertEqual(sum(ind), 24)
-        ind = remap_indices(
+        ind = remap_indices_ase(
             lammps_indices=[2, 2, 2, 2],
             potential_elements=["Ag", "Al", "Cu", "Co", "Au"],
             structure=structure,
         )
         self.assertEqual(sum(ind), 8)
-        ind = remap_indices(
+        ind = remap_indices_ase(
             lammps_indices=[2, 2, 2, 2],
             potential_elements=["Au", "Ag", "Cu"],
             structure=structure,
@@ -119,6 +119,7 @@ class TestLammpsOutput(unittest.TestCase):
                 prism=UnfoldingPrism(s.cell),
                 structure=s,
                 potential_elements=["Ni", "Al", "H"],
+                remap_indices_funct=remap_indices_ase,
             )
             self.assertEqual(output["steps"], [0])
             self.assertEqual(output["natoms"], [4])
