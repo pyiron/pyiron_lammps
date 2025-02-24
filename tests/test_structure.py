@@ -1,11 +1,14 @@
 import unittest
 import numpy as np
 import os
+import sys
 from shutil import rmtree
 from ase.build import bulk
 from pyiron_lammps.structure import (
     structure_to_lammps,
     write_lammps_datafile,
+    UnfoldingPrism,
+    LammpsStructure,
 )
 
 
@@ -17,6 +20,27 @@ class TestLammpsStructure(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         rmtree(os.path.abspath(os.path.join(__file__, "..", "structure")))
+
+    def test_unfolding_prism(self):
+        if sys.version_info[1] > 10:
+            with self.assertRaises(IndexError):
+                UnfoldingPrism(cell=np.array([]))
+            with self.assertRaises(TypeError):
+                UnfoldingPrism(cell=[[0.0, 1.0], [1.0, 0.0], [0.0, 0.0]])
+        structure = bulk("Al", a=4.05)
+        up = UnfoldingPrism(cell=structure.cell, pbc=[False, False, False])
+        up_vec = np.array([float(s) for s in up.get_lammps_prism_str()])
+        ref_vec = np.array(
+            [
+                2.8637824638,
+                2.4801083646,
+                2.3382685902,
+                1.4318912319,
+                1.4318912319,
+                0.8267027882,
+            ]
+        )
+        self.assertTrue(np.all(np.isclose(up_vec, ref_vec)))
 
     def test_structure_to_lammps_with_velocity(self):
         structure = bulk("Al", a=4.05)
@@ -143,3 +167,38 @@ class TestLammpsStructure(unittest.TestCase):
                     "\n",
                 ],
             )
+
+    def test_lammps_structure(self):
+        ls = LammpsStructure()
+        with self.assertRaises(ValueError):
+            ls.get_lammps_id_dict(el_eam_lst=[])
+
+    def test_lammps_structure_header(self):
+        structure = bulk("Al", a=4.0, cubic=True)
+        ls = LammpsStructure()
+        output_str = ls.lammps_header(
+            structure=structure,
+            cell_dimensions="3",
+            species_lammps_id_dict={"Al": 1},
+            nbonds=95,
+            nangles=50,
+            nbond_types=10,
+            nangle_types=18,
+        )
+        reference_str = [
+            "Start File for LAMMPS ",
+            "4 atoms ",
+            "1 atom types ",
+            "95 bonds",
+            "50 angles",
+            "10 bond types",
+            "18 angle types",
+            "",
+            "3",
+            "Masses",
+            "",
+            "  1 26.981538  # (Al) ",
+            "",
+            "",
+        ]
+        self.assertEqual(output_str.split("\n"), reference_str)
