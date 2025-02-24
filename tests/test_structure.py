@@ -5,7 +5,6 @@ from shutil import rmtree
 from ase.build import bulk
 from pyiron_lammps.structure import (
     structure_to_lammps,
-    LammpsStructure,
     write_lammps_datafile,
 )
 
@@ -72,6 +71,7 @@ class TestLammpsStructure(unittest.TestCase):
             structure=structure,
             el_eam_lst=["Ni", "Al", "H"],
             file_name="lammps.data",
+            units="metal",
             cwd=self.output_folder,
         )
         with open(os.path.join(self.output_folder, "lammps.data"), "r") as f:
@@ -112,6 +112,7 @@ class TestLammpsStructure(unittest.TestCase):
             structure=structure,
             el_eam_lst=["Ni", "Al", "H"],
             file_name="lammps_cubic.data",
+            units="metal",
             cwd=self.output_folder,
         )
         with open(os.path.join(self.output_folder, "lammps_cubic.data"), "r") as f:
