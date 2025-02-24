@@ -1,0 +1,88 @@
+LAMMPS (27 Jun 2024)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+units metal
+dimension 3
+boundary p p p
+atom_style atomic
+read_data structure.inp
+Reading data file ...
+  orthogonal box = (0 0 0) to (3.52 3.52 3.52)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  4 atoms
+  read_data CPU = 0.011 seconds
+include potential.inp
+pair_style eam/alloy
+pair_coeff * * NiAlH_jea.eam.alloy Ni Al H
+fix ensemble all nve
+variable dumptime equal 100
+variable thermotime equal 100
+dump 1 all custom ${dumptime} dump.out id type xsu ysu zsu fx fy fz vx vy vz
+dump 1 all custom 100 dump.out id type xsu ysu zsu fx fy fz vx vy vz
+dump_modify 1 sort id format line "%d %d %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g"
+thermo_style custom step temp pe etotal pxx pxy pxz pyy pyz pzz vol
+thermo_modify format float %20.15g
+thermo ${thermotime}
+thermo 100
+run 0
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- Type Label Framework: https://doi.org/10.1021/acs.jpcb.3c08419
+
+@Article{Gissinger24,
+ author = {Jacob R. Gissinger, Ilia Nikiforov, Yaser Afshar, Brendon Waters, Moon-ki Choi, Daniel S. Karls, Alexander Stukowski, Wonpil Im, Hendrik Heinz, Axel Kohlmeyer, and Ellad B. Tadmor},
+ title = {Type Label Framework for Bonded Force Fields in LAMMPS},
+ journal = {J. Phys. Chem. B},
+ year =    2024,
+ volume =  128,
+ number =  13,
+ pages =   {3282–-3297}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 7.65
+  ghost atom cutoff = 7.65
+  binsize = 3.825, bins = 1 1 1
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair eam/alloy, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.241 | 3.241 | 3.241 Mbytes
+   Step          Temp          PotEng         TotEng          Pxx            Pxy            Pxz            Pyy            Pyz            Pzz           Volume    
+         0                     0     -17.800000050373     -17.800000050373    0.538768850093803 -4.07842609411444e-12 -1.8352917423515e-11    0.538768850069333 -1.01960652352861e-11    0.538768850057098            43.614208
+Loop time of 1.166e-06 on 1 procs for 0 steps with 4 atoms
+
+85.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 1.166e-06  |            |       |100.00
+
+Nlocal:              4 ave           4 max           4 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:            662 ave         662 max         662 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:            352 ave         352 max         352 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 352
+Ave neighs/atom = 88
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:00
