@@ -2,7 +2,14 @@ from ase.build import bulk
 import numpy as np
 import os
 import unittest
-from pyiron_lammps.output import remap_indices_ase, parse_lammps_output, _parse_dump
+from pyiron_lammps.output import (
+    remap_indices_ase,
+    parse_lammps_output,
+    _parse_dump,
+    _collect_dump_from_h5md,
+    _collect_output_log,
+    to_amat,
+)
 from pyiron_lammps.structure import UnfoldingPrism
 
 
@@ -116,7 +123,7 @@ class TestLammpsOutput(unittest.TestCase):
             output = _parse_dump(
                 dump_h5_full_file_name="",
                 dump_out_full_file_name=os.path.join(test_folder, l),
-                prism=UnfoldingPrism(s.cell),
+                prism=UnfoldingPrism(cell=s.cell),
                 structure=s,
                 potential_elements=["Ni", "Al", "H"],
                 remap_indices_funct=remap_indices_ase,
@@ -158,6 +165,30 @@ class TestLammpsOutput(unittest.TestCase):
                     )
                 )
             )
+
+    def test_empty_job_output(self):
+        structure_ni = bulk("Ni", cubic=True)
+        structure_ni.set_chemical_symbols(["H", "Ni", "Ni", "Ni"])
+        output_dict = parse_lammps_output(
+            working_directory=os.path.join(self.static_folder, "dump_chemical"),
+            structure=structure_ni,
+            potential_elements=["Ni", "Al", "H"],
+            units="metal",
+            prism=None,
+            dump_h5_file_name="dump.h5",
+            dump_out_file_name="dump_NiH.out",
+            log_lammps_file_name="log.lammps",
+            remap_indices_funct=remap_indices_ase,
+        )
+        self.assertEqual(len(output_dict["generic"].keys()), 8)
+        output_dump = _parse_dump(
+            dump_h5_full_file_name=os.path.join(self.static_folder, "empty"),
+            dump_out_full_file_name=os.path.join(self.static_folder, "empty"),
+            prism=None,
+            structure=structure_ni,
+            potential_elements=["Ni", "Al", "H"],
+        )
+        self.assertEqual(len(output_dump), 0)
 
     def test_full_job_output(self):
         test_folder = os.path.join(self.static_folder, "full_job")
@@ -401,3 +432,33 @@ class TestLammpsOutput(unittest.TestCase):
                 )
             )
         )
+
+    def test_to_amat(self):
+        out = to_amat([1, 2, 3, 4, 5, 6])
+        self.assertTrue(
+            np.all(np.equal(out, np.array([[1.0, 0, 0], [0.0, 1.0, 0], [0.0, 0.0, 1]])))
+        )
+        out = to_amat([1, 2, 3, 4, 5, 6, 7, 8, 9])
+        self.assertTrue(
+            np.all(np.equal(out, np.array([[-8.0, 0, 0], [3, -8.0, 0], [6, 9, 1]])))
+        )
+        with self.assertRaises(ValueError):
+            to_amat([])
+
+    def test_collect_dump_from_h5md(self):
+        with self.assertRaises(RuntimeError):
+            _collect_dump_from_h5md(
+                file_name="test", prism=UnfoldingPrism(cell=bulk("Al").cell)
+            )
+
+    def test_collect_output_log(self):
+        generic_keys_lst, pressure_dict, df = _collect_output_log(
+            file_name=os.path.join(self.static_folder, "no_pressure", "log.lammps"),
+            prism=UnfoldingPrism(cell=bulk("Al").cell),
+        )
+        self.assertEqual(
+            generic_keys_lst,
+            ["steps", "temperature", "energy_pot", "energy_tot", "volume"],
+        )
+        self.assertEqual(len(pressure_dict), 0)
+        self.assertEqual(len(df), 1)
