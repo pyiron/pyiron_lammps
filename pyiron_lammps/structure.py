@@ -8,9 +8,9 @@ import decimal as dec
 import posixpath
 import warnings
 from collections import OrderedDict
-from ase.data import atomic_masses, atomic_numbers
 
 import numpy as np
+from ase.data import atomic_masses, atomic_numbers
 
 from pyiron_lammps.units import UnitConverter
 
@@ -240,7 +240,9 @@ class LammpsStructure(object):
 
         if self._structure.get_velocities() is not None:
             uc = UnitConverter(self._units)
-            self._structure.set_velocities(self._structure.get_velocities() * uc.pyiron_to_lammps("velocity"))
+            self._structure.set_velocities(
+                self._structure.get_velocities() * uc.pyiron_to_lammps("velocity")
+            )
             vels = self.rotate_velocities(self._structure)
             input_str += "Velocities\n\n"
             if len(self._structure.positions[0]) == 3:
@@ -715,6 +717,7 @@ class LammpsStructure(object):
             for line in self._string_input:
                 f.write(line)
 
+
 def is_skewed(structure, tolerance=1.0e-8):
     """
     Check whether the simulation box is skewed/sheared. The algorithm compares the box volume
@@ -735,7 +738,14 @@ def is_skewed(structure, tolerance=1.0e-8):
     return True
 
 
-def write_lammps_datafile(structure, el_eam_lst, bond_dict=None, units="metal", file_name="lammps.data", cwd=None):
+def write_lammps_datafile(
+    structure,
+    el_eam_lst,
+    bond_dict=None,
+    units="metal",
+    file_name="lammps.data",
+    cwd=None,
+):
     lammps_str = LammpsStructure(bond_dict=bond_dict, units=units)
     lammps_str.el_eam_lst = el_eam_lst
     lammps_str.structure = structure
