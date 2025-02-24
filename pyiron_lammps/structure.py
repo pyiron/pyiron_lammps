@@ -8,6 +8,7 @@ import decimal as dec
 import posixpath
 import warnings
 from collections import OrderedDict
+from ase.data import atomic_masses, atomic_numbers
 
 import numpy as np
 
@@ -187,7 +188,7 @@ class LammpsStructure(object):
         input_file_name:
     """
 
-    def __init__(self, bond_dict=None, job=None):
+    def __init__(self, bond_dict=None, units="metal"):
         self._string_input = ""
         self._structure = None
         self._potential = None
@@ -197,7 +198,7 @@ class LammpsStructure(object):
         self.digits = 10
         self._bond_dict = bond_dict
         self._force_skewed = False
-        self._job = job
+        self._units = units
         self._molecule_ids = []
 
     @property
@@ -237,16 +238,16 @@ class LammpsStructure(object):
         else:  # self.atom_type == 'atomic'
             input_str = self.structure_atomic()
 
-        if self._structure.velocities is not None:
-            uc = UnitConverter(self._job.units)
-            self._structure.velocities *= uc.pyiron_to_lammps("velocity")
+        if self._structure.get_velocities() is not None:
+            uc = UnitConverter(self._units)
+            self._structure.set_velocities(self._structure.get_velocities() * uc.pyiron_to_lammps("velocity"))
             vels = self.rotate_velocities(self._structure)
             input_str += "Velocities\n\n"
-            if self._structure.dimension == 3:
+            if len(self._structure.positions[0]) == 3:
                 format_str = "{0:d} {1:f} {2:f} {3:f}\n"
                 for id_atom, (x, y, z) in enumerate(vels, start=1):
                     input_str += format_str.format(id_atom, x, y, z)
-            if self._structure.dimension == 2:
+            elif len(self._structure.positions[0]) == 2:
                 format_str = "{0:d} {1:f} {2:f}\n"
                 for id_atom, (x, y) in enumerate(vels, start=1):
                     input_str += format_str.format(id_atom, x, y)
@@ -321,7 +322,7 @@ class LammpsStructure(object):
 
         masses = "Masses\n\n"
         for el, idx in species_lammps_id_dict.items():
-            mass = structure._pse[el].AtomicMass
+            mass = atomic_masses[atomic_numbers[el]]
             masses += "{0:3d} {1:f}  # ({2}) \n".format(idx, mass, el)
 
         return atomtypes + "\n" + cell_dimensions + "\n" + masses + "\n"
@@ -343,7 +344,7 @@ class LammpsStructure(object):
             + "0. {} zlo zhi\n".format(zhi)
         )
 
-        if self.structure.is_skewed() or self._force_skewed:
+        if is_skewed(self.structure) or self._force_skewed:
             simulation_cell += "{0} {1} {2} xy xz yz\n".format(xy, xz, yz)
 
         return simulation_cell
@@ -652,7 +653,7 @@ class LammpsStructure(object):
 
         el_lst = self._structure.get_chemical_symbols()
         for id_atom, (el, coord) in enumerate(zip(el_lst, coords)):
-            dim = self._structure.dimension
+            dim = len(self._structure.positions[0])
             c = np.zeros(3)
             c[:dim] = coord
             atoms += (
@@ -696,7 +697,7 @@ class LammpsStructure(object):
             (list): List of rotated velocities
         """
         prism = UnfoldingPrism(self._structure.cell)
-        vels = [prism.pos_to_lammps(vel) for vel in structure.velocities]
+        vels = [prism.pos_to_lammps(vel) for vel in structure.get_velocities()]
         return vels
 
     def write_file(self, file_name, cwd=None):
@@ -714,10 +715,29 @@ class LammpsStructure(object):
             for line in self._string_input:
                 f.write(line)
 
+def is_skewed(structure, tolerance=1.0e-8):
+    """
+    Check whether the simulation box is skewed/sheared. The algorithm compares the box volume
+    and the product of the box length in each direction. If these numbers do not match, the box
+    is considered to be skewed and the function returns True
 
-def write_lammps_datafile(structure, file_name="lammps.data", cwd=None):
-    lammps_str = LammpsStructure()
-    lammps_str.el_eam_lst = structure.get_species_symbols()
+    Args:
+        tolerance (float): Relative tolerance above which the structure is considered as skewed
+
+    Returns:
+        (bool): Whether the box is skewed or not.
+    """
+    volume = structure.get_volume()
+    prod = np.linalg.norm(structure.cell, axis=-1).prod()
+    if volume > 0:
+        if abs(volume - prod) / volume < tolerance:
+            return False
+    return True
+
+
+def write_lammps_datafile(structure, el_eam_lst, bond_dict=None, units="metal", file_name="lammps.data", cwd=None):
+    lammps_str = LammpsStructure(bond_dict=bond_dict, units=units)
+    lammps_str.el_eam_lst = el_eam_lst
     lammps_str.structure = structure
     lammps_str.write_file(file_name=file_name, cwd=cwd)
 
