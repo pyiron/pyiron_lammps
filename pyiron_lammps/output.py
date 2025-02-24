@@ -227,7 +227,7 @@ def _collect_dump_from_text(
     prism: UnfoldingPrism,
     structure: Atoms,
     potential_elements: Union[np.ndarray, List],
-    remap_indices_funct: callable = remap_indices_ase
+    remap_indices_funct: callable = remap_indices_ase,
 ) -> Dict:
     """
     general purpose routine to extract static from a lammps dump file
