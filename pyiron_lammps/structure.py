@@ -7,7 +7,6 @@ from __future__ import print_function
 import decimal as dec
 import posixpath
 import warnings
-from collections import OrderedDict
 
 import numpy as np
 from ase.data import atomic_masses, atomic_numbers
@@ -199,7 +198,6 @@ class LammpsStructure(object):
         self._bond_dict = bond_dict
         self._force_skewed = False
         self._units = units
-        self._molecule_ids = []
 
     @property
     def potential(self):
@@ -464,7 +462,7 @@ def structure_to_lammps(structure):
     lammps_structure.positions = np.matmul(structure.positions, prism.R)
     if not np.all(
         np.isclose(
-            structure.get_velocities(), np.array([0.0, 0.0, 0.0] * len(structure))
+            structure.get_velocities(), np.array([[0.0, 0.0, 0.0]] * len(structure))
         )
     ):
         lammps_structure.set_velocities(np.matmul(structure.get_velocities(), prism.R))
