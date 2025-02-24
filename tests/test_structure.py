@@ -76,26 +76,33 @@ class TestLammpsStructure(unittest.TestCase):
         )
         with open(os.path.join(self.output_folder, "lammps.data"), "r") as f:
             self.assertEqual(
-                [l for l in f.readlines() if "xlo xhi" not in l and "ylo yhi" not in l and "zlo zhi" not in l and "xy xz yz" not in l],
                 [
-                    'Start File for LAMMPS \n',
-                    '1 atoms \n',
-                    '3 atom types \n',
-                    '\n',
-                    '\n',
-                    'Masses\n',
-                    '\n',
-                    '  1 58.693400  # (Ni) \n',
-                    '  2 26.981538  # (Al) \n',
-                    '  3 1.008000  # (H) \n',
-                    '\n',
-                    'Atoms\n',
-                    '\n',
-                    '1 2 0.000000000000000 0.000000000000000 0.000000000000000\n',
-                    '\n',
-                    'Velocities\n',
-                    '\n',
-                    '1 0.000000 0.000000 0.000000\n',
+                    l
+                    for l in f.readlines()
+                    if "xlo xhi" not in l
+                    and "ylo yhi" not in l
+                    and "zlo zhi" not in l
+                    and "xy xz yz" not in l
+                ],
+                [
+                    "Start File for LAMMPS \n",
+                    "1 atoms \n",
+                    "3 atom types \n",
+                    "\n",
+                    "\n",
+                    "Masses\n",
+                    "\n",
+                    "  1 58.693400  # (Ni) \n",
+                    "  2 26.981538  # (Al) \n",
+                    "  3 1.008000  # (H) \n",
+                    "\n",
+                    "Atoms\n",
+                    "\n",
+                    "1 2 0.000000000000000 0.000000000000000 0.000000000000000\n",
+                    "\n",
+                    "Velocities\n",
+                    "\n",
+                    "1 0.000000 0.000000 0.000000\n",
                 ],
             )
 
