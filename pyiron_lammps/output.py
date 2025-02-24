@@ -201,7 +201,7 @@ def _parse_dump(
 
 
 def _collect_dump_from_h5md(file_name: str, prism: UnfoldingPrism) -> Dict:
-    if _check_ortho_prism(prism=prism):
+    if not _check_ortho_prism(prism=prism):
         raise RuntimeError(
             "The Lammps output will not be mapped back to pyiron correctly."
         )
