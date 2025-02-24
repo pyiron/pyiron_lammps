@@ -2,7 +2,7 @@ from ase.build import bulk
 import numpy as np
 import os
 import unittest
-from pyiron_lammps.output import remap_indices_ase, _parse_dump
+from pyiron_lammps.output import remap_indices_ase, parse_lammps_output, _parse_dump
 from pyiron_lammps.structure import UnfoldingPrism
 
 
@@ -158,3 +158,80 @@ class TestLammpsOutput(unittest.TestCase):
                     )
                 )
             )
+
+    def test_full_job_output(self):
+        test_folder = os.path.join(self.static_folder, "full_job")
+        structure_ni = bulk("Ni", cubic=True)
+        output_dict = parse_lammps_output(
+            working_directory=test_folder,
+            structure=structure_ni,
+            potential_elements=["Ni", "Al", "H"],
+            units="metal",
+            prism=UnfoldingPrism(structure_ni.cell),
+            dump_h5_file_name="dump.h5",
+            dump_out_file_name="dump.out",
+            log_lammps_file_name="log.lammps",
+            remap_indices_funct=remap_indices_ase,
+        )
+        self.assertEqual(output_dict["generic"]["steps"], np.array([0]))
+        self.assertEqual(output_dict["generic"]["natoms"], np.array([4.]))
+        self.assertTrue(np.all(np.isclose(output_dict["generic"]["energy_pot"], np.array([-17.80000005]))))
+        self.assertTrue(np.all(np.isclose(output_dict["generic"]["energy_tot"], np.array([-17.80000005]))))
+        self.assertTrue(np.all(np.isclose(output_dict["generic"]["volume"], np.array([43.614208]))))
+        self.assertEqual(output_dict["generic"]["temperature"], np.array([0.]))
+        self.assertTrue(np.all(np.isclose(
+            output_dict["generic"]["pressures"],
+            np.array([[
+                [ 5.38768850e-05, -4.07839310e-16, -1.83528844e-15],
+                [-4.07839310e-16,  5.38768850e-05, -1.01960322e-15],
+                 [-1.83528844e-15, -1.01960322e-15,  5.38768850e-05],
+            ]]),
+        )))
+        self.assertTrue(np.all(np.isclose(
+            output_dict["generic"]["positions"],
+            np.array([[
+                [0.00000000e+00, 0.00000000e+00, 0.00000000e+00],
+                [0.00000000e+00, 1.76000000e+00, 1.76000000e+00],
+                [1.76000000e+00, 1.07768918e-16, 1.76000000e+00],
+                [1.76000000e+00, 1.76000000e+00, 2.15537837e-16],
+            ]]),
+        )))
+        self.assertTrue(np.all(np.isclose(
+            output_dict["generic"]["unwrapped_positions"],
+            np.array([[
+                [0.00000000e+00, 0.00000000e+00, 0.00000000e+00],
+                [0.00000000e+00, 1.76000000e+00, 1.76000000e+00],
+                [1.76000000e+00, 1.07768918e-16, 1.76000000e+00],
+                [1.76000000e+00, 1.76000000e+00, 2.15537837e-16],
+            ]]),
+        )))
+        self.assertTrue(np.all(np.isclose(
+            output_dict["generic"]["velocities"],
+            np.array([[
+                [0., 0., 0.],
+                [0., 0., 0.],
+                [0., 0., 0.],
+                [0., 0., 0.],
+            ]]),
+        )))
+        self.assertTrue(np.all(np.isclose(
+            output_dict["generic"]["forces"],
+            np.array([[
+                [-2.22044605e-16, -1.38777878e-17, -5.55111512e-17],
+                [-5.55111512e-17, -1.66533454e-16, 6.93889390e-17],
+                [-5.55111512e-17, -3.39907768e-33, -2.08166817e-16],
+                [0.00000000e+00, -6.93889390e-18, -2.42861287e-16],
+            ]]),
+        )))
+        self.assertTrue(np.all(np.isclose(
+            output_dict["generic"]["cells"],
+            np.array([[
+                [3.52000000e+00, 2.15537837e-16, 2.15537837e-16],
+                [0.00000000e+00, 3.52000000e+00, 2.15537837e-16],
+                [0.00000000e+00, 0.00000000e+00, 3.52000000e+00],
+            ]]),
+        )))
+        self.assertTrue(np.all(np.isclose(
+            output_dict["generic"]["indices"],
+            np.array([[0, 0, 0, 0]]),
+        )))
