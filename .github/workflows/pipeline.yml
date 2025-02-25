@@ -93,6 +93,30 @@ jobs:
         pip install . --no-deps --no-build-isolation
         python -m unittest discover tests
 
+  notebooks:
+    needs: [black]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Merge Notebook environment
+        run: |
+          echo -e "channels:\n  - conda-forge\n" > .condarc
+          echo -e "- jupyter\n- papermill\n" >> binder/environment.yml
+      - name: Setup Mambaforge
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          python-version: "3.12"
+          miniforge-version: latest
+          condarc-file: .condarc
+          environment-file: binder/environment.yml
+      - name: Test
+        shell: bash -l {0}
+        run: |
+          pip install versioneer[toml]==0.29
+          pip install . --no-deps --no-build-isolation
+          cd notebooks
+          ../.ci_support/build_notebooks.sh
+
   pip_check:
     needs: [black]
     runs-on: ubuntu-latest
@@ -182,7 +206,7 @@ jobs:
         python -m unittest discover tests
 
   autobot:
-    needs: [unittest_old, unittest_matrix, pip_check, coverage]
+    needs: [unittest_old, unittest_matrix, notebooks, pip_check, coverage]
     permissions:
       contents: write
       pull-requests: write

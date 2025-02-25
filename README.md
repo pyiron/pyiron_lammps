@@ -2,6 +2,7 @@
 
 [![Pipeline](https://github.com/pyiron/pyiron_lammps/actions/workflows/pipeline.yml/badge.svg)](https://github.com/pyiron/pyiron_lammps/actions/workflows/pipeline.yml)
 [![codecov](https://codecov.io/gh/pyiron/pyiron_lammps/graph/badge.svg?token=OeZVIJ9vyW)](https://codecov.io/gh/pyiron/pyiron_lammps)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pyiron/pyiron_lammps/main?urlpath=%2Fdoc%2Ftree%2Fnotebooks%2Fexample.ipynb)
 
 The `pyiron_lammps` packages provides primarily two functions. A `write_lammps_structure()` function to write an `ase.atoms.Atoms`
 structure to an LAMMPS data file and a `parse_lammps_output_files()` function to parse the `log.lammps`, `dump.out` and

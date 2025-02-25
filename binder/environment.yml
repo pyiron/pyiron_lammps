@@ -1,0 +1,9 @@
+channels:
+- conda-forge
+dependencies:
+- ase =3.24.0
+- h5py =3.13.0
+- numpy =1.26.4
+- pandas =2.2.3
+- scipy =1.15.2
+- lammps =2024.06.27=*openmpi*
