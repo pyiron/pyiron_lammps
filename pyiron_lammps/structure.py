@@ -6,8 +6,8 @@ from __future__ import print_function
 
 import decimal as dec
 import posixpath
-from typing import Optional, Union
 import warnings
+from typing import Optional, Union
 
 import numpy as np
 from ase.atoms import Atoms
