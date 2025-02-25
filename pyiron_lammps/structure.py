@@ -6,9 +6,11 @@ from __future__ import print_function
 
 import decimal as dec
 import posixpath
+from typing import Optional, Union
 import warnings
 
 import numpy as np
+from ase.atoms import Atoms
 from ase.data import atomic_masses, atomic_numbers
 
 from pyiron_lammps.units import UnitConverter
@@ -433,17 +435,17 @@ def is_skewed(structure, tolerance=1.0e-8):
 
 
 def write_lammps_datafile(
-    structure,
-    el_eam_lst,
+    structure: Atoms,
+    potential_elements: Union[np.ndarray, list],
     bond_dict=None,
-    units="metal",
-    file_name="lammps.data",
-    cwd=None,
+    units: str = "metal",
+    file_name: str = "lammps.data",
+    working_directory: Optional[str] = None,
 ):
     lammps_str = LammpsStructure(bond_dict=bond_dict, units=units)
-    lammps_str.el_eam_lst = el_eam_lst
+    lammps_str.el_eam_lst = potential_elements
     lammps_str.structure = structure
-    lammps_str.write_file(file_name=file_name, cwd=cwd)
+    lammps_str.write_file(file_name=file_name, cwd=working_directory)
 
 
 def structure_to_lammps(structure):

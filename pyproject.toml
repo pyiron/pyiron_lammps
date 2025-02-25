@@ -25,7 +25,6 @@ classifiers = [
 ]
 dependencies = [
     "ase==3.24.0",
-    "h5py==3.13.0",
     "numpy==2.2.3",
     "pandas==2.2.3",
     "scipy==1.15.2",
@@ -36,6 +35,9 @@ dynamic = ["version"]
 Homepage = "https://github.com/pyiron/pyiron_lammps"
 Documentation = "https://github.com/pyiron/pyiron_lammps"
 Repository = "https://github.com/pyiron/pyiron_lammps"
+
+[project.optional-dependencies]
+h5md = ["h5py==3.13.0"]
 
 [tool.setuptools.packages.find]
 include = ["pyiron_lammps*"]

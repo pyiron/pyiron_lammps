@@ -2,9 +2,9 @@ from ase.build import bulk
 import numpy as np
 import os
 import unittest
+from pyiron_lammps import parse_lammps_output_files
 from pyiron_lammps.output import (
     remap_indices_ase,
-    parse_lammps_output,
     _parse_dump,
     _collect_dump_from_h5md,
     _collect_output_log,
@@ -169,7 +169,7 @@ class TestLammpsOutput(unittest.TestCase):
     def test_empty_job_output(self):
         structure_ni = bulk("Ni", cubic=True)
         structure_ni.set_chemical_symbols(["H", "Ni", "Ni", "Ni"])
-        output_dict = parse_lammps_output(
+        output_dict = parse_lammps_output_files(
             working_directory=os.path.join(self.static_folder, "dump_chemical"),
             structure=structure_ni,
             potential_elements=["Ni", "Al", "H"],
@@ -193,7 +193,7 @@ class TestLammpsOutput(unittest.TestCase):
     def test_full_job_output(self):
         test_folder = os.path.join(self.static_folder, "full_job")
         structure_ni = bulk("Ni", cubic=True)
-        output_dict = parse_lammps_output(
+        output_dict = parse_lammps_output_files(
             working_directory=test_folder,
             structure=structure_ni,
             potential_elements=["Ni", "Al", "H"],
@@ -336,7 +336,7 @@ class TestLammpsOutput(unittest.TestCase):
     def test_full_job_output_h5(self):
         test_folder = os.path.join(self.static_folder, "full_job_h5")
         structure_ni = bulk("Ni", cubic=True)
-        output_dict = parse_lammps_output(
+        output_dict = parse_lammps_output_files(
             working_directory=test_folder,
             structure=structure_ni,
             potential_elements=["Ni", "Al", "H"],
