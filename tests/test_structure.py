@@ -6,10 +6,10 @@ from shutil import rmtree
 from ase.build import bulk
 from pyiron_lammps.structure import (
     structure_to_lammps,
-    write_lammps_datafile,
     UnfoldingPrism,
     LammpsStructure,
 )
+from pyiron_lammps import write_lammps_structure
 
 
 class TestLammpsStructure(unittest.TestCase):
@@ -92,12 +92,12 @@ class TestLammpsStructure(unittest.TestCase):
     def test_structure_atomic_non_cubic(self):
         structure = bulk("Al", a=4.05)
         structure.set_velocities([[1.0, 1.0, 1.0]])
-        write_lammps_datafile(
+        write_lammps_structure(
             structure=structure,
-            el_eam_lst=["Ni", "Al", "H"],
+            potential_elements=["Ni", "Al", "H"],
             file_name="lammps.data",
             units="metal",
-            cwd=self.output_folder,
+            working_directory=self.output_folder,
         )
         with open(os.path.join(self.output_folder, "lammps.data"), "r") as f:
             self.assertEqual(
@@ -133,12 +133,12 @@ class TestLammpsStructure(unittest.TestCase):
 
     def test_structure_atomic_cubic(self):
         structure = bulk("Al", a=4.0, cubic=True)
-        write_lammps_datafile(
+        write_lammps_structure(
             structure=structure,
-            el_eam_lst=["Ni", "Al", "H"],
+            potential_elements=["Ni", "Al", "H"],
             file_name="lammps_cubic.data",
             units="metal",
-            cwd=self.output_folder,
+            working_directory=self.output_folder,
         )
         with open(os.path.join(self.output_folder, "lammps_cubic.data"), "r") as f:
             self.assertEqual(

@@ -6,7 +6,6 @@ from dataclasses import asdict, dataclass, field
 from io import StringIO
 from typing import Dict, List, Optional, Tuple, Union
 
-import h5py
 import numpy as np
 import pandas as pd
 from ase.atoms import Atoms
@@ -201,10 +200,13 @@ def _parse_dump(
 
 
 def _collect_dump_from_h5md(file_name: str, prism: UnfoldingPrism) -> Dict:
+    import h5py
+
     if not _check_ortho_prism(prism=prism):
         raise RuntimeError(
             "The Lammps output will not be mapped back to pyiron correctly."
         )
+
     with h5py.File(file_name, mode="r", libver="latest", swmr=True) as h5md:
         positions = [pos_i.tolist() for pos_i in h5md["/particles/all/position/value"]]
         steps = [steps_i.tolist() for steps_i in h5md["/particles/all/position/step"]]
