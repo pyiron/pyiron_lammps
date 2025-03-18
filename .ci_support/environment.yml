@@ -3,6 +3,6 @@ channels:
 dependencies:
 - ase =3.24.0
 - h5py =3.13.0
-- numpy =2.2.3
+- numpy =2.2.4
 - pandas =2.2.3
 - scipy =1.15.2
