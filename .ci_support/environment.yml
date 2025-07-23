@@ -5,5 +5,5 @@ dependencies:
 - h5py =3.14.0
 - numpy =2.2.4
 - pandas =2.3.1
-- scipy =1.15.2
+- scipy =1.16.0
 - setuptools
