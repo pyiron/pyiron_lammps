@@ -1,6 +1,8 @@
 channels:
 - conda-forge
 dependencies:
+- hatchling
+- hatch-vcs
 - ase =3.22.1
 - h5py =3.9.0
 - numpy =1.26.0
