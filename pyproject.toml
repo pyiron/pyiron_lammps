@@ -1,6 +1,14 @@
 [build-system]
-requires = ["ase", "numpy", "h5py", "pandas", "scipy", "setuptools", "versioneer[toml]==0.29"]
-build-backend = "setuptools.build_meta"
+requires = [
+    "ase", 
+    "numpy", 
+    "h5py", 
+    "pandas", 
+    "scipy", 
+    "hatchling==1.27.0",
+    "hatch-vcs==0.5.0",
+]
+build-backend = "hatchling.build"
 
 [project]
 name = "pyiron_lammps"
@@ -40,18 +48,27 @@ Repository = "https://github.com/pyiron/pyiron_lammps"
 [project.optional-dependencies]
 h5md = ["h5py==3.14.0"]
 
-[tool.setuptools.packages.find]
-include = ["pyiron_lammps*"]
+[tool.hatch.build]
+include = [
+    "pyiron_lammps"
+]
 
-[tool.setuptools.dynamic]
-version = {attr = "pyiron_lammps.__version__"}
+[tool.hatch.build.hooks.vcs]
+version-file = "pyiron_lammps/_version.py"
 
-[tool.versioneer]
-VCS = "git"
-style = "pep440-pre"
-versionfile_source = "pyiron_lammps/_version.py"
-parentdir_prefix = "pyiron_lammps"
-tag_prefix = "pyiron_lammps-"
+[tool.hatch.build.targets.sdist]
+include = [
+    "pyiron_lammps"
+]
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "pyiron_lammps"
+]
+
+[tool.hatch.version]
+source = "vcs"
+path = "pyiron_lammps/_version.py"
 
 [tool.coverage.run]
 omit = ["pyiron_lammps/_version.py", "tests/*"]

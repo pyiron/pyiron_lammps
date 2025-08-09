@@ -1,7 +1,7 @@
 from pyiron_lammps.output import parse_lammps_output as parse_lammps_output_files
 from pyiron_lammps.structure import write_lammps_datafile as write_lammps_structure
 
-from . import _version
+import pyiron_lammps._version
 
 DUMP_COMMANDS = [
     "dump 1 all custom 100 dump.out id type xsu ysu zsu fx fy fz vx vy vz\n",
@@ -14,7 +14,7 @@ THERMO_COMMANDS = [
     "thermo 100\n",
 ]
 
-__version__ = _version.get_versions()["version"]
+__version__ = pyiron_lammps._version.__version__
 __all__ = [
     "parse_lammps_output_files",
     "write_lammps_structure",
