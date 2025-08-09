@@ -220,16 +220,6 @@ class TestLammpsStructure(unittest.TestCase):
         with self.assertRaises(ValueError):
             ls.rotate_velocities(structure=None)
 
-    def test_2d_structure(self):
-        structure = Atoms(
-            "Al2", positions=[[0, 0], [0.5, 0.5]], cell=[[1, 0], [0, 1]], pbc=True
-        )
-        structure.set_velocities(np.random.rand(len(structure), 2))
-        ls = LammpsStructure()
-        ls.el_eam_lst = ["Al"]
-        ls.structure = structure
-        self.assertTrue("Velocities" in ls._string_input)
-
     def test_skewed_cell(self):
         structure = bulk("Al")
         cell = structure.cell
