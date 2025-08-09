@@ -465,9 +465,7 @@ class TestLammpsOutput(unittest.TestCase):
 
     def test_collect_output_log_multi(self):
         generic_keys_lst, pressure_dict, df = _collect_output_log(
-            file_name=os.path.join(
-                self.static_folder, "multiple_thermo", "log.lammps"
-            ),
+            file_name=os.path.join(self.static_folder, "multiple_thermo", "log.lammps"),
             prism=UnfoldingPrism(cell=bulk("Al").cell),
         )
         self.assertEqual(
@@ -495,9 +493,7 @@ class TestLammpsOutput(unittest.TestCase):
             np.all(
                 np.isclose(
                     pressure_dict["mean_pressures"],
-                    np.array(
-                        [[[1.0, 4.0, 5.0], [4.0, 2.0, 6.0], [5.0, 6.0, 3.0]]]
-                    ),
+                    np.array([[[1.0, 4.0, 5.0], [4.0, 2.0, 6.0], [5.0, 6.0, 3.0]]]),
                 )
             )
         )
@@ -583,9 +579,7 @@ class TestLammpsOutput(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             _collect_dump_from_h5md(
                 file_name="test",
-                prism=UnfoldingPrism(
-                    cell=np.array([[1, 1, 0], [0, 1, 0], [0, 0, 1]])
-                ),
+                prism=UnfoldingPrism(cell=np.array([[1, 1, 0], [0, 1, 0], [0, 0, 1]])),
             )
 
     def test_mean_values_non_ortho(self):
