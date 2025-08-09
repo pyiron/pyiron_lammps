@@ -52,3 +52,7 @@ style = "pep440-pre"
 versionfile_source = "pyiron_lammps/_version.py"
 parentdir_prefix = "pyiron_lammps"
 tag_prefix = "pyiron_lammps-"
+
+[tool.coverage.run]
+omit = ["pyiron_lammps/_version.py", "tests/*"]
+command_line = "-m unittest discover tests"
