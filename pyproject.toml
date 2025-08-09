@@ -52,21 +52,3 @@ style = "pep440-pre"
 versionfile_source = "pyiron_lammps/_version.py"
 parentdir_prefix = "pyiron_lammps"
 tag_prefix = "pyiron_lammps-"
-
-[tool.mypy]
-python_version = "3.9"
-warn_return_any = true
-warn_unused_ignores = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-check_untyped_defs = true
-disallow_untyped_calls = true
-strict = true
-
-# For reporting
-html_report = "mypy_report/html"
-txt_report = "mypy_report/txt"
-
-[[tool.mypy.overrides]]
-module = "ase.*"
-ignore_missing_imports = true
