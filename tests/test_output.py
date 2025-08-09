@@ -462,3 +462,134 @@ class TestLammpsOutput(unittest.TestCase):
         )
         self.assertEqual(len(pressure_dict), 0)
         self.assertEqual(len(df), 1)
+
+    def test_collect_output_log_multi(self):
+        generic_keys_lst, pressure_dict, df = _collect_output_log(
+            file_name=os.path.join(self.static_folder, "multiple_thermo", "log.lammps"),
+            prism=UnfoldingPrism(cell=bulk("Al").cell),
+        )
+        self.assertEqual(
+            generic_keys_lst,
+            [
+                "steps",
+                "temperature",
+                "energy_pot",
+                "energy_tot",
+                "volume",
+                "LogStep",
+            ],
+        )
+        self.assertEqual(len(pressure_dict), 0)
+        self.assertEqual(len(df), 2)
+
+    def test_mean_values(self):
+        generic_keys_lst, pressure_dict, df = _collect_output_log(
+            file_name=os.path.join(self.static_folder, "mean_values", "log.lammps"),
+            prism=UnfoldingPrism(cell=bulk("Al").cell),
+        )
+        self.assertTrue("mean_foo" in generic_keys_lst)
+        self.assertTrue("mean_bar" in generic_keys_lst)
+        self.assertTrue(
+            np.all(
+                np.isclose(
+                    pressure_dict["mean_pressures"],
+                    np.array([[[1.0, 4.0, 5.0], [4.0, 2.0, 6.0], [5.0, 6.0, 3.0]]]),
+                )
+            )
+        )
+        self.assertEqual(len(df), 1)
+
+    def test_mean_dump(self):
+        s = bulk("Al")
+        prism = UnfoldingPrism(cell=s.cell)
+        output = _parse_dump(
+            dump_h5_full_file_name="",
+            dump_out_full_file_name=os.path.join(
+                self.static_folder, "mean_dump", "dump.out"
+            ),
+            prism=prism,
+            structure=s,
+            potential_elements=["Al"],
+            remap_indices_funct=remap_indices_ase,
+        )
+        self.assertTrue(
+            np.all(
+                np.isclose(
+                    output["mean_forces"],
+                    np.matmul(np.array([[[1, 2, 3]]]), prism.R.T),
+                )
+            )
+        )
+        self.assertTrue(
+            np.all(
+                np.isclose(
+                    output["mean_velocities"],
+                    np.matmul(np.array([[[4, 5, 6]]]), prism.R.T),
+                )
+            )
+        )
+        self.assertTrue(
+            np.all(
+                np.isclose(
+                    output["mean_unwrapped_positions"],
+                    np.matmul(np.array([[[7, 8, 9]]]), prism.R.T),
+                )
+            )
+        )
+        self.assertTrue(np.all(np.isclose(output["computes"]["test"], [[10]])))
+
+    def test_jagged_array(self):
+        structure_ni = bulk("Ni", cubic=True)
+        structure_ni.set_chemical_symbols(["H", "Ni", "Ni", "Ni"])
+        output_dict = parse_lammps_output_files(
+            working_directory=os.path.join(self.static_folder, "dump_chemical"),
+            structure=structure_ni,
+            potential_elements=["Ni", "Al", "H"],
+            units="metal",
+            prism=None,
+            dump_h5_file_name="dump.h5",
+            dump_out_file_name="dump_NiH.out",
+            log_lammps_file_name="log.lammps",
+            remap_indices_funct=remap_indices_ase,
+        )
+        s = bulk("Al")
+        output = parse_lammps_output_files(
+            working_directory=os.path.join(self.static_folder, "jagged_dump"),
+            structure=s,
+            potential_elements=["Al"],
+            units="metal",
+        )
+        self.assertEqual(len(output["generic"]["positions"]), 2)
+        self.assertEqual(len(output["generic"]["positions"][0]), 1)
+        self.assertEqual(len(output["generic"]["positions"][1]), 2)
+        self.assertTrue(isinstance(output["generic"]["positions"], list))
+
+    def test_to_amat_triclinic(self):
+        out = to_amat([0, 1, 0.1, 0, 1, 0.2, 0, 1, 0.3])
+        self.assertTrue(
+            np.all(
+                np.isclose(
+                    out,
+                    [[0.7, 0.0, 0.0], [0.1, 0.7, 0.0], [0.2, 0.3, 1.0]],
+                )
+            )
+        )
+
+    def test_h5md_error(self):
+        with self.assertRaises(RuntimeError):
+            _collect_dump_from_h5md(
+                file_name="test",
+                prism=UnfoldingPrism(cell=np.array([[1, 1, 0], [0, 1, 0], [0, 0, 1]])),
+            )
+
+    def test_mean_values_non_ortho(self):
+        cell = np.array([[1, 1, 0], [0, 1, 0], [0, 0, 1]])
+        generic_keys_lst, pressure_dict, df = _collect_output_log(
+            file_name=os.path.join(
+                self.static_folder, "mean_values_non_ortho", "log.lammps"
+            ),
+            prism=UnfoldingPrism(cell=cell),
+        )
+        self.assertTrue("mean_foo" in generic_keys_lst)
+        self.assertTrue("mean_bar" in generic_keys_lst)
+        self.assertTrue("mean_pressures" in pressure_dict.keys())

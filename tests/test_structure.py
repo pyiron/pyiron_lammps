@@ -4,6 +4,7 @@ import os
 import sys
 from shutil import rmtree
 from ase.build import bulk
+from ase.atoms import Atoms
 from pyiron_lammps.structure import (
     structure_to_lammps,
     UnfoldingPrism,
@@ -202,3 +203,26 @@ class TestLammpsStructure(unittest.TestCase):
             "",
         ]
         self.assertEqual(output_str.split("\n"), reference_str)
+
+    def test_lammps_structure_potential(self):
+        ls = LammpsStructure()
+        ls.potential = "test"
+        self.assertEqual(ls.potential, "test")
+
+    def test_lammps_structure_no_structure(self):
+        ls = LammpsStructure()
+        with self.assertRaises(ValueError):
+            ls.simulation_cell()
+        with self.assertRaises(ValueError):
+            ls.structure_atomic()
+        with self.assertRaises(ValueError):
+            ls.rotate_positions(structure=None)
+        with self.assertRaises(ValueError):
+            ls.rotate_velocities(structure=None)
+
+    def test_skewed_cell(self):
+        structure = bulk("Al")
+        cell = structure.cell
+        cell[0, 1] = cell[0, 0] * 0.6
+        up = UnfoldingPrism(cell=cell)
+        self.assertFalse(np.all(np.isclose(up.A, cell)))
