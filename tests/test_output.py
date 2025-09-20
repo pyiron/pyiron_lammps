@@ -181,14 +181,14 @@ class TestLammpsOutput(unittest.TestCase):
             remap_indices_funct=remap_indices_ase,
         )
         self.assertEqual(len(output_dict["generic"].keys()), 8)
-        output_dump = _parse_dump(
-            dump_h5_full_file_name=os.path.join(self.static_folder, "empty"),
-            dump_out_full_file_name=os.path.join(self.static_folder, "empty"),
-            prism=None,
-            structure=structure_ni,
-            potential_elements=["Ni", "Al", "H"],
-        )
-        self.assertEqual(len(output_dump), 0)
+        with self.assertRaises(FileNotFoundError):
+            _parse_dump(
+                dump_h5_full_file_name=os.path.join(self.static_folder, "empty"),
+                dump_out_full_file_name=os.path.join(self.static_folder, "empty"),
+                prism=None,
+                structure=structure_ni,
+                potential_elements=["Ni", "Al", "H"],
+            )
 
     def test_full_job_output(self):
         test_folder = os.path.join(self.static_folder, "full_job")
@@ -593,3 +593,7 @@ class TestLammpsOutput(unittest.TestCase):
         self.assertTrue("mean_foo" in generic_keys_lst)
         self.assertTrue("mean_bar" in generic_keys_lst)
         self.assertTrue("mean_pressures" in pressure_dict.keys())
+
+
+if __name__ == "__main__":
+    unittest.main()

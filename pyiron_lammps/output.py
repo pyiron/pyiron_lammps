@@ -196,7 +196,9 @@ def _parse_dump(
             remap_indices_funct=remap_indices_funct,
         )
     else:
-        return {}
+        raise FileNotFoundError(
+            f"Neither {dump_h5_full_file_name} nor {dump_out_full_file_name} exist."
+        )
 
 
 def _collect_dump_from_h5md(file_name: str, prism: UnfoldingPrism) -> Dict:
