@@ -54,7 +54,7 @@ jobs:
     - name: Setup Mambaforge
       uses: conda-incubator/setup-miniconda@v3
       with:
-        python-version: '3.13'
+        python-version: '3.14'
         miniforge-version: latest
         condarc-file: .condarc
         environment-file: .ci_support/environment.yml
@@ -80,7 +80,7 @@ jobs:
     - name: Setup Mambaforge
       uses: conda-incubator/setup-miniconda@v3
       with:
-        python-version: '3.13'
+        python-version: '3.14'
         miniforge-version: latest
         condarc-file: .condarc
         environment-file: .ci_support/environment.yml
@@ -103,7 +103,7 @@ jobs:
       - name: Setup Mambaforge
         uses: conda-incubator/setup-miniconda@v3
         with:
-          python-version: "3.13"
+          python-version: "3.14"
           miniforge-version: latest
           condarc-file: .condarc
           environment-file: binder/environment.yml
@@ -125,7 +125,7 @@ jobs:
     - name: Setup Mambaforge
       uses: conda-incubator/setup-miniconda@v3
       with:
-        python-version: '3.13'
+        python-version: '3.14'
         miniforge-version: latest
         condarc-file: .condarc
         environment-file: .ci_support/environment.yml
@@ -145,12 +145,15 @@ jobs:
       matrix:
         include:
         - operating-system: macos-latest
-          python-version: '3.13'
+          python-version: '3.14'
 
         - operating-system: ubuntu-latest
-          python-version: '3.13'
+          python-version: '3.14'
 
         - operating-system: windows-latest
+          python-version: '3.14'
+
+        - operating-system: ubuntu-latest
           python-version: '3.13'
 
         - operating-system: ubuntu-latest
