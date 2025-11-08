@@ -1,4 +1,5 @@
 import warnings
+
 import numpy as np
 
 from pyiron_lammps.units import LAMMPS_UNIT_CONVERSIONS
@@ -114,7 +115,9 @@ def calc_md(
             )
 
         force_skewed = False
-        pressure = _pressure_to_lammps(pressure=pressure, rotation_matrix=rotation_matrix, units=units)
+        pressure = _pressure_to_lammps(
+            pressure=pressure, rotation_matrix=rotation_matrix, units=units
+        )
 
         if np.isscalar(pressure):
             pressure_string = " iso {0} {0} {1}".format(
@@ -236,9 +239,7 @@ def calc_minimize(
 
     max_evaluations = 100 * max_iter
     if n_print > max_iter:
-        warnings.warn(
-            "n_print larger than max_iter, adjusting to n_print=max_iter"
-        )
+        warnings.warn("n_print larger than max_iter, adjusting to n_print=max_iter")
         n_print = max_iter
 
     if units not in LAMMPS_UNIT_CONVERSIONS.keys():
@@ -256,7 +257,9 @@ def calc_minimize(
                 "This is most likely due to no structure being defined."
             )
         # force_skewed = False
-        pressure = _pressure_to_lammps(pressure=pressure, rotation_matrix=rotation_matrix, units=units)
+        pressure = _pressure_to_lammps(
+            pressure=pressure, rotation_matrix=rotation_matrix, units=units
+        )
         if np.isscalar(pressure):
             str_press = " iso {}".format(pressure)
         else:
@@ -277,7 +280,14 @@ def calc_minimize(
         _get_thermo(),
         r"fix ensemble all box/relax" + str_press,
         "min_style " + style,
-        "minimize " + str(ionic_energy_tolerance) + " " + str(ionic_force_tolerance) + " " + str(int(max_iter)) + " " + str(int(max_evaluations)),
+        "minimize "
+        + str(ionic_energy_tolerance)
+        + " "
+        + str(ionic_force_tolerance)
+        + " "
+        + str(int(max_iter))
+        + " "
+        + str(int(max_evaluations)),
     ]
     return line_lst
 
@@ -392,21 +402,11 @@ def _pressure_to_lammps(pressure, rotation_matrix, units="metal"):
                 "its components is None."
             )
         pxx, pyy, pzz, pxy, pxz, pyz = pressure
-        pressure_tensor = np.array(
-            [[pxx, pxy, pxz], [pxy, pyy, pyz], [pxz, pyz, pzz]]
-        )
-        lammps_pressure_tensor = (
-            rotation_matrix.T @ pressure_tensor @ rotation_matrix
-        )
-        pressure = list(
-            lammps_pressure_tensor[[0, 1, 2, 0, 0, 1], [0, 1, 2, 1, 2, 2]]
-        )
+        pressure_tensor = np.array([[pxx, pxy, pxz], [pxy, pyy, pyz], [pxz, pyz, pzz]])
+        lammps_pressure_tensor = rotation_matrix.T @ pressure_tensor @ rotation_matrix
+        pressure = list(lammps_pressure_tensor[[0, 1, 2, 0, 0, 1], [0, 1, 2, 1, 2, 2]])
 
     return [
-        (
-            p * LAMMPS_UNIT_CONVERSIONS[units]["pressure"]
-            if p is not None
-            else p
-        )
+        (p * LAMMPS_UNIT_CONVERSIONS[units]["pressure"] if p is not None else p)
         for p in pressure
     ]

@@ -1,13 +1,14 @@
 import os
 import subprocess
-from ase.atoms import Atoms
 from typing import Optional
 
+from ase.atoms import Atoms
+
 from pyiron_lammps.compatibility.atomistics import lammps_file_initialization
-from pyiron_lammps.potential import get_potential_by_name
-from pyiron_lammps.compatibility.calculate import calc_md, calc_static, calc_minimize
-from pyiron_lammps.structure import write_lammps_datafile
+from pyiron_lammps.compatibility.calculate import calc_md, calc_minimize, calc_static
 from pyiron_lammps.output import parse_lammps_output
+from pyiron_lammps.potential import get_potential_by_name
+from pyiron_lammps.structure import write_lammps_datafile
 
 
 def lammps_file_interface_function(
@@ -81,7 +82,9 @@ def lammps_file_interface_function(
         calc_kwargs = {}
 
     os.makedirs(working_directory, exist_ok=True)
-    potential_dataframe = get_potential_by_name(potential_name=potential, resource_path=resource_path)
+    potential_dataframe = get_potential_by_name(
+        potential_name=potential, resource_path=resource_path
+    )
     write_lammps_datafile(
         structure=structure,
         potential_elements=potential_dataframe["Species"],
@@ -114,7 +117,11 @@ def lammps_file_interface_function(
         f.writelines([l + "\n" for l in lmp_str_lst])
 
     shell = subprocess.check_output(
-        lmp_command, cwd=working_directory, shell=True, universal_newlines=True, env=os.environ.copy()
+        lmp_command,
+        cwd=working_directory,
+        shell=True,
+        universal_newlines=True,
+        env=os.environ.copy(),
     )
     output = parse_lammps_output(
         working_directory=working_directory,
