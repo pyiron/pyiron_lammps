@@ -1,4 +1,5 @@
 import pyiron_lammps._version
+from pyiron_lammps.compatibility.calculate import calc_md, calc_static, calc_minimize
 from pyiron_lammps.compatibility.file import (
     lammps_file_initialization,
     lammps_file_interface_function,
