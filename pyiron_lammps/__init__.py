@@ -1,6 +1,7 @@
 import pyiron_lammps._version
 from pyiron_lammps.output import parse_lammps_output as parse_lammps_output_files
 from pyiron_lammps.structure import write_lammps_datafile as write_lammps_structure
+from pyiron_lammps.potential import get_potential_by_name, get_potential_dataframe
 
 DUMP_COMMANDS = [
     "dump 1 all custom 100 dump.out id type xsu ysu zsu fx fy fz vx vy vz\n",
