@@ -4,8 +4,11 @@ from typing import Optional
 
 from ase.atoms import Atoms
 
-from pyiron_lammps.compatibility.atomistics import lammps_file_initialization
-from pyiron_lammps.compatibility.calculate import calc_md, calc_minimize, calc_static
+from pyiron_lammps.compatibility.calculate import (
+    calc_md,
+    calc_minimize,
+    calc_static,
+)
 from pyiron_lammps.output import parse_lammps_output
 from pyiron_lammps.potential import get_potential_by_name
 from pyiron_lammps.structure import write_lammps_datafile
@@ -134,3 +137,15 @@ def lammps_file_interface_function(
         log_lammps_file_name="log.lammps",
     )
     return shell, output, False
+
+
+def lammps_file_initialization(structure, dimension=3, units="metal"):
+    boundary = " ".join(["p" if coord else "f" for coord in structure.pbc])
+    init_commands = [
+        "units " + units,
+        "dimension " + str(dimension),
+        "boundary " + boundary + "",
+        "atom_style atomic",
+        "read_data lammps.data",
+    ]
+    return init_commands
