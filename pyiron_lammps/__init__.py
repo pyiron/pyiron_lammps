@@ -16,6 +16,8 @@ THERMO_COMMANDS = [
 
 __version__ = pyiron_lammps._version.__version__
 __all__ = [
+    "get_potential_by_name",
+    "get_potential_dataframe",
     "parse_lammps_output_files",
     "write_lammps_structure",
 ]
