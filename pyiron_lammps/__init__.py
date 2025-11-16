@@ -1,5 +1,4 @@
 import pyiron_lammps._version
-from pyiron_lammps.compatibility.calculate import calc_md, calc_minimize, calc_static
 from pyiron_lammps.compatibility.file import (
     lammps_file_initialization,
     lammps_file_interface_function,
@@ -23,6 +22,8 @@ __version__ = pyiron_lammps._version.__version__
 __all__ = [
     "get_potential_by_name",
     "get_potential_dataframe",
+    "lammps_file_initialization",
+    "lammps_file_interface_function",
     "parse_lammps_output_files",
     "write_lammps_structure",
 ]
