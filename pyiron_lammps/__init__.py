@@ -7,6 +7,13 @@ from pyiron_lammps.output import parse_lammps_output as parse_lammps_output_file
 from pyiron_lammps.potential import get_potential_by_name, get_potential_dataframe
 from pyiron_lammps.structure import write_lammps_datafile as write_lammps_structure
 
+try:
+    from pyiron_lammps.compatibility.interactive import lammps_interactive_interface_function
+
+    lammps_interactive_interface_function_available = True
+except ImportError:
+    lammps_interactive_interface_function_available = False
+
 DUMP_COMMANDS = [
     "dump 1 all custom 100 dump.out id type xsu ysu zsu fx fy fz vx vy vz\n",
     'dump_modify 1 sort id format line "%d %d %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g"\n',
@@ -27,3 +34,5 @@ __all__ = [
     "parse_lammps_output_files",
     "write_lammps_structure",
 ]
+if lammps_interactive_interface_function:
+    __all__ += ["lammps_interactive_interface_function"]
