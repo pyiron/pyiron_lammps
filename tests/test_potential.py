@@ -28,7 +28,7 @@ class TestPotential(unittest.TestCase):
         df = get_potential_dataframe(
             structure=bulk("Al"),
             resource_path=os.path.abspath(
-                os.path.join("..", os.path.dirname(__file__), "static", "lammps")
+                os.path.join("..", os.path.dirname(__file__), "static", "potential")
             ),
         )
         self.assertEqual(len(df), 1)
