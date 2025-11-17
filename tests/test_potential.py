@@ -3,7 +3,10 @@ import unittest
 
 from ase.build import bulk
 import pandas
-from pyiron_lammps.potential import validate_potential_dataframe, get_potential_dataframe
+from pyiron_lammps.potential import (
+    validate_potential_dataframe,
+    get_potential_dataframe,
+)
 
 
 class TestPotential(unittest.TestCase):
