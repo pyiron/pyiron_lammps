@@ -72,7 +72,9 @@ class TestPotential(unittest.TestCase):
             get_resource_path_from_conda()
 
         os.makedirs("/tmp/conda/share/iprpy")
-        self.assertEqual(get_resource_path_from_conda().replace("\\", "/"), "/tmp/conda/share/iprpy")
+        self.assertEqual(
+            get_resource_path_from_conda().replace("\\", "/"), "/tmp/conda/share/iprpy"
+        )
         shutil.rmtree("/tmp/conda")
 
     @mock.patch.dict(os.environ, {}, clear=True)
