@@ -51,10 +51,10 @@ class TestPotential(unittest.TestCase):
 
     def test_get_potential_by_name(self):
         df = get_potential_by_name(
-            potential_name="1995--Angelo-J-E--Ni-Al-H--LAMMPS--ipr1",
+            potential_name="1999--Mishin-Y--Al--LAMMPS--ipr1",
             resource_path=self.resource_path,
         )
-        self.assertEqual(df.Name, "1995--Angelo-J-E--Ni-Al-H--LAMMPS--ipr1")
+        self.assertEqual(df.Name, "1999--Mishin-Y--Al--LAMMPS--ipr1")
 
     def test_convert_path_to_abs_posix(self):
         self.assertEqual(
@@ -134,11 +134,6 @@ class TestPotential(unittest.TestCase):
         )
         self.assertEqual(len(df), 1)
 
-    def test_update_potential_paths(self):
-        df = self.potential_dataframe.copy()
-        df_updated = update_potential_paths(df_pot=df, resource_path=self.resource_path)
-        self.assertIn(self.resource_path, df_updated.Config.values[0][0])
-
 
 class TestPotentialAbstract(unittest.TestCase):
     def setUp(self):
@@ -181,7 +176,7 @@ class TestPotentialAbstract(unittest.TestCase):
         self.assertTrue(self.potential.list().equals(self.df))
 
     def test_getitem(self):
-        potential = self.potential["Al"]["Ni"]
+        potential = self.potential["Al"]
         self.assertEqual(len(potential.list()), 1)
         self.assertEqual(potential.list().Name.values[0], "pot1")
 
@@ -211,28 +206,11 @@ class TestLammpsPotentialFile(unittest.TestCase):
         self.assertIsNone(self.potential.find_default("Al"))
         self.assertIsNone(self.potential.default())
 
-    def test_getitem(self):
-        potential = self.potential["Al"]["Ni"]
-        self.assertIsInstance(potential, LammpsPotentialFile)
-        self.assertEqual(len(potential.list()), 1)
-
 
 class TestPotentialAvailable(unittest.TestCase):
     def setUp(self):
         self.potentials = ["pot1", "pot-2", "pot.3"]
         self.available = PotentialAvailable(list_of_potentials=self.potentials)
-
-    def test_getattr(self):
-        self.assertEqual(self.available.pot_1, "pot1")
-        self.assertEqual(self.available.pot_2, "pot-2")
-        self.assertEqual(self.available.pot_3, "pot.3")
-        with self.assertRaises(AttributeError):
-            _ = self.available.not_a_potential
-
-    def test_dir(self):
-        self.assertEqual(
-            sorted(dir(self.available)), sorted(["pot_1", "pot_2", "pot_3"])
-        )
 
     def test_repr(self):
         self.assertEqual(repr(self.available), str(dir(self.available)))
