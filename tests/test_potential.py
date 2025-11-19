@@ -219,8 +219,11 @@ class TestLammpsPotentialFile(unittest.TestCase):
 
 class TestPotentialAvailable(unittest.TestCase):
     def setUp(self):
-        self.potentials = ["pot1", "pot-2", "pot.3"]
+        self.potentials = {"pot1": 1, "pot2": 2, "pot3": 3}
         self.available = PotentialAvailable(list_of_potentials=self.potentials)
 
     def test_repr(self):
         self.assertEqual(repr(self.available), str(dir(self.available)))
+
+    def test_get_attr(self):
+        self.assertEqual(str(self.available.pot_pot1), 'pot1')
