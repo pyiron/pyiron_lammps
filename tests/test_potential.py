@@ -14,7 +14,6 @@ from pyiron_lammps.potential import (
     get_resource_path_from_conda,
     find_potential_file_base,
     view_potentials,
-    update_potential_paths,
     PotentialAbstract,
     LammpsPotentialFile,
     PotentialAvailable,
@@ -45,6 +44,10 @@ class TestPotential(unittest.TestCase):
             potential_dataframe=pandas.DataFrame({"a": [1]})
         )
         self.assertTrue(isinstance(series, pandas.Series))
+        series2 = validate_potential_dataframe(
+            potential_dataframe=series
+        )
+        self.assertTrue(series2.equals(series))
 
     def test_get_potential_dataframe(self):
         self.assertEqual(len(self.potential_dataframe), 1)
@@ -75,7 +78,12 @@ class TestPotential(unittest.TestCase):
         self.assertEqual(
             get_resource_path_from_conda().replace("\\", "/"), "/tmp/conda/share/iprpy"
         )
+        df = get_potential_dataframe(
+            structure=bulk("Al"),
+        )
+        self.assertEqual(len(df), 0)
         shutil.rmtree("/tmp/conda")
+
 
     @mock.patch.dict(os.environ, {}, clear=True)
     def test_get_resource_path_from_conda_no_env(self):
