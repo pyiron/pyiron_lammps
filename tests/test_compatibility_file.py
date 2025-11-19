@@ -45,7 +45,7 @@ class TestCompatibilityFile(unittest.TestCase):
             calc_mode="md",
             calc_kwargs=calc_kwargs,
             units=units,
-            lmp_command= "cp ../static/compatibility_output/* .",
+            lmp_command="cp ../static/compatibility_output/* .",
             resource_path=os.path.abspath(
                 os.path.join("..", os.path.dirname(__file__), "static", "potential")
             ),
@@ -79,7 +79,7 @@ class TestCompatibilityFile(unittest.TestCase):
 
     def test_calc_md_nvt(self):
         structure = bulk("Al", cubic=True).repeat([2, 2, 2])
-        potential = '1999--Mishin-Y--Al--LAMMPS--ipr1'
+        potential = "1999--Mishin-Y--Al--LAMMPS--ipr1"
         units = "metal"
         calc_kwargs = {"temperature": 500.0, "n_ionic_steps": 1000, "n_print": 100}
         shell_output, parsed_output, job_crashed = lammps_file_interface_function(
@@ -89,7 +89,7 @@ class TestCompatibilityFile(unittest.TestCase):
             calc_mode="md",
             calc_kwargs=calc_kwargs,
             units=units,
-            lmp_command= "cp ../static/compatibility_output/* .",
+            lmp_command="cp ../static/compatibility_output/* .",
             resource_path=os.path.abspath(
                 os.path.join("..", os.path.dirname(__file__), "static", "potential")
             ),
@@ -100,23 +100,23 @@ class TestCompatibilityFile(unittest.TestCase):
         with open(self.working_dir + "/lmp.in", "r") as f:
             content = f.readlines()
         content_expected = [
-            'units metal\n',
-            'dimension 3\n',
-            'boundary p p p\n',
-            'atom_style atomic\n',
-            'read_data lammps.data\n',
-            'pair_style eam/alloy\n',
-            'variable dumptime equal 100 \n',
-            'dump 1 all custom ${dumptime} dump.out id type xsu ysu zsu fx fy fz vx vy vz\n',
+            "units metal\n",
+            "dimension 3\n",
+            "boundary p p p\n",
+            "atom_style atomic\n",
+            "read_data lammps.data\n",
+            "pair_style eam/alloy\n",
+            "variable dumptime equal 100 \n",
+            "dump 1 all custom ${dumptime} dump.out id type xsu ysu zsu fx fy fz vx vy vz\n",
             'dump_modify 1 sort id format line "%d %d %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g"\n',
-            'fix ensemble all nvt temp 500.0 500.0 0.1\n',
-            'variable thermotime equal 100 \n',
-            'timestep 0.001\n',
-            'velocity all create 1000.0 80996 dist gaussian\n',
-            'thermo_style custom step temp pe etotal pxx pxy pxz pyy pyz pzz vol\n',
-            'thermo_modify format float %20.15g\n',
-            'thermo ${thermotime}\n',
-            'run 1000 \n'
+            "fix ensemble all nvt temp 500.0 500.0 0.1\n",
+            "variable thermotime equal 100 \n",
+            "timestep 0.001\n",
+            "velocity all create 1000.0 80996 dist gaussian\n",
+            "thermo_style custom step temp pe etotal pxx pxy pxz pyy pyz pzz vol\n",
+            "thermo_modify format float %20.15g\n",
+            "thermo ${thermotime}\n",
+            "run 1000 \n",
         ]
         for line in content_expected:
             self.assertIn(line, content)
