@@ -223,4 +223,4 @@ class TestPotentialAvailable(unittest.TestCase):
         self.assertEqual(repr(self.available), str(dir(self.available)))
 
     def test_get_attr(self):
-        self.assertEqual(str(self.available.pot_pot1), 'pot1')
+        self.assertEqual(str(self.available.pot_pot1), "pot1")
