@@ -48,7 +48,9 @@ class TestCompatibilityFile(unittest.TestCase):
             calc_mode="md",
             calc_kwargs=calc_kwargs,
             units=units,
-            lmp_command="cp " + str(os.path.join(self.static_path, "compatibility_output")) + "/* .",
+            lmp_command="cp "
+            + str(os.path.join(self.static_path, "compatibility_output"))
+            + "/* .",
             resource_path=os.path.join(self.static_path, "potential"),
         )
         self.assertFalse(job_crashed)
@@ -90,7 +92,9 @@ class TestCompatibilityFile(unittest.TestCase):
             calc_mode="md",
             calc_kwargs=calc_kwargs,
             units=units,
-            lmp_command="cp " + str(os.path.join(self.static_path, "compatibility_output")) + "/* .",
+            lmp_command="cp "
+            + str(os.path.join(self.static_path, "compatibility_output"))
+            + "/* .",
             resource_path=os.path.join(self.static_path, "potential"),
         )
         self.assertFalse(job_crashed)
