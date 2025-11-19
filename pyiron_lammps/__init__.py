@@ -1,5 +1,6 @@
 import pyiron_lammps._version
 from pyiron_lammps.output import parse_lammps_output as parse_lammps_output_files
+from pyiron_lammps.potential import get_potential_by_name, get_potential_dataframe
 from pyiron_lammps.structure import write_lammps_datafile as write_lammps_structure
 
 DUMP_COMMANDS = [
@@ -15,6 +16,8 @@ THERMO_COMMANDS = [
 
 __version__ = pyiron_lammps._version.__version__
 __all__ = [
+    "get_potential_by_name",
+    "get_potential_dataframe",
     "parse_lammps_output_files",
     "write_lammps_structure",
 ]
