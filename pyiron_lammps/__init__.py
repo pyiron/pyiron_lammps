@@ -8,7 +8,9 @@ from pyiron_lammps.potential import get_potential_by_name, get_potential_datafra
 from pyiron_lammps.structure import write_lammps_datafile as write_lammps_structure
 
 try:
-    from pyiron_lammps.compatibility.interactive import lammps_interactive_interface_function
+    from pyiron_lammps.compatibility.interactive import (
+        lammps_interactive_interface_function,
+    )
 
     lammps_interactive_interface_function_available = True
 except ImportError:

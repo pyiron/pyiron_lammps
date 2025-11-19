@@ -1,7 +1,8 @@
 import os
-from ase.atoms import Atoms
-import numpy as np
 from typing import Optional
+
+import numpy as np
+from ase.atoms import Atoms
 from pylammpsmpi import LammpsASELibrary
 
 from pyiron_lammps.compatibility.calculate import (
@@ -13,18 +14,18 @@ from pyiron_lammps.potential import get_potential_by_name
 
 
 def _get_status(lmp, data_dict):
-    data_dict['steps'].append(lmp.interactive_steps_getter())
-    data_dict['volume'].append(lmp.interactive_volume_getter())
-    data_dict['natoms'].append(len(lmp.interactive_indices_getter()))
-    data_dict['cells'].append(lmp.interactive_cells_getter())
-    data_dict['indices'].append(lmp.interactive_indices_getter()-1)
-    data_dict['forces'].append(lmp.interactive_forces_getter())
-    data_dict['velocities'].append(lmp.interactive_velocities_getter() / 1000)
-    data_dict['positions'].append(lmp.interactive_positions_getter())
-    data_dict['temperature'].append(lmp.interactive_temperatures_getter())
-    data_dict['energy_pot'].append(lmp.interactive_energy_pot_getter())
-    data_dict['energy_tot'].append(lmp.interactive_energy_tot_getter())
-    data_dict['pressures'].append(lmp.interactive_pressures_getter() * 10000)
+    data_dict["steps"].append(lmp.interactive_steps_getter())
+    data_dict["volume"].append(lmp.interactive_volume_getter())
+    data_dict["natoms"].append(len(lmp.interactive_indices_getter()))
+    data_dict["cells"].append(lmp.interactive_cells_getter())
+    data_dict["indices"].append(lmp.interactive_indices_getter() - 1)
+    data_dict["forces"].append(lmp.interactive_forces_getter())
+    data_dict["velocities"].append(lmp.interactive_velocities_getter() / 1000)
+    data_dict["positions"].append(lmp.interactive_positions_getter())
+    data_dict["temperature"].append(lmp.interactive_temperatures_getter())
+    data_dict["energy_pot"].append(lmp.interactive_energy_pot_getter())
+    data_dict["energy_tot"].append(lmp.interactive_energy_tot_getter())
+    data_dict["pressures"].append(lmp.interactive_pressures_getter() * 10000)
 
 
 def lammps_interactive_interface_function(
@@ -105,18 +106,18 @@ def lammps_interactive_interface_function(
     )
 
     data_dict = {
-        'steps': [],
-        'natoms': [],
-        'cells': [],
-        'indices': [],
-        'forces': [],
-        'velocities': [],
-        'positions': [],
-        'temperature': [],
-        'energy_pot': [],
-        'energy_tot': [],
-        'volume': [],
-        'pressures': []
+        "steps": [],
+        "natoms": [],
+        "cells": [],
+        "indices": [],
+        "forces": [],
+        "velocities": [],
+        "positions": [],
+        "temperature": [],
+        "energy_pot": [],
+        "energy_tot": [],
+        "volume": [],
+        "pressures": [],
     }
 
     if working_directory is not None:
