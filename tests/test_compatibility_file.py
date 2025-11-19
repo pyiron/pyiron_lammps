@@ -8,6 +8,9 @@ from pyiron_lammps.compatibility.file import lammps_file_interface_function
 class TestCompatibilityFile(unittest.TestCase):
     def setUp(self):
         self.working_dir = os.path.abspath(os.path.join(__file__, "..", "lmp"))
+        self.static_path = os.path.abspath(
+            os.path.join("..", os.path.dirname(__file__), "static")
+        )
         self.keys = [
             "steps",
             "natoms",
@@ -45,10 +48,8 @@ class TestCompatibilityFile(unittest.TestCase):
             calc_mode="md",
             calc_kwargs=calc_kwargs,
             units=units,
-            lmp_command="cp ../static/compatibility_output/* .",
-            resource_path=os.path.abspath(
-                os.path.join("..", os.path.dirname(__file__), "static", "potential")
-            ),
+            lmp_command="cp " + str(os.path.join(self.static_path, "compatibility_output")) + "/* .",
+            resource_path=os.path.join(self.static_path, "potential"),
         )
         self.assertFalse(job_crashed)
         for key in self.keys:
@@ -89,10 +90,8 @@ class TestCompatibilityFile(unittest.TestCase):
             calc_mode="md",
             calc_kwargs=calc_kwargs,
             units=units,
-            lmp_command="cp ../static/compatibility_output/* .",
-            resource_path=os.path.abspath(
-                os.path.join("..", os.path.dirname(__file__), "static", "potential")
-            ),
+            lmp_command="cp " + str(os.path.join(self.static_path, "compatibility_output")) + "/* .",
+            resource_path=os.path.join(self.static_path, "potential"),
         )
         self.assertFalse(job_crashed)
         for key in self.keys:
