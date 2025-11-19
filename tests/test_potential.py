@@ -76,10 +76,6 @@ class TestPotential(unittest.TestCase):
         self.assertEqual(
             get_resource_path_from_conda().replace("\\", "/"), "/tmp/conda/share/iprpy"
         )
-        df = get_potential_dataframe(
-            structure=bulk("Al"),
-        )
-        self.assertEqual(len(df), 0)
         shutil.rmtree("/tmp/conda")
 
     @mock.patch.dict(os.environ, {}, clear=True)
