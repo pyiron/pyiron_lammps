@@ -212,8 +212,12 @@ class TestLammpsPotentialFile(unittest.TestCase):
     def test_find_default(self):
         # This test requires a default_df, which is not set up in the test data
         self.assertIsNone(self.potential.find_default("Al"))
+        self.assertIsNone(self.potential.find_default(["Al"]))
         self.assertIsNone(self.potential.default())
         self.assertEqual(self.potential_df.find_default("Al")["Name"].values[0], "1999--Mishin-Y--Al--LAMMPS--ipr1")
+        self.assertEqual(self.potential_df.Al.default()["Name"].values[0], "1999--Mishin-Y--Al--LAMMPS--ipr1")
+        with self.assertRaises(TypeError):
+            self.assertIsNone(self.potential.find_default(pandas.DataFrame({})))
 
 
 class TestPotentialAvailable(unittest.TestCase):
