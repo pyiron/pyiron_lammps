@@ -44,9 +44,7 @@ class TestPotential(unittest.TestCase):
             potential_dataframe=pandas.DataFrame({"a": [1]})
         )
         self.assertTrue(isinstance(series, pandas.Series))
-        series2 = validate_potential_dataframe(
-            potential_dataframe=series
-        )
+        series2 = validate_potential_dataframe(potential_dataframe=series)
         self.assertTrue(series2.equals(series))
 
     def test_get_potential_dataframe(self):
@@ -83,7 +81,6 @@ class TestPotential(unittest.TestCase):
         )
         self.assertEqual(len(df), 0)
         shutil.rmtree("/tmp/conda")
-
 
     @mock.patch.dict(os.environ, {}, clear=True)
     def test_get_resource_path_from_conda_no_env(self):
