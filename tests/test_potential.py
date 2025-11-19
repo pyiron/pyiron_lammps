@@ -201,7 +201,9 @@ class TestLammpsPotentialFile(unittest.TestCase):
         self.potential = LammpsPotentialFile(resource_path=self.resource_path)
         self.potential_df = LammpsPotentialFile(
             resource_path=self.resource_path,
-            default_df=pandas.DataFrame(index=["Al"], data={"Name": ["1999--Mishin-Y--Al--LAMMPS--ipr1"]}),
+            default_df=pandas.DataFrame(
+                index=["Al"], data={"Name": ["1999--Mishin-Y--Al--LAMMPS--ipr1"]}
+            ),
             selected_atoms=[],
         )
 
@@ -214,8 +216,14 @@ class TestLammpsPotentialFile(unittest.TestCase):
         self.assertIsNone(self.potential.find_default("Al"))
         self.assertIsNone(self.potential.find_default(["Al"]))
         self.assertIsNone(self.potential.default())
-        self.assertEqual(self.potential_df.find_default("Al")["Name"].values[0], "1999--Mishin-Y--Al--LAMMPS--ipr1")
-        self.assertEqual(self.potential_df.Al.default()["Name"].values[0], "1999--Mishin-Y--Al--LAMMPS--ipr1")
+        self.assertEqual(
+            self.potential_df.find_default("Al")["Name"].values[0],
+            "1999--Mishin-Y--Al--LAMMPS--ipr1",
+        )
+        self.assertEqual(
+            self.potential_df.Al.default()["Name"].values[0],
+            "1999--Mishin-Y--Al--LAMMPS--ipr1",
+        )
         with self.assertRaises(TypeError):
             self.assertIsNone(self.potential.find_default(pandas.DataFrame({})))
 
