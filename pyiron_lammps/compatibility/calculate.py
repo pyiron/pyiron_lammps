@@ -300,7 +300,7 @@ def calc_minimize(
     return line_lst, structure
 
 
-def calc_static(structure: Atoms):
+def calc_static():
     return ["variable thermotime equal 1"] + _get_thermo() + ["run 0"]
 
 
