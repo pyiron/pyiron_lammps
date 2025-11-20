@@ -4,6 +4,7 @@ from typing import Optional, Dict
 import numpy as np
 from ase.atoms import Atoms
 from structuretoolkit.analyse import get_neighbors
+from structuretoolkit.common import select_index
 
 from pyiron_lammps.structure import LammpsStructure
 
@@ -168,10 +169,10 @@ class LammpsStructureCompatibility(LammpsStructure):
         coords = self.rotate_positions(self._structure)
 
         # extract electric charges from potential file
-        q_dict = {}
-        for species in self.structure.species:
-            species_name = species.Abbreviation
-            q_dict[species_name] = self.potential.get_charge(species_name)
+        q_dict = {
+            species_name: self.potential.get_charge(species_name)
+            for species_name in set(self.structure.get_chemical_symbols())
+        }
 
         bonds_lst, angles_lst = [], []
         bond_type_lst, angle_type_lst = [], []
@@ -190,11 +191,11 @@ class LammpsStructureCompatibility(LammpsStructure):
             # Draw bonds between atoms is defined in self._bond_dict
             # Go through all elements for which bonds are defined
             for element, val in self._bond_dict.items():
-                el_1_list = self._structure.select_index(element)
+                el_1_list = select_index(structure=self._structure, element=element)
                 if el_1_list is not None:
                     if len(el_1_list) > 0:
                         for i, v in enumerate(val["element_list"]):
-                            el_2_list = self._structure.select_index(v)
+                            el_2_list = select_index(structure=self._structure, element=v)
                             cutoff_dist = val["cutoff_list"][i]
                             for j, ind in enumerate(
                                 np.array(neighbors.indices, dtype=object)[el_1_list]
