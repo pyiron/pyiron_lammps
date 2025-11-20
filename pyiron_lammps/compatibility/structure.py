@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import Optional
+from typing import Optional, Dict
 
 from ase.atoms import Atoms
 import numpy as np
@@ -9,6 +9,15 @@ from pyiron_lammps.structure import LammpsStructure
 
 
 class LammpsStructureCompatibility(LammpsStructure):
+    def __init__(
+            self,
+            bond_dict: Optional[Dict] = None,
+            units: str = "metal",
+            atom_type: str = "atomic",
+        ):
+        super().__init__(bond_dict=bond_dict, units=units, atom_type=atom_type)
+        self._molecule_ids = []
+
     @property
     def structure(self) -> Optional[Atoms]:
         """
@@ -91,7 +100,7 @@ class LammpsStructureCompatibility(LammpsStructure):
 
         ## Bond related.
         # This seems independent from the lammps atom type ids, because bonds only use atom ids
-        el_list = self._structure.get_species_symbols()
+        el_list = set(self._structure.get_chemical_symbols())
         el_dict = OrderedDict()
         for object_id, el in enumerate(el_list):
             el_dict[el] = object_id
