@@ -226,3 +226,32 @@ class TestLammpsStructure(unittest.TestCase):
         cell[0, 1] = cell[0, 0] * 0.6
         up = UnfoldingPrism(cell=cell)
         self.assertFalse(np.all(np.isclose(up.A, cell)))
+
+    def test_structure_charge(self):
+        atoms = Atoms("Fe1", positions=np.zeros((1, 3)), cell=np.eye(3))
+        atoms.set_initial_charges(charges=np.ones(len(atoms)) * 2.0)
+        lmp_structure = LammpsStructure(atom_type="charge")
+        lmp_structure._el_eam_lst = ["Fe"]
+        lmp_structure.structure = atoms
+        self.assertEqual(
+            lmp_structure._string_input.split("\n"),
+            [
+                "Start File for LAMMPS ",
+                "1 atoms ",
+                "1 atom types ",
+                "",
+                "0. 1.000000000000000 xlo xhi",
+                "0. 1.000000000000000 ylo yhi",
+                "0. 1.000000000000000 zlo zhi",
+                "",
+                "Masses",
+                "",
+                "  1 55.845000  # (Fe) ",
+                "",
+                "Atoms",
+                "",
+                "1 1 2.000000 0.000000000000000 0.000000000000000 0.000000000000000",
+                "",
+                "",
+            ],
+        )
