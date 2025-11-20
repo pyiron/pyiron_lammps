@@ -1,5 +1,6 @@
 import warnings
 
+from ase.atoms import Atoms
 import numpy as np
 
 from pyiron_lammps.structure import UnfoldingPrism
@@ -200,6 +201,7 @@ def calc_md(
 
 
 def calc_minimize(
+    structure: Atoms,
     ionic_energy_tolerance=0.0,
     ionic_force_tolerance=1e-4,
     max_iter=100000,
@@ -255,10 +257,13 @@ def calc_minimize(
     line_lst += _get_thermo()
     if pressure is not None:
         if rotation_matrix is None:
-            raise ValueError(
-                "No rotation matrix given while trying to convert pressure. "
-                "This is most likely due to no structure being defined."
-            )
+            if structure is None:
+                raise ValueError(
+                    "No rotation matrix given while trying to convert pressure. "
+                    "This is most likely due to no structure being defined."
+                )
+            else:
+                rotation_matrix, structure = _get_rotation_matrix(structure=structure, pressure=pressure)
         # force_skewed = False
         pressure = _pressure_to_lammps(
             pressure=pressure, rotation_matrix=rotation_matrix, units=units
@@ -290,10 +295,10 @@ def calc_minimize(
         + " "
         + str(int(max_evaluations)),
     ]
-    return line_lst
+    return line_lst, structure
 
 
-def calc_static():
+def calc_static(structure: Atoms):
     return ["variable thermotime equal 1"] + _get_thermo() + ["run 0"]
 
 
@@ -411,3 +416,59 @@ def _pressure_to_lammps(pressure, rotation_matrix, units="metal"):
         (p * LAMMPS_UNIT_CONVERSIONS[units]["pressure"] if p is not None else p)
         for p in pressure
     ]
+
+
+def _get_rotation_matrix(structure, pressure):
+    """
+
+    Args:
+        pressure:
+
+    Returns:
+
+    """
+    if structure is not None:
+        prism = UnfoldingPrism(structure.cell)
+
+        structure = _modify_structure_to_allow_requested_deformation(
+            pressure=pressure, structure=structure, prism=prism
+        )
+        rotation_matrix = prism.R
+    else:
+        warnings.warn("No structure set, can not validate the simulation cell!")
+        rotation_matrix = None
+    return rotation_matrix, structure
+
+
+def _modify_structure_to_allow_requested_deformation(
+    structure, pressure, prism=None
+):
+    """
+    Lammps will not allow xy/xz/yz cell deformations in minimization or MD for non-triclinic cells. In case the
+    requested pressure for a calculation has these non-diagonal entries, we need to make sure it will run. One way
+    to do this is by invoking the lammps `change_box` command, but it is easier to just force our box to to be
+    triclinic by adding a very small cell perturbation (in the case where it isn't triclinic already).
+
+    Args:
+        pressure (float/int/list/numpy.ndarray/tuple): Between three and six pressures for the x, y, z, xy, xz, and
+            yz directions, in that order, or a single value.
+    """
+    if hasattr(pressure, "__len__"):
+        non_diagonal_pressures = np.any([p is not None for p in pressure[3:]])
+
+        if prism is None:
+            prism = UnfoldingPrism(structure.cell)
+
+        if non_diagonal_pressures:
+            try:
+                if not prism.is_skewed():
+                    skew_structure = structure.copy()
+                    skew_structure.cell[0, 1] += 2 * prism.acc
+                    return skew_structure
+            except AttributeError:
+                warnings.warn(
+                    "WARNING: Setting a calculation type which uses pressure before setting the structure risks "
+                    + "constraining your cell shape evolution if non-diagonal pressures are used but the structure "
+                    + "is not triclinic from the start of the calculation."
+                )
+    return structure

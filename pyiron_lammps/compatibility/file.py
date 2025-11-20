@@ -88,14 +88,6 @@ def lammps_file_interface_function(
     potential_dataframe = get_potential_by_name(
         potential_name=potential, resource_path=resource_path
     )
-    write_lammps_datafile(
-        structure=structure,
-        potential_elements=potential_dataframe["Species"],
-        bond_dict=None,
-        units=units,
-        file_name="lammps.data",
-        working_directory=working_directory,
-    )
     lmp_str_lst = lammps_file_initialization(structure=structure)
     lmp_str_lst += potential_dataframe["Config"]
     lmp_str_lst += ["variable dumptime equal {} ".format(calc_kwargs.get("n_print", 1))]
@@ -114,7 +106,8 @@ def lammps_file_interface_function(
         lmp_str_lst += calc_md(**calc_kwargs)
         lmp_str_lst += ["run {} ".format(n_ionic_steps)]
     elif calc_mode == "minimize":
-        lmp_str_lst += calc_minimize(**calc_kwargs)
+        lmp_str_tmp_lst, structure = calc_minimize(structure=structure, **calc_kwargs)
+        lmp_str_lst += lmp_str_tmp_lst
     else:
         raise ValueError(
             f"calc_mode must be one of: static, md or minimize, not {calc_mode}"
@@ -122,6 +115,15 @@ def lammps_file_interface_function(
 
     with open(os.path.join(working_directory, "lmp.in"), "w") as f:
         f.writelines([l + "\n" for l in lmp_str_lst])
+
+    write_lammps_datafile(
+        structure=structure,
+        potential_elements=potential_dataframe["Species"],
+        bond_dict=None,
+        units=units,
+        file_name="lammps.data",
+        working_directory=working_directory,
+    )
 
     shell = subprocess.check_output(
         lmp_command,

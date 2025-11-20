@@ -202,3 +202,45 @@ class TestCompatibilityFile(unittest.TestCase):
         ]
         for line in content_expected:
             self.assertIn(line, content)
+
+    def test_calc_minimize_pressure(self):
+        structure = bulk("Al", cubic=True).repeat([2, 2, 2])
+        potential = "1999--Mishin-Y--Al--LAMMPS--ipr1"
+        units = "metal"
+        shell_output, parsed_output, job_crashed = lammps_file_interface_function(
+            working_directory=self.working_dir,
+            structure=structure,
+            potential=potential,
+            calc_mode="minimize",
+            units=units,
+            calc_kwargs={"pressure": 0.0},
+            lmp_command="cp "
+            + str(os.path.join(self.static_path, "compatibility_output"))
+            + "/* .",
+            resource_path=os.path.join(self.static_path, "potential"),
+        )
+        self.assertFalse(job_crashed)
+        for key in self.keys:
+            self.assertIn(key, parsed_output["generic"])
+        with open(self.working_dir + "/lmp.in", "r") as f:
+            content = f.readlines()
+        content_expected = [
+            "units metal\n",
+            "dimension 3\n",
+            "boundary p p p\n",
+            "atom_style atomic\n",
+            "read_data lammps.data\n",
+            "pair_style eam/alloy\n",
+            "variable dumptime equal 1 \n",
+            "dump 1 all custom ${dumptime} dump.out id type xsu ysu zsu fx fy fz vx vy vz\n",
+            'dump_modify 1 sort id format line "%d %d %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g"\n',
+            "variable thermotime equal 100 \n",
+            "thermo_style custom step temp pe etotal pxx pxy pxz pyy pyz pzz vol\n",
+            "thermo_modify format float %20.15g\n",
+            "thermo ${thermotime}\n",
+            "fix ensemble all box/relax iso 0.0\n",
+            "min_style cg\n",
+            "minimize 0.0 0.0001 100000 10000000\n",
+        ]
+        for line in content_expected:
+            self.assertIn(line, content)
