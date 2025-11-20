@@ -406,7 +406,7 @@ class LammpsStructure:
         el_charge_lst = self._structure.get_initial_charges()
         el_lst = self._structure.get_chemical_symbols()
         for id_atom, (el, coord) in enumerate(zip(el_lst, coords)):
-            dim = self._structure.positions.shape[1]
+            dim = len(self._structure.positions[0])
             c = np.zeros(3)
             c[:dim] = coord
             atoms += (
