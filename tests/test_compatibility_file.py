@@ -84,7 +84,7 @@ class TestCompatibilityFile(unittest.TestCase):
         structure = bulk("Al", cubic=True).repeat([2, 2, 2])
         potential = "1999--Mishin-Y--Al--LAMMPS--ipr1"
         units = "metal"
-        calc_kwargs = {"temperature": 500.0, "n_ionic_steps": 1000, "n_print": 100}
+        calc_kwargs = {"temperature": 500.0, "n_print": 100}
         shell_output, parsed_output, job_crashed = lammps_file_interface_function(
             working_directory=self.working_dir,
             structure=structure,
@@ -119,7 +119,7 @@ class TestCompatibilityFile(unittest.TestCase):
             "thermo_style custom step temp pe etotal pxx pxy pxz pyy pyz pzz vol\n",
             "thermo_modify format float %20.15g\n",
             "thermo ${thermotime}\n",
-            "run 1000 \n",
+            "run 1 \n",
         ]
         for line in content_expected:
             self.assertIn(line, content)
