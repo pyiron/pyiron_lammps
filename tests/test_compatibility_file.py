@@ -144,7 +144,6 @@ class TestCompatibilityFile(unittest.TestCase):
             self.assertIn(key, parsed_output["generic"])
         with open(self.working_dir + "/lmp.in", "r") as f:
             content = f.readlines()
-        print(content)
         content_expected = [
             "units metal\n",
             "dimension 3\n",
