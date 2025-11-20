@@ -11,6 +11,9 @@ class TestCompatibilityFile(unittest.TestCase):
         self.static_path = os.path.abspath(
             os.path.join("..", os.path.dirname(__file__), "static")
         )
+        self.structure = bulk("Al", cubic=True).repeat([2, 2, 2])
+        self.potential = "1999--Mishin-Y--Al--LAMMPS--ipr1"
+        self.units = "metal"
         self.keys = [
             "steps",
             "natoms",
@@ -31,10 +34,17 @@ class TestCompatibilityFile(unittest.TestCase):
         if os.path.exists(self.working_dir):
             shutil.rmtree(self.working_dir)
 
+    def test_calc_error(self):
+        with self.assertRaises(ValueError):
+            lammps_file_interface_function(
+                working_directory=self.working_dir,
+                structure=self.structure,
+                potential=self.potential,
+                calc_mode="error",
+                units=self.units,
+            )
+
     def test_calc_md_npt(self):
-        structure = bulk("Al", cubic=True).repeat([2, 2, 2])
-        potential = "1999--Mishin-Y--Al--LAMMPS--ipr1"
-        units = "metal"
         calc_kwargs = {
             "temperature": 500.0,
             "pressure": 0.0,
@@ -43,11 +53,11 @@ class TestCompatibilityFile(unittest.TestCase):
         }
         shell_output, parsed_output, job_crashed = lammps_file_interface_function(
             working_directory=self.working_dir,
-            structure=structure,
-            potential=potential,
+            structure=self.structure,
+            potential=self.potential,
             calc_mode="md",
             calc_kwargs=calc_kwargs,
-            units=units,
+            units=self.units,
             lmp_command="cp "
             + str(os.path.join(self.static_path, "compatibility_output"))
             + "/* .",
@@ -81,17 +91,14 @@ class TestCompatibilityFile(unittest.TestCase):
             self.assertIn(line, content)
 
     def test_calc_md_nvt(self):
-        structure = bulk("Al", cubic=True).repeat([2, 2, 2])
-        potential = "1999--Mishin-Y--Al--LAMMPS--ipr1"
-        units = "metal"
         calc_kwargs = {"temperature": 500.0, "n_print": 100}
         shell_output, parsed_output, job_crashed = lammps_file_interface_function(
             working_directory=self.working_dir,
-            structure=structure,
-            potential=potential,
+            structure=self.structure,
+            potential=self.potential,
             calc_mode="md",
             calc_kwargs=calc_kwargs,
-            units=units,
+            units=self.units,
             lmp_command="cp "
             + str(os.path.join(self.static_path, "compatibility_output"))
             + "/* .",
@@ -125,15 +132,12 @@ class TestCompatibilityFile(unittest.TestCase):
             self.assertIn(line, content)
 
     def test_calc_static(self):
-        structure = bulk("Al", cubic=True).repeat([2, 2, 2])
-        potential = "1999--Mishin-Y--Al--LAMMPS--ipr1"
-        units = "metal"
         shell_output, parsed_output, job_crashed = lammps_file_interface_function(
             working_directory=self.working_dir,
-            structure=structure,
-            potential=potential,
+            structure=self.structure,
+            potential=self.potential,
             calc_mode="static",
-            units=units,
+            units=self.units,
             lmp_command="cp "
             + str(os.path.join(self.static_path, "compatibility_output"))
             + "/* .",
@@ -164,15 +168,12 @@ class TestCompatibilityFile(unittest.TestCase):
             self.assertIn(line, content)
 
     def test_calc_minimize(self):
-        structure = bulk("Al", cubic=True).repeat([2, 2, 2])
-        potential = "1999--Mishin-Y--Al--LAMMPS--ipr1"
-        units = "metal"
         shell_output, parsed_output, job_crashed = lammps_file_interface_function(
             working_directory=self.working_dir,
-            structure=structure,
-            potential=potential,
+            structure=self.structure,
+            potential=self.potential,
             calc_mode="minimize",
-            units=units,
+            units=self.units,
             lmp_command="cp "
             + str(os.path.join(self.static_path, "compatibility_output"))
             + "/* .",
@@ -204,15 +205,12 @@ class TestCompatibilityFile(unittest.TestCase):
             self.assertIn(line, content)
 
     def test_calc_minimize_pressure(self):
-        structure = bulk("Al", cubic=True).repeat([2, 2, 2])
-        potential = "1999--Mishin-Y--Al--LAMMPS--ipr1"
-        units = "metal"
         shell_output, parsed_output, job_crashed = lammps_file_interface_function(
             working_directory=self.working_dir,
-            structure=structure,
-            potential=potential,
+            structure=self.structure,
+            potential=self.potential,
             calc_mode="minimize",
-            units=units,
+            units=self.units,
             calc_kwargs={"pressure": 0.0},
             lmp_command="cp "
             + str(os.path.join(self.static_path, "compatibility_output"))
