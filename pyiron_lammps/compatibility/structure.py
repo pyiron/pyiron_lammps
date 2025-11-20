@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import Optional, Dict
+from typing import Dict, Optional
 
 import numpy as np
 from ase.atoms import Atoms
@@ -11,11 +11,11 @@ from pyiron_lammps.structure import LammpsStructure
 
 class LammpsStructureCompatibility(LammpsStructure):
     def __init__(
-            self,
-            bond_dict: Optional[Dict] = None,
-            units: str = "metal",
-            atom_type: str = "atomic",
-        ):
+        self,
+        bond_dict: Optional[Dict] = None,
+        units: str = "metal",
+        atom_type: str = "atomic",
+    ):
         super().__init__(bond_dict=bond_dict, units=units, atom_type=atom_type)
         self._molecule_ids = []
 
