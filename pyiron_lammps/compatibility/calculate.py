@@ -2,6 +2,7 @@ import warnings
 
 import numpy as np
 
+from pyiron_lammps.structure import UnfoldingPrism
 from pyiron_lammps.units import LAMMPS_UNIT_CONVERSIONS
 
 
@@ -250,6 +251,8 @@ def calc_minimize(
     ionic_energy_tolerance *= energy_units
     ionic_force_tolerance *= force_units
 
+    line_lst = ["variable thermotime equal {} ".format(n_print)]
+    line_lst += _get_thermo()
     if pressure is not None:
         if rotation_matrix is None:
             raise ValueError(
@@ -273,12 +276,10 @@ def calc_minimize(
                     #     force_skewed = True
             if len(str_press) > 1:
                 str_press += " couple none"
-    line_lst = [
-        "variable thermotime equal {} ".format(n_print),
-    ]
+        line_lst += [
+            "fix ensemble all box/relax" + str_press,
+        ]
     line_lst += [
-        _get_thermo(),
-        r"fix ensemble all box/relax" + str_press,
         "min_style " + style,
         "minimize "
         + str(ionic_energy_tolerance)
