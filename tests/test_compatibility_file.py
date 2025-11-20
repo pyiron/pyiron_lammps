@@ -174,8 +174,8 @@ class TestCompatibilityFile(unittest.TestCase):
             calc_mode="minimize",
             units=units,
             lmp_command="cp "
-                        + str(os.path.join(self.static_path, "compatibility_output"))
-                        + "/* .",
+            + str(os.path.join(self.static_path, "compatibility_output"))
+            + "/* .",
             resource_path=os.path.join(self.static_path, "potential"),
         )
         self.assertFalse(job_crashed)
