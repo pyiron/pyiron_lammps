@@ -1,8 +1,8 @@
 from collections import OrderedDict
 from typing import Optional, Dict
 
-from ase.atoms import Atoms
 import numpy as np
+from ase.atoms import Atoms
 from structuretoolkit.analyse import get_neighbors
 
 from pyiron_lammps.structure import LammpsStructure
@@ -118,7 +118,9 @@ class LammpsStructureCompatibility(LammpsStructure):
             if self.cutoff_radius is None:
                 bonds_lst = get_bonds(structure=self.structure, max_shells=1)
             else:
-                bonds_lst = get_bonds(structure=self.structure, radius=self.cutoff_radius)
+                bonds_lst = get_bonds(
+                    structure=self.structure, radius=self.cutoff_radius
+                )
             bonds = []
 
             for ia, i_bonds in enumerate(bonds_lst):
@@ -182,8 +184,7 @@ class LammpsStructureCompatibility(LammpsStructure):
             max_cutoff = np.max(cutoff_list)
             # Calculate neighbors only once
             neighbors = get_neighbors(
-                structure=self.structure,
-                cutoff_radius=max_cutoff
+                structure=self.structure, cutoff_radius=max_cutoff
             )
 
             # Draw bonds between atoms is defined in self._bond_dict
@@ -303,7 +304,9 @@ class LammpsStructureCompatibility(LammpsStructure):
         )
 
 
-def get_bonds(structure: Atoms, radius=np.inf, max_shells=None, prec=0.1, num_neighbors=20):
+def get_bonds(
+    structure: Atoms, radius=np.inf, max_shells=None, prec=0.1, num_neighbors=20
+):
     """
 
     Args:
@@ -328,5 +331,3 @@ def get_bonds(structure: Atoms, radius=np.inf, max_shells=None, prec=0.1, num_ne
         norm_order=2,
     )
     return neighbors.get_bonds(radius=radius, max_shells=max_shells, prec=prec)
-
-
