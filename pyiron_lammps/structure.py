@@ -198,7 +198,12 @@ class LammpsStructure:
         input_file_name:
     """
 
-    def __init__(self, bond_dict: Optional[Dict] = None, units: str = "metal", atom_type: str = "atomic"):
+    def __init__(
+        self,
+        bond_dict: Optional[Dict] = None,
+        units: str = "metal",
+        atom_type: str = "atomic",
+    ):
         self._string_input: str = ""
         self._structure: Optional[Atoms] = None
         self._potential: Optional[Any] = None
