@@ -94,7 +94,6 @@ class TestCompatibilityFile(unittest.TestCase):
         for line in content_expected:
             self.assertIn(line, content)
 
-
     def test_calc_md_temp(self):
         output = calc_md(temperature=300, units="metal")
         self.assertIn(
