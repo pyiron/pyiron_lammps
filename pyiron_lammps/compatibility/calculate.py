@@ -159,7 +159,7 @@ def calc_md(
             )
 
         if langevin:  # NVT(Langevin)
-            fix_ensemble_str = "all nve"
+            fix_ensemble_str = "fix ensemble all nve"
             thermo_str = "fix langevin all langevin {0} {1} {2} {3} zero yes".format(
                 str(temperature[0]),
                 str(temperature[1]),
