@@ -1,7 +1,7 @@
 import warnings
 
-from ase.atoms import Atoms
 import numpy as np
+from ase.atoms import Atoms
 
 from pyiron_lammps.structure import UnfoldingPrism
 from pyiron_lammps.units import LAMMPS_UNIT_CONVERSIONS
@@ -263,7 +263,9 @@ def calc_minimize(
                     "This is most likely due to no structure being defined."
                 )
             else:
-                rotation_matrix, structure = _get_rotation_matrix(structure=structure, pressure=pressure)
+                rotation_matrix, structure = _get_rotation_matrix(
+                    structure=structure, pressure=pressure
+                )
         # force_skewed = False
         pressure = _pressure_to_lammps(
             pressure=pressure, rotation_matrix=rotation_matrix, units=units
@@ -440,9 +442,7 @@ def _get_rotation_matrix(structure, pressure):
     return rotation_matrix, structure
 
 
-def _modify_structure_to_allow_requested_deformation(
-    structure, pressure, prism=None
-):
+def _modify_structure_to_allow_requested_deformation(structure, pressure, prism=None):
     """
     Lammps will not allow xy/xz/yz cell deformations in minimization or MD for non-triclinic cells. In case the
     requested pressure for a calculation has these non-diagonal entries, we need to make sure it will run. One way
