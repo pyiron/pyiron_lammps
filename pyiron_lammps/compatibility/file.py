@@ -3,6 +3,7 @@ import subprocess
 from typing import Optional
 
 from ase.atoms import Atoms
+import pandas
 
 from pyiron_lammps.compatibility.calculate import (
     calc_md,
@@ -11,7 +12,7 @@ from pyiron_lammps.compatibility.calculate import (
 )
 from pyiron_lammps.output import parse_lammps_output
 from pyiron_lammps.potential import get_potential_by_name
-from pyiron_lammps.structure import write_lammps_datafile
+from pyiron_lammps.compatibility.structure import write_lammps_datafile
 
 
 def lammps_file_interface_function(
@@ -85,11 +86,41 @@ def lammps_file_interface_function(
         calc_kwargs = {}
 
     os.makedirs(working_directory, exist_ok=True)
-    potential_dataframe = get_potential_by_name(
-        potential_name=potential, resource_path=resource_path
-    )
-    lmp_str_lst = lammps_file_initialization(structure=structure)
-    lmp_str_lst += potential_dataframe["Config"]
+    if isinstance(potential, str):
+        potential_dataframe = get_potential_by_name(
+            potential_name=potential, resource_path=resource_path
+        )
+    elif isinstance(potential, pandas.DataFrame):
+        potential_dataframe = potential.iloc[0]
+    else:
+        raise TypeError()
+
+    potential_replace = {}
+    potential_lst = []
+    for l in potential_dataframe["Config"]:
+        if l.startswith("units"):
+            potential_replace["units"] = l
+        elif l.startswith("atom_style"):
+            potential_replace["atom_style"] = l
+        elif l.startswith("dimension"):
+            potential_replace["dimension"] = l
+        else:
+            potential_lst.append(l)
+
+    lmp_str_lst = []
+    atom_type = "atomic"
+    for l in lammps_file_initialization(structure=structure):
+        if l.startswith("units") and "units" in potential_replace:
+            lmp_str_lst.append(potential_replace["units"])
+        elif l.startswith("atom_style") and "atom_style" in potential_replace:
+            lmp_str_lst.append(potential_replace["atom_style"])
+            atom_type = potential_replace["atom_style"].split()[-1]
+        elif l.startswith("dimension") and "dimension" in potential_replace:
+            lmp_str_lst.append(potential_replace["dimension"])
+        else:
+            lmp_str_lst.append(l)
+
+    lmp_str_lst += potential_lst
     lmp_str_lst += ["variable dumptime equal {} ".format(calc_kwargs.get("n_print", 1))]
     lmp_str_lst += [
         "dump 1 all custom ${dumptime} dump.out id type xsu ysu zsu fx fy fz vx vy vz",
@@ -123,6 +154,8 @@ def lammps_file_interface_function(
         units=units,
         file_name="lammps.data",
         working_directory=working_directory,
+        atom_type=atom_type,
+        potential_lst=potential_lst,
     )
 
     shell = subprocess.check_output(
