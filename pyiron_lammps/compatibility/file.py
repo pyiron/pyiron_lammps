@@ -100,7 +100,7 @@ def lammps_file_interface_function(
         lmp_str_lst += calc_static()
     elif calc_mode == "md":
         if "n_ionic_steps" in calc_kwargs.keys():
-            n_ionic_steps = calc_kwargs.pop("n_ionic_steps")
+            n_ionic_steps = int(calc_kwargs.pop("n_ionic_steps"))
         else:
             n_ionic_steps = 1
         lmp_str_lst += calc_md(**calc_kwargs)
