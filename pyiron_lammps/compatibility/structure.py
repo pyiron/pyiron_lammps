@@ -120,9 +120,7 @@ class LammpsStructureCompatibility(LammpsStructure):
         if self.cutoff_radius is None:
             bonds_lst = get_bonds(structure=self.structure, max_shells=1)
         else:
-            bonds_lst = get_bonds(
-                structure=self.structure, radius=self.cutoff_radius
-            )
+            bonds_lst = get_bonds(structure=self.structure, radius=self.cutoff_radius)
         bonds = []
 
         for ia, i_bonds in enumerate(bonds_lst):
@@ -416,10 +414,10 @@ def get_charge(potential_line_lst, element_symbol):
 
     try:
         line = "set group {} charge".format(element_symbol)
-        return float(_find_line_by_prefix(potential_line_lst=potential_line_lst, prefix=line)[4])
+        return float(
+            _find_line_by_prefix(potential_line_lst=potential_line_lst, prefix=line)[4]
+        )
 
     except ValueError:
-        msg = "potential does not specify charge for element {}".format(
-            element_symbol
-        )
+        msg = "potential does not specify charge for element {}".format(element_symbol)
         raise NameError(msg) from None
