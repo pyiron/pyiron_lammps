@@ -2,17 +2,17 @@ import os
 import subprocess
 from typing import Optional
 
-from ase.atoms import Atoms
 import pandas
+from ase.atoms import Atoms
 
 from pyiron_lammps.compatibility.calculate import (
     calc_md,
     calc_minimize,
     calc_static,
 )
+from pyiron_lammps.compatibility.structure import write_lammps_datafile
 from pyiron_lammps.output import parse_lammps_output
 from pyiron_lammps.potential import get_potential_by_name
-from pyiron_lammps.compatibility.structure import write_lammps_datafile
 
 
 def lammps_file_interface_function(
