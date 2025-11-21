@@ -10,6 +10,7 @@ from pyiron_lammps.units import LAMMPS_UNIT_CONVERSIONS
 def calc_md(
     temperature=None,
     pressure=None,
+    time_step=1.0,
     n_print=100,
     temperature_damping_timescale=100.0,
     pressure_damping_timescale=1000.0,
@@ -69,6 +70,10 @@ def calc_md(
         raise NotImplementedError
     time_units = LAMMPS_UNIT_CONVERSIONS[units]["time"]
     temperature_units = LAMMPS_UNIT_CONVERSIONS[units]["temperature"]
+
+    # Transform time
+    if time_step is not None:
+        time_step *= time_units
 
     # Transform thermostat strength (time)
     if delta_temp is not None:
@@ -185,7 +190,7 @@ def calc_md(
         line_lst.append(thermo_str)
 
     line_lst.append("variable thermotime equal {} ".format(n_print))
-    line_lst.append("timestep 0.001")
+    line_lst.append("timestep {}".format(time_step))
     line_lst.append(
         _set_initial_velocity(
             temperature=initial_temperature,
