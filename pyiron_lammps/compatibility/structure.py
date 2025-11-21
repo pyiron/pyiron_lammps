@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 import numpy as np
 from ase.atoms import Atoms
@@ -15,9 +15,11 @@ class LammpsStructureCompatibility(LammpsStructure):
         bond_dict: Optional[Dict] = None,
         units: str = "metal",
         atom_type: str = "atomic",
+        q_dict: Optional[Dict] = None,
     ):
         super().__init__(bond_dict=bond_dict, units=units, atom_type=atom_type)
         self._molecule_ids = []
+        self.q_dict = q_dict
 
     @property
     def structure(self) -> Optional[Atoms]:
@@ -39,11 +41,12 @@ class LammpsStructureCompatibility(LammpsStructure):
 
         """
         self._structure = structure
-        if self.atom_type == "full":
+        self._molecule_ids = np.ones(len(self.structure), dtype=int)
+        if self._atom_type == "full":
             input_str = self.structure_full()
-        elif self.atom_type == "bond":
+        elif self._atom_type == "bond":
             input_str = self.structure_bond()
-        elif self.atom_type == "charge":
+        elif self._atom_type == "charge":
             input_str = self.structure_charge()
         else:  # self.atom_type == 'atomic'
             input_str = self.structure_atomic()
@@ -57,7 +60,6 @@ class LammpsStructureCompatibility(LammpsStructure):
 
         """
         species_lammps_id_dict = self.get_lammps_id_dict(self.el_eam_lst)
-        self.molecule_ids = None
         # analyze structure to get molecule_ids, bonds, angles etc
         coords = self.rotate_positions(self._structure)
 
@@ -70,7 +72,7 @@ class LammpsStructureCompatibility(LammpsStructure):
         format_str = "{0:d} {1:d} {2:d} {3:f} {4:f} {5:f} "
         if len(self._structure.positions[0]) == 3:
             for id_atom, (x, y, z) in enumerate(coords):
-                id_mol = self.molecule_ids[id_atom]
+                id_mol = self._molecule_ids[id_atom]
                 atoms += (
                     format_str.format(
                         id_atom + 1,
@@ -84,7 +86,7 @@ class LammpsStructureCompatibility(LammpsStructure):
                 )
         elif len(self._structure.positions[0]) == 2:
             for id_atom, (x, y) in enumerate(coords):
-                id_mol = self.molecule_ids[id_atom]
+                id_mol = self._molecule_ids[id_atom]
                 atoms += (
                     format_str.format(
                         id_atom + 1,
@@ -115,26 +117,24 @@ class LammpsStructureCompatibility(LammpsStructure):
                 bond_type[i, j] = count
                 bond_type[j, i] = count
 
-        if self.structure.bonds is None:
-            if self.cutoff_radius is None:
-                bonds_lst = get_bonds(structure=self.structure, max_shells=1)
-            else:
-                bonds_lst = get_bonds(
-                    structure=self.structure, radius=self.cutoff_radius
-                )
-            bonds = []
+        if self.cutoff_radius is None:
+            bonds_lst = get_bonds(structure=self.structure, max_shells=1)
+        else:
+            bonds_lst = get_bonds(
+                structure=self.structure, radius=self.cutoff_radius
+            )
+        bonds = []
 
-            for ia, i_bonds in enumerate(bonds_lst):
-                el_i = el_dict[elements[ia]]
-                for el_j, b_lst in i_bonds.items():
-                    b_type = bond_type[el_i][el_dict[el_j]]
-                    for i_shell, ib_shell_lst in enumerate(b_lst):
-                        for ib in np.unique(ib_shell_lst):
-                            if ia < ib:  # avoid double counting of bonds
-                                bonds.append([ia + 1, ib + 1, b_type])
+        for ia, i_bonds in enumerate(bonds_lst):
+            el_i = el_dict[elements[ia]]
+            for el_j, b_lst in i_bonds.items():
+                b_type = bond_type[el_i][el_dict[el_j]]
+                for i_shell, ib_shell_lst in enumerate(b_lst):
+                    for ib in np.unique(ib_shell_lst):
+                        if ia < ib:  # avoid double counting of bonds
+                            bonds.append([ia + 1, ib + 1, b_type])
 
-            self.structure.bonds = np.array(bonds)
-        bonds = self.structure.bonds
+            bonds = np.array(bonds)
 
         bonds_str = "Bonds \n\n"
         for i_bond, (i_a, i_b, b_type) in enumerate(bonds):
@@ -165,15 +165,9 @@ class LammpsStructureCompatibility(LammpsStructure):
 
         """
         species_lammps_id_dict = self.get_lammps_id_dict(self.el_eam_lst)
-        self.molecule_ids = None
         coords = self.rotate_positions(self._structure)
 
         # extract electric charges from potential file
-        q_dict = {
-            species_name: self.potential.get_charge(species_name)
-            for species_name in set(self.structure.get_chemical_symbols())
-        }
-
         bonds_lst, angles_lst = [], []
         bond_type_lst, angle_type_lst = [], []
         # Using a cutoff distance to draw the bonds instead of the number of neighbors
@@ -250,9 +244,9 @@ class LammpsStructureCompatibility(LammpsStructure):
             atoms += (
                 format_str.format(
                     id_atom + 1,
-                    self.molecule_ids[id_atom],
+                    self._molecule_ids[id_atom],
                     species_lammps_id_dict[el],
-                    q_dict[el],
+                    self.q_dict[el],
                     coord[0],
                     coord[1],
                     coord[2],
@@ -334,3 +328,98 @@ def get_bonds(
         norm_order=2,
     )
     return neighbors.get_bonds(radius=radius, max_shells=max_shells, prec=prec)
+
+
+def write_lammps_datafile(
+    structure: Atoms,
+    potential_elements: Union[np.ndarray, list],
+    bond_dict: Optional[Dict] = None,
+    units: str = "metal",
+    file_name: str = "lammps.data",
+    working_directory: Optional[str] = None,
+    atom_type: str = "atomic",
+    potential_lst: list[str] = [],
+) -> None:
+    if atom_type == "full":
+        q_dict = {
+            el: get_charge(potential_line_lst=potential_lst, element_symbol=el)
+            for el in set(structure.get_chemical_symbols())
+        }
+        bond_dict = {
+            "O": {
+                "element_list": ["H"],
+                "cutoff_list": [2.0],
+                "max_bond_list": [2],
+                "bond_type_list": [1],
+                "angle_type_list": [1],
+            }
+        }
+    else:
+        q_dict = {}
+    lammps_str = LammpsStructureCompatibility(
+        bond_dict=bond_dict,
+        units=units,
+        atom_type=atom_type,
+        q_dict=q_dict,
+    )
+    lammps_str.el_eam_lst = potential_elements
+    lammps_str.structure = structure
+    lammps_str.write_file(file_name=file_name, cwd=working_directory)
+
+
+def _find_line_by_prefix(potential_line_lst, prefix):
+    """
+    Find a line that starts with the given prefix.  Differences in white
+    space are ignored.  Raises a ValueError if not line matches the prefix.
+
+    Args:
+        prefix (str): line prefix to search for
+
+    Returns:
+        list: words of the matching line
+
+    Raises:
+        ValueError: if not matching line was found
+    """
+
+    def isprefix(prefix, lst):
+        if len(prefix) > len(lst):
+            return False
+        return all(n == l for n, l in zip(prefix, lst))
+
+    # compare the line word by word to also match lines that differ only in
+    # whitespace
+    prefix = prefix.split()
+    for l in potential_line_lst:
+        words = l.strip().split()
+        if isprefix(prefix, words):
+            return words
+
+    raise ValueError('No line with prefix "{}" found.'.format(" ".join(prefix)))
+
+
+def get_charge(potential_line_lst, element_symbol):
+    """
+    Return charge for element. If potential does not specify a charge,
+    raise a :class:NameError.  Only makes sense for potentials
+    with pair_style "full".
+
+    Args:
+        element_symbol (str): short symbol for element
+
+    Returns:
+        float: charge speicified for the given element
+
+    Raises:
+        NameError: if potential does not specify charge for this element
+    """
+
+    try:
+        line = "set group {} charge".format(element_symbol)
+        return float(_find_line_by_prefix(potential_line_lst=potential_line_lst, prefix=line)[4])
+
+    except ValueError:
+        msg = "potential does not specify charge for element {}".format(
+            element_symbol
+        )
+        raise NameError(msg) from None
