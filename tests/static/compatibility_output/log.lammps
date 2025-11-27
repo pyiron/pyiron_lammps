@@ -1,0 +1,100 @@
+LAMMPS (27 Jun 2024)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+units metal
+dimension 3
+boundary p p p
+atom_style atomic
+read_data lammps.data
+Reading data file ...
+  orthogonal box = (0 0 0) to (8.1 8.1 8.1)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  32 atoms
+  read_data CPU = 0.007 seconds
+pair_style eam/fs
+pair_coeff * * /Users/janssen/mambaforge/share/iprpy/potential_LAMMPS/2009--Mendelev-M-I--Al-Mg--LAMMPS--ipr1/Al-Mg.eam.fs Al Mg
+variable dumptime equal 100
+dump 1 all custom ${dumptime} dump.out id type xsu ysu zsu fx fy fz vx vy vz
+dump 1 all custom 100 dump.out id type xsu ysu zsu fx fy fz vx vy vz
+dump_modify 1 sort id format line "%d %d %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g"
+fix ensemble all npt temp 500.0 500.0 0.1 iso 0.0 0.0 1.0
+variable thermotime equal 100
+timestep 0.001
+velocity all create 1000.0 80996 dist gaussian
+thermo_style custom step temp pe etotal pxx pxy pxz pyy pyz pzz vol
+thermo_modify format float %20.15g
+thermo ${thermotime}
+thermo 100
+run 1000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- Type Label Framework: https://doi.org/10.1021/acs.jpcb.3c08419
+
+@Article{Gissinger24,
+ author = {Jacob R. Gissinger, Ilia Nikiforov, Yaser Afshar, Brendon Waters, Moon-ki Choi, Daniel S. Karls, Alexander Stukowski, Wonpil Im, Hendrik Heinz, Axel Kohlmeyer, and Ellad B. Tadmor},
+ title = {Type Label Framework for Bonded Force Fields in LAMMPS},
+ journal = {J. Phys. Chem. B},
+ year =    2024,
+ volume =  128,
+ number =  13,
+ pages =   {3282–-3297}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 9.5
+  ghost atom cutoff = 9.5
+  binsize = 4.75, bins = 2 2 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair eam/fs, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.245 | 3.245 | 3.245 Mbytes
+   Step          Temp          PotEng         TotEng          Pxx            Pxy            Pxz            Pyy            Pyz            Pzz           Volume    
+         0                  1000    -109.139456103039    -105.132391608039     5257.35318845055    -1498.22348909943    -841.888743997389      5527.7137918788    -288.188194980265     5310.69383375595              531.441
+       100       507.46684483912    -107.285030713297    -105.251578336952    -19563.7371940054    -1543.91401343868    -1267.02859555505    -18012.2609236777    -708.531699691126    -23801.5180788714     559.402169828517
+       200      366.364949947714    -106.294867874986    -104.826819891838     8510.51358587965    -1360.98799350557    -308.055389521272     11556.4397115872     5330.44021246245     8752.87363754269     544.811019920401
+       300      290.616909827254     -105.74316113559    -104.578640434575     21251.1737983262    -4364.59957811981    -1873.64631100959      21875.935029214      387.76790597457     19021.4735243371     540.051221342871
+       400      445.785688123291    -106.427720327554    -104.641428324296    -22140.6672945586    -1419.99835163079    -1382.92969025541    -22775.2600577943    -92.7473775210937    -24327.2960939293     563.534237878617
+       500      636.267304068404    -107.354217642781    -104.804653519319       18504.14137793    -4635.49234978739    -161.658578992119     19760.9554083102     -401.94540562923     16955.8529090529     533.806763228021
+       600      536.914491663986    -107.447426278316    -105.295975281918    -15709.3582687979    -470.581203812064     1643.79307803518    -15339.1735855708    -815.962854701251    -16464.0499386062     554.393670045872
+       700      462.707497283271     -107.28355516124    -105.429456377306    -991.837472837775    -2329.91848898249     896.186926748503     1141.96967598302     1412.39372345927    -2786.13497461058     546.400463237557
+       800      518.863800573581    -106.999564567406    -104.920443854387     18051.5084903795    -2706.64098605852    -838.166882233916     21029.9187772483    -35.6598500624046     10467.4404209439     538.193666298816
+       900      495.173771672623    -106.178446026568    -104.194252787243    -15872.8757050946    -3703.14021490095     775.616537298229     -15865.395384872    -797.163522210714    -15906.6525414459      562.66950953328
+      1000      537.163696355213    -106.520565333995    -104.368115758327     12842.9578206834    -1585.41096459185    -2267.67991642424     12392.4588466434    -2467.99470449173       10892.24337144      542.71410412496
+Loop time of 0.0397465 on 1 procs for 1000 steps with 32 atoms
+
+Performance: 2173.774 ns/day, 0.011 hours/ns, 25159.421 timesteps/s, 805.101 katom-step/s
+97.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.034361   | 0.034361   | 0.034361   |   0.0 | 86.45
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.0021635  | 0.0021635  | 0.0021635  |   0.0 |  5.44
+Output  | 0.0011327  | 0.0011327  | 0.0011327  |   0.0 |  2.85
+Modify  | 0.0015907  | 0.0015907  | 0.0015907  |   0.0 |  4.00
+Other   |            | 0.0004985  |            |       |  1.25
+
+Nlocal:             32 ave          32 max          32 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           1067 ave        1067 max        1067 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           3584 ave        3584 max        3584 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 3584
+Ave neighs/atom = 112
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:00
