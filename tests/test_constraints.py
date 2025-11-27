@@ -78,6 +78,51 @@ class TestConstraints(unittest.TestCase):
         )
         self.assertTrue(control_dict["velocity constraintz"], "set NULL NULL 0.0")
 
+    def test_selective_dynamics_calcmd_xy(self):
+        atoms = self.structure.copy()
+        c1 = FixedPlane(
+            [atom.index for atom in atoms if atom.symbol == "Al"],
+            [1, 1, 0],
+        )
+        atoms.set_constraint([c1])
+        control_dict = set_selective_dynamics(structure=atoms, calc_md=True)
+        self.assertEqual(len(control_dict), 3)
+        self.assertTrue(control_dict["group constraintxy"], "id 3 4")
+        self.assertTrue(
+            control_dict["fix constraintxy"], "constraintxy setforce NULL 0.0 0.0"
+        )
+        self.assertTrue(control_dict["velocity constraintxy"], "set NULL 0.0 0.0")
+
+    def test_selective_dynamics_calcmd_xz(self):
+        atoms = self.structure.copy()
+        c1 = FixedPlane(
+            [atom.index for atom in atoms if atom.symbol == "Al"],
+            [1, 0, 1],
+        )
+        atoms.set_constraint([c1])
+        control_dict = set_selective_dynamics(structure=atoms, calc_md=True)
+        self.assertEqual(len(control_dict), 3)
+        self.assertTrue(control_dict["group constraintxz"], "id 3 4")
+        self.assertTrue(
+            control_dict["fix constraintxz"], "constraintxz setforce NULL 0.0 0.0"
+        )
+        self.assertTrue(control_dict["velocity constraintxz"], "set NULL 0.0 0.0")
+
+    def test_selective_dynamics_calcmd_yz(self):
+        atoms = self.structure.copy()
+        c1 = FixedPlane(
+            [atom.index for atom in atoms if atom.symbol == "Al"],
+            [0, 1, 1],
+        )
+        atoms.set_constraint([c1])
+        control_dict = set_selective_dynamics(structure=atoms, calc_md=True)
+        self.assertEqual(len(control_dict), 3)
+        self.assertTrue(control_dict["group constraintyz"], "id 3 4")
+        self.assertTrue(
+            control_dict["fix constraintyz"], "constraintyz setforce NULL 0.0 0.0"
+        )
+        self.assertTrue(control_dict["velocity constraintyz"], "set NULL 0.0 0.0")
+
     def test_selective_dynamics_mixed_x(self):
         atoms = self.structure.copy()
         c1 = FixAtoms(indices=[atom.index for atom in atoms if atom.symbol == "Cu"])
