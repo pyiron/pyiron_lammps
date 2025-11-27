@@ -291,15 +291,15 @@ class TestCompatibilityFile(unittest.TestCase):
             "atom_style atomic\n",
             "read_data lammps.data\n",
             "pair_style eam/alloy\n",
-            "variable dumptime equal 1 \n",
+            "variable dumptime equal 100 \n",
             "dump 1 all custom ${dumptime} dump.out id type xsu ysu zsu fx fy fz vx vy vz\n",
             'dump_modify 1 sort id format line "%d %d %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g"\n',
-            "variable thermotime equal 100 \n",
+            "variable thermotime equal 20 \n",
             "thermo_style custom step temp pe etotal pxx pxy pxz pyy pyz pzz vol\n",
             "thermo_modify format float %20.15g\n",
             "thermo ${thermotime}\n",
             "min_style cg\n",
-            "minimize 0.0 0.0001 100000 10000000\n",
+            "minimize 0.0 0.0001 20 2000\n",
         ]
         for line in content_expected:
             self.assertIn(line, content)
