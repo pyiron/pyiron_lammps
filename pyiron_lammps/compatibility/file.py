@@ -99,12 +99,18 @@ def lammps_file_interface_function(
 
     if calc_mode == "static":
         lmp_str_lst += [
-            k + " " + v for k, v in set_selective_dynamics(structure=structure, calc_md=False).items()
+            k + " " + v
+            for k, v in set_selective_dynamics(
+                structure=structure, calc_md=False
+            ).items()
         ]
         lmp_str_lst += calc_static()
     elif calc_mode == "md":
         lmp_str_lst += [
-            k + " " + v for k, v in set_selective_dynamics(structure=structure, calc_md=True).items()
+            k + " " + v
+            for k, v in set_selective_dynamics(
+                structure=structure, calc_md=True
+            ).items()
         ]
         if "n_ionic_steps" in calc_kwargs.keys():
             n_ionic_steps = int(calc_kwargs.pop("n_ionic_steps"))
@@ -114,7 +120,10 @@ def lammps_file_interface_function(
         lmp_str_lst += ["run {} ".format(n_ionic_steps)]
     elif calc_mode == "minimize":
         lmp_str_lst += [
-            k + " " + v for k, v in set_selective_dynamics(structure=structure, calc_md=False).items()
+            k + " " + v
+            for k, v in set_selective_dynamics(
+                structure=structure, calc_md=False
+            ).items()
         ]
         lmp_str_tmp_lst, structure = calc_minimize(structure=structure, **calc_kwargs)
         lmp_str_lst += lmp_str_tmp_lst
