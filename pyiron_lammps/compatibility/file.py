@@ -10,6 +10,7 @@ from pyiron_lammps.compatibility.calculate import (
     calc_minimize,
     calc_static,
 )
+from pyiron_lammps.compatibility.constraints import set_selective_dynamics
 from pyiron_lammps.compatibility.structure import write_lammps_datafile
 from pyiron_lammps.output import parse_lammps_output
 from pyiron_lammps.potential import get_potential_by_name
@@ -128,15 +129,35 @@ def lammps_file_interface_function(
     ]
 
     if calc_mode == "static":
+        lmp_str_lst += [
+            k + " " + v
+            for k, v in set_selective_dynamics(
+                structure=structure, calc_md=False
+            ).items()
+        ]
         lmp_str_lst += calc_static()
     elif calc_mode == "md":
+        lmp_str_lst += [
+            k + " " + v
+            for k, v in set_selective_dynamics(
+                structure=structure, calc_md=True
+            ).items()
+        ]
         if "n_ionic_steps" in calc_kwargs.keys():
             n_ionic_steps = int(calc_kwargs.pop("n_ionic_steps"))
         else:
             n_ionic_steps = 1
+        calc_kwargs["units"] = units
         lmp_str_lst += calc_md(**calc_kwargs)
         lmp_str_lst += ["run {} ".format(n_ionic_steps)]
     elif calc_mode == "minimize":
+        calc_kwargs["units"] = units
+        lmp_str_lst += [
+            k + " " + v
+            for k, v in set_selective_dynamics(
+                structure=structure, calc_md=False
+            ).items()
+        ]
         lmp_str_tmp_lst, structure = calc_minimize(structure=structure, **calc_kwargs)
         lmp_str_lst += lmp_str_tmp_lst
     else:

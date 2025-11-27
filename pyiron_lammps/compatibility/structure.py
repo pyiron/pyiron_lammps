@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import Dict, Optional, Union
+from typing import Dict, Optional
 
 import numpy as np
 from ase.atoms import Atoms
@@ -60,6 +60,7 @@ class LammpsStructureCompatibility(LammpsStructure):
 
         """
         species_lammps_id_dict = self.get_lammps_id_dict(self.el_eam_lst)
+        self.molecule_ids = None
         # analyze structure to get molecule_ids, bonds, angles etc
         coords = self.rotate_positions(self._structure)
 
@@ -163,9 +164,15 @@ class LammpsStructureCompatibility(LammpsStructure):
 
         """
         species_lammps_id_dict = self.get_lammps_id_dict(self.el_eam_lst)
+        self.molecule_ids = None
         coords = self.rotate_positions(self._structure)
 
         # extract electric charges from potential file
+        q_dict = {
+            species_name: self.potential.get_charge(species_name)
+            for species_name in set(self.structure.get_chemical_symbols())
+        }
+
         bonds_lst, angles_lst = [], []
         bond_type_lst, angle_type_lst = [], []
         # Using a cutoff distance to draw the bonds instead of the number of neighbors
