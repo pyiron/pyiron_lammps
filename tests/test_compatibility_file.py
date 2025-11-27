@@ -43,6 +43,14 @@ class TestCompatibilityFile(unittest.TestCase):
                 calc_mode="error",
                 units=self.units,
             )
+        with self.assertRaises(NotImplementedError):
+            lammps_file_interface_function(
+                working_directory=self.working_dir,
+                structure=self.structure,
+                potential=self.potential,
+                units="error",
+                calc_mode="md",
+            )
 
     def test_calc_md_npt(self):
         calc_kwargs = {
