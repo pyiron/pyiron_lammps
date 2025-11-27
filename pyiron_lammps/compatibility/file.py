@@ -9,6 +9,7 @@ from pyiron_lammps.compatibility.calculate import (
     calc_minimize,
     calc_static,
 )
+from pyiron_lammps.compatibility.constraints import set_selective_dynamics
 from pyiron_lammps.output import parse_lammps_output
 from pyiron_lammps.potential import get_potential_by_name
 from pyiron_lammps.structure import write_lammps_datafile
@@ -88,14 +89,6 @@ def lammps_file_interface_function(
     potential_dataframe = get_potential_by_name(
         potential_name=potential, resource_path=resource_path
     )
-    write_lammps_datafile(
-        structure=structure,
-        potential_elements=potential_dataframe["Species"],
-        bond_dict=None,
-        units=units,
-        file_name="lammps.data",
-        working_directory=working_directory,
-    )
     lmp_str_lst = lammps_file_initialization(structure=structure)
     lmp_str_lst += potential_dataframe["Config"]
     lmp_str_lst += ["variable dumptime equal {} ".format(calc_kwargs.get("n_print", 1))]
@@ -105,16 +98,37 @@ def lammps_file_interface_function(
     ]
 
     if calc_mode == "static":
+        lmp_str_lst += [
+            k + " " + v
+            for k, v in set_selective_dynamics(
+                structure=structure, calc_md=False
+            ).items()
+        ]
         lmp_str_lst += calc_static()
     elif calc_mode == "md":
+        lmp_str_lst += [
+            k + " " + v
+            for k, v in set_selective_dynamics(
+                structure=structure, calc_md=True
+            ).items()
+        ]
         if "n_ionic_steps" in calc_kwargs.keys():
-            n_ionic_steps = calc_kwargs.pop("n_ionic_steps")
+            n_ionic_steps = int(calc_kwargs.pop("n_ionic_steps"))
         else:
             n_ionic_steps = 1
+        calc_kwargs["units"] = units
         lmp_str_lst += calc_md(**calc_kwargs)
         lmp_str_lst += ["run {} ".format(n_ionic_steps)]
     elif calc_mode == "minimize":
-        lmp_str_lst += calc_minimize(**calc_kwargs)
+        calc_kwargs["units"] = units
+        lmp_str_lst += [
+            k + " " + v
+            for k, v in set_selective_dynamics(
+                structure=structure, calc_md=False
+            ).items()
+        ]
+        lmp_str_tmp_lst, structure = calc_minimize(structure=structure, **calc_kwargs)
+        lmp_str_lst += lmp_str_tmp_lst
     else:
         raise ValueError(
             f"calc_mode must be one of: static, md or minimize, not {calc_mode}"
@@ -122,6 +136,15 @@ def lammps_file_interface_function(
 
     with open(os.path.join(working_directory, "lmp.in"), "w") as f:
         f.writelines([l + "\n" for l in lmp_str_lst])
+
+    write_lammps_datafile(
+        structure=structure,
+        potential_elements=potential_dataframe["Species"],
+        bond_dict=None,
+        units=units,
+        file_name="lammps.data",
+        working_directory=working_directory,
+    )
 
     shell = subprocess.check_output(
         lmp_command,

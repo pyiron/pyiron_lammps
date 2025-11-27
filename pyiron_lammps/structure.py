@@ -198,7 +198,12 @@ class LammpsStructure:
         input_file_name:
     """
 
-    def __init__(self, bond_dict: Optional[Dict] = None, units: str = "metal"):
+    def __init__(
+        self,
+        bond_dict: Optional[Dict] = None,
+        units: str = "metal",
+        atom_type: str = "atomic",
+    ):
         self._string_input: str = ""
         self._structure: Optional[Atoms] = None
         self._potential: Optional[Any] = None
@@ -209,6 +214,7 @@ class LammpsStructure:
         self._bond_dict: Optional[Dict] = bond_dict
         self._force_skewed: bool = False
         self._units: str = units
+        self._atom_type: str = atom_type
 
     @property
     def potential(self) -> Any:
@@ -238,7 +244,10 @@ class LammpsStructure:
 
         """
         self._structure = structure
-        input_str = self.structure_atomic()
+        if self._atom_type == "charge":
+            input_str = self.structure_charge()
+        else:  # self.atom_type == 'atomic'
+            input_str = self.structure_atomic()
         self._string_input = input_str + self._get_velocities_input_string()
 
     def _get_velocities_input_string(self) -> str:
@@ -382,6 +391,45 @@ class LammpsStructure:
             + "\n"
         )
 
+    def structure_charge(self):
+        """
+        Create atom structure including the atom charges.
+
+        By convention the LAMMPS atom type numbers are chose alphabetically for the chemical species.
+
+        Returns: LAMMPS readable structure.
+
+        """
+        species_lammps_id_dict = self.get_lammps_id_dict(self.el_eam_lst)
+        atoms = "Atoms\n\n"
+        coords = self.rotate_positions(self._structure)
+        el_charge_lst = self._structure.get_initial_charges()
+        el_lst = self._structure.get_chemical_symbols()
+        for id_atom, (el, coord) in enumerate(zip(el_lst, coords)):
+            dim = len(self._structure.positions[0])
+            c = np.zeros(3)
+            c[:dim] = coord
+            atoms += (
+                "{0:d} {1:d} {2:f} {3:.15f} {4:.15f} {5:.15f}".format(
+                    id_atom + 1,
+                    species_lammps_id_dict[el],
+                    el_charge_lst[id_atom],
+                    c[0],
+                    c[1],
+                    c[2],
+                )
+                + "\n"
+            )
+        return (
+            self.lammps_header(
+                structure=self.structure,
+                cell_dimensions=self.simulation_cell(),
+                species_lammps_id_dict=species_lammps_id_dict,
+            )
+            + atoms
+            + "\n"
+        )
+
     def rotate_positions(self, structure: Atoms) -> List[Tuple[float, float, float]]:
         """
         Rotate all atomic positions in given structure according to new Prism cell
@@ -457,8 +505,9 @@ def write_lammps_datafile(
     units: str = "metal",
     file_name: str = "lammps.data",
     working_directory: Optional[str] = None,
+    atom_type: str = "atomic",
 ) -> None:
-    lammps_str = LammpsStructure(bond_dict=bond_dict, units=units)
+    lammps_str = LammpsStructure(bond_dict=bond_dict, units=units, atom_type=atom_type)
     lammps_str.el_eam_lst = potential_elements
     lammps_str.structure = structure
     lammps_str.write_file(file_name=file_name, cwd=working_directory)
