@@ -116,9 +116,11 @@ def lammps_file_interface_function(
             n_ionic_steps = int(calc_kwargs.pop("n_ionic_steps"))
         else:
             n_ionic_steps = 1
+        calc_kwargs["units"] = units
         lmp_str_lst += calc_md(**calc_kwargs)
         lmp_str_lst += ["run {} ".format(n_ionic_steps)]
     elif calc_mode == "minimize":
+        calc_kwargs["units"] = units
         lmp_str_lst += [
             k + " " + v
             for k, v in set_selective_dynamics(
