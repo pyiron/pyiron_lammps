@@ -198,7 +198,7 @@ def _modify_input_dict(
 ):
     if input_control_file is not None:
         lmp_tmp_lst, keys_used = [], []
-        for l in enumerate(lmp_str_lst):
+        for l in lmp_str_lst:
             key = l.split()[0]
             if key in input_control_file.keys():
                 lmp_tmp_lst.append(key + " " + input_control_file[key])
