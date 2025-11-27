@@ -92,7 +92,10 @@ class TestCompatibilityFile(unittest.TestCase):
             }
         )
         water_base = Atoms(
-            symbols=["H", "H", "O"], positions=[r_H1, r_H2, r_O], cell=unit_cell, pbc=True
+            symbols=["H", "H", "O"],
+            positions=[r_H1, r_H2, r_O],
+            cell=unit_cell,
+            pbc=True,
         )
         water = water_base.repeat([n, n, n])
         _, parsed_output, job_crashed = lammps_file_interface_function(
