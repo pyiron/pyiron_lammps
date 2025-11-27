@@ -271,6 +271,7 @@ class TestCompatibilityFile(unittest.TestCase):
             structure=self.structure,
             potential=self.potential,
             calc_mode="minimize",
+            calc_kwargs={"n_print": 100, "max_iter": 20},
             units=self.units,
             lmp_command="cp "
             + str(os.path.join(self.static_path, "compatibility_output"))
