@@ -53,6 +53,15 @@ class TestCompatibilityFile(unittest.TestCase):
                 calc_mode="md",
                 resource_path=os.path.join(self.static_path, "potential"),
             )
+        with self.assertRaises(NotImplementedError):
+            lammps_file_interface_function(
+                working_directory=self.working_dir,
+                structure=self.structure,
+                potential=self.potential,
+                units="error",
+                calc_mode="minimize",
+                resource_path=os.path.join(self.static_path, "potential"),
+            )
         with self.assertRaises(ValueError):
             lammps_file_interface_function(
                 working_directory=self.working_dir,
