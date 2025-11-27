@@ -50,6 +50,7 @@ class TestCompatibilityFile(unittest.TestCase):
                 potential=self.potential,
                 units="error",
                 calc_mode="md",
+                resource_path=os.path.join(self.static_path, "potential"),
             )
 
     def test_calc_md_npt(self):
