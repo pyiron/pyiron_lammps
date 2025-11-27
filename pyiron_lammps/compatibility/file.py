@@ -24,6 +24,7 @@ def lammps_file_interface_function(
     units: str = "metal",
     lmp_command: str = "mpiexec -n 1 --oversubscribe lmp_mpi -in lmp.in",
     resource_path: Optional[str] = None,
+    input_control_file: Optional[dict] = None,
 ):
     """
     A single function to execute a LAMMPS calculation based on the LAMMPS job implemented in pyiron
@@ -104,7 +105,12 @@ def lammps_file_interface_function(
                 structure=structure, calc_md=False
             ).items()
         ]
-        lmp_str_lst += calc_static()
+        lmp_str_tmp_lst = calc_static()
+        lmp_str_lst = _modify_input_dict(
+            input_control_file=input_control_file,
+            lmp_str_lst=lmp_str_lst + lmp_str_tmp_lst[:-1],
+        )
+        lmp_str_lst.append(lmp_str_tmp_lst[-1])
     elif calc_mode == "md":
         lmp_str_lst += [
             k + " " + v
@@ -118,6 +124,10 @@ def lammps_file_interface_function(
             n_ionic_steps = 1
         calc_kwargs["units"] = units
         lmp_str_lst += calc_md(**calc_kwargs)
+        lmp_str_lst = _modify_input_dict(
+            input_control_file=input_control_file,
+            lmp_str_lst=lmp_str_lst,
+        )
         lmp_str_lst += ["run {} ".format(n_ionic_steps)]
     elif calc_mode == "minimize":
         calc_kwargs["units"] = units
@@ -128,7 +138,11 @@ def lammps_file_interface_function(
             ).items()
         ]
         lmp_str_tmp_lst, structure = calc_minimize(structure=structure, **calc_kwargs)
-        lmp_str_lst += lmp_str_tmp_lst
+        lmp_str_lst = _modify_input_dict(
+            input_control_file=input_control_file,
+            lmp_str_lst=lmp_str_lst + lmp_str_tmp_lst[:-1],
+        )
+        lmp_str_lst.append(lmp_str_tmp_lst[-1])
     else:
         raise ValueError(
             f"calc_mode must be one of: static, md or minimize, not {calc_mode}"
@@ -176,3 +190,25 @@ def lammps_file_initialization(structure, dimension=3, units="metal"):
         "read_data lammps.data",
     ]
     return init_commands
+
+
+def _modify_input_dict(
+    input_control_file: Optional[dict] = None,
+    lmp_str_lst: list[str] = [],
+):
+    if input_control_file is not None:
+        lmp_tmp_lst, keys_used = [], []
+        for l in lmp_str_lst:
+            key = l.split()[0]
+            if key in input_control_file.keys():
+                lmp_tmp_lst.append(key + " " + input_control_file[key])
+                keys_used.append(key)
+            else:
+                lmp_tmp_lst.append(l)
+        for k, v in input_control_file.items():
+            if k not in keys_used:
+                lmp_tmp_lst.append(k + " " + v)
+
+        return lmp_tmp_lst
+    else:
+        return lmp_str_lst

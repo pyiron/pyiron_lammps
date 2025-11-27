@@ -91,6 +91,7 @@ class TestCompatibilityFile(unittest.TestCase):
             + str(os.path.join(self.static_path, "compatibility_output"))
             + "/* .",
             resource_path=os.path.join(self.static_path, "potential"),
+            input_control_file={"thermo_modify": "flush yes"},
         )
         self.assertFalse(job_crashed)
         for key in self.keys:
@@ -112,7 +113,7 @@ class TestCompatibilityFile(unittest.TestCase):
             "timestep 0.001\n",
             "velocity all create 1000.0 80996 dist gaussian\n",
             "thermo_style custom step temp pe etotal pxx pxy pxz pyy pyz pzz vol\n",
-            "thermo_modify format float %20.15g\n",
+            "thermo_modify flush yes\n",
             "thermo ${thermotime}\n",
             "run 1000 \n",
         ]
