@@ -2,8 +2,8 @@ import os
 import subprocess
 from typing import Optional
 
-from ase.atoms import Atoms
 import pandas
+from ase.atoms import Atoms
 
 from pyiron_lammps.compatibility.calculate import (
     calc_md,
