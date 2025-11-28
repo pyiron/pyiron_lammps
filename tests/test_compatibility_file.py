@@ -3,6 +3,7 @@ import os
 import shutil
 from ase.build import bulk
 from pyiron_lammps.compatibility.file import lammps_file_interface_function
+from pyiron_lammps.potential import get_potential_by_name
 
 
 class TestCompatibilityFile(unittest.TestCase):
@@ -83,7 +84,9 @@ class TestCompatibilityFile(unittest.TestCase):
         shell_output, parsed_output, job_crashed = lammps_file_interface_function(
             working_directory=self.working_dir,
             structure=self.structure,
-            potential=self.potential,
+            potential= get_potential_by_name(
+                potential_name=self.potential, resource_path=os.path.join(self.static_path, "potential")
+            ),
             calc_mode="md",
             calc_kwargs=calc_kwargs,
             units=self.units,
