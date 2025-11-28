@@ -36,6 +36,15 @@ class TestCompatibilityFile(unittest.TestCase):
             shutil.rmtree(self.working_dir)
 
     def test_calc_error(self):
+        with self.assertRaises(TypeError):
+            lammps_file_interface_function(
+                working_directory=self.working_dir,
+                structure=self.structure,
+                potential=1,
+                calc_mode="static",
+                units=self.units,
+                resource_path=os.path.join(self.static_path, "potential"),
+            )
         with self.assertRaises(ValueError):
             lammps_file_interface_function(
                 working_directory=self.working_dir,
@@ -84,7 +93,7 @@ class TestCompatibilityFile(unittest.TestCase):
         shell_output, parsed_output, job_crashed = lammps_file_interface_function(
             working_directory=self.working_dir,
             structure=self.structure,
-            potential= get_potential_by_name(
+            potential=get_potential_by_name(
                 potential_name=self.potential, resource_path=os.path.join(self.static_path, "potential")
             ),
             calc_mode="md",
@@ -134,7 +143,9 @@ class TestCompatibilityFile(unittest.TestCase):
         shell_output, parsed_output, job_crashed = lammps_file_interface_function(
             working_directory=self.working_dir,
             structure=self.structure,
-            potential=self.potential,
+            potential=get_potential_by_name(
+                potential_name=self.potential, resource_path=os.path.join(self.static_path, "potential")
+            ).to_frame(),
             calc_mode="md",
             calc_kwargs=calc_kwargs,
             units=self.units,
