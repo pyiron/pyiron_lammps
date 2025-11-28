@@ -3,6 +3,7 @@ import subprocess
 from typing import Optional
 
 from ase.atoms import Atoms
+import pandas
 
 from pyiron_lammps.compatibility.calculate import (
     calc_md,
@@ -87,9 +88,16 @@ def lammps_file_interface_function(
         calc_kwargs = {}
 
     os.makedirs(working_directory, exist_ok=True)
-    potential_dataframe = get_potential_by_name(
-        potential_name=potential, resource_path=resource_path
-    )
+    if isinstance(potential, str):
+        potential_dataframe = get_potential_by_name(
+            potential_name=potential, resource_path=resource_path
+        )
+    elif isinstance(potential, pandas.DataFrame):
+        potential_dataframe = potential.iloc[0]
+    elif isinstance(potential, pandas.Series):
+        potential_dataframe = potential
+    else:
+        raise TypeError()
     lmp_str_lst = lammps_file_initialization(structure=structure)
     lmp_str_lst += potential_dataframe["Config"]
     lmp_str_lst += ["variable dumptime equal {} ".format(calc_kwargs.get("n_print", 1))]
