@@ -94,7 +94,8 @@ class TestCompatibilityFile(unittest.TestCase):
             working_directory=self.working_dir,
             structure=self.structure,
             potential=get_potential_by_name(
-                potential_name=self.potential, resource_path=os.path.join(self.static_path, "potential")
+                potential_name=self.potential,
+                resource_path=os.path.join(self.static_path, "potential"),
             ),
             calc_mode="md",
             calc_kwargs=calc_kwargs,
@@ -144,7 +145,8 @@ class TestCompatibilityFile(unittest.TestCase):
             working_directory=self.working_dir,
             structure=self.structure,
             potential=get_potential_by_name(
-                potential_name=self.potential, resource_path=os.path.join(self.static_path, "potential")
+                potential_name=self.potential,
+                resource_path=os.path.join(self.static_path, "potential"),
             ).to_frame(),
             calc_mode="md",
             calc_kwargs=calc_kwargs,
