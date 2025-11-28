@@ -2,6 +2,7 @@ import unittest
 import os
 import shutil
 from ase.build import bulk
+import pandas
 from pyiron_lammps.compatibility.file import lammps_file_interface_function
 from pyiron_lammps.potential import get_potential_by_name
 
@@ -141,13 +142,14 @@ class TestCompatibilityFile(unittest.TestCase):
             "n_print": 100,
             "langevin": True,
         }
+        potential = get_potential_by_name(
+            potential_name=self.potential,
+            resource_path=os.path.join(self.static_path, "potential"),
+        )
         shell_output, parsed_output, job_crashed = lammps_file_interface_function(
             working_directory=self.working_dir,
             structure=self.structure,
-            potential=get_potential_by_name(
-                potential_name=self.potential,
-                resource_path=os.path.join(self.static_path, "potential"),
-            ).to_frame(),
+            potential=pandas.DataFrame({k: [potential[k]] for k in potential.keys()}),
             calc_mode="md",
             calc_kwargs=calc_kwargs,
             units=self.units,
