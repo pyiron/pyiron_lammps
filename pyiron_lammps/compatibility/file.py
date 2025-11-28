@@ -207,12 +207,14 @@ def _modify_input_dict(
     if input_control_file is not None:
         lmp_tmp_lst, keys_used = [], []
         for l in lmp_str_lst:
-            key = l.split()[0]
-            if key in input_control_file.keys():
-                lmp_tmp_lst.append(key + " " + input_control_file[key])
-                keys_used.append(key)
-            else:
-                lmp_tmp_lst.append(l)
+            ls = l.split()
+            if len(ls) >= 1:  # Remove empty lines
+                key = ls[0]
+                if key in input_control_file.keys():
+                    lmp_tmp_lst.append(key + " " + input_control_file[key])
+                    keys_used.append(key)
+                else:
+                    lmp_tmp_lst.append(l)
         for k, v in input_control_file.items():
             if k not in keys_used:
                 lmp_tmp_lst.append(k + " " + v)
