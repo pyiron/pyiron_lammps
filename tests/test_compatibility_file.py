@@ -503,7 +503,7 @@ class TestGlassPotential(unittest.TestCase):
             "\npair_modify shift yes\n",
         ]
         potential_lst, potential_replace = _get_potential(
-            potential=pandas.DataFrame({"Config": [potential]}),
+            potential=pandas.DataFrame({"Config": [potential], "Species": ["Al", "Ca", "O", "Si"]}),
             resource_path=os.path.join(self.static_path, "potential"),
         )
         for i, l in enumerate(potential):
