@@ -510,7 +510,7 @@ class TestGlassPotential(unittest.TestCase):
             resource_path=os.path.join(self.static_path, "potential"),
         )
         for i, l in enumerate(potential):
-            if i in [1, 2, 3]:
+            if i in [1, 2, 3, 4]:
                 self.assertTrue(l not in potential_lst)
             else:
                 self.assertFalse(l in potential_lst)
