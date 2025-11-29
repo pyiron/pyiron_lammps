@@ -3,7 +3,7 @@ import os
 import shutil
 from ase.build import bulk
 import pandas
-from pyiron_lammps.compatibility.file import lammps_file_interface_function
+from pyiron_lammps.compatibility.file import lammps_file_interface_function, _get_potential
 from pyiron_lammps.potential import get_potential_by_name
 
 
@@ -460,3 +460,46 @@ class TestCompatibilityFile(unittest.TestCase):
         ]
         for line in content_expected:
             self.assertIn(line, content)
+
+
+class TestGlassPotential(unittest.TestCase):
+    def test_bouhadja(self):
+        potential = [
+            '# Bouhadja et al., J. Chem. Phys. 138, 224510 (2013) \n',
+            'units metal\n',
+            'dimension 3\n',
+            'atom_style charge\n',
+            '\n',
+            '# create groups ###\n',
+            'group Al type 1\n',
+            'group Ca type 2\n',
+            'group O type 3\n',
+            'group Si type 4\n',
+            '\n### set charges ###\n',
+            'set type 1 charge 1.8\n',
+            'set type 2 charge 1.2\n',
+            'set type 3 charge -1.2\n',
+            'set type 4 charge 2.4\n',
+            '\n### Bouhadja Born-Mayer-Huggins + Coulomb Potential Parameters ###\n',
+            'pair_style born/coul/dsf 0.25 8.0\n',
+            'pair_coeff 1 1 0.002900 0.068000 1.570400 14.049800 0.000000\n',
+            'pair_coeff 1 2 0.003200 0.074000 1.957200 17.171000 0.000000\n',
+            'pair_coeff 1 3 0.007500 0.164000 2.606700 34.574700 0.000000\n',
+            'pair_coeff 1 4 0.002500 0.057000 1.505600 18.811600 0.000000\n',
+            'pair_coeff 2 2 0.003500 0.080000 2.344000 20.985600 0.000000\n',
+            'pair_coeff 2 3 0.007700 0.178000 2.993500 42.255600 0.000000\n',
+            'pair_coeff 2 4 0.002700 0.063000 1.892400 22.990700 0.000000\n',
+            'pair_coeff 3 3 0.012000 0.263000 3.643000 85.084000 0.000000\n',
+            'pair_coeff 3 4 0.007000 0.156000 2.541900 46.293000 0.000000\n',
+            'pair_coeff 4 4 0.001200 0.046000 1.440800 25.187300 0.000000\n',
+            '\npair_modify shift yes\n'
+        ]
+        potential_lst, potential_replace = _get_potential(potential=pandas.DataFrame({"Config": [potential]}))
+        for i, l in enumerate(potential):
+            if i in [1,2,3]:
+                self.assertTrue(l not in potential_lst)
+            else:
+                self.assertFalse(l in potential_lst)
+
+        for k, v in {"units": 'units metal\n', "dimension": 'dimension 3\n', "atom_style": 'atom_style charge\n'}.items():
+            self.assertEqual(potential_replace[k], v)

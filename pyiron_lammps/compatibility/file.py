@@ -88,28 +88,7 @@ def lammps_file_interface_function(
         calc_kwargs = {}
 
     os.makedirs(working_directory, exist_ok=True)
-    if isinstance(potential, str):
-        potential_dataframe = get_potential_by_name(
-            potential_name=potential, resource_path=resource_path
-        )
-    elif isinstance(potential, pandas.DataFrame):
-        potential_dataframe = potential.iloc[0]
-    elif isinstance(potential, pandas.Series):
-        potential_dataframe = potential
-    else:
-        raise TypeError()
-
-    potential_replace = {}
-    potential_lst = []
-    for l in potential_dataframe["Config"]:
-        if l.startswith("units"):
-            potential_replace["units"] = l
-        elif l.startswith("atom_style"):
-            potential_replace["atom_style"] = l
-        elif l.startswith("dimension"):
-            potential_replace["dimension"] = l
-        else:
-            potential_lst.append(l)
+    potential_lst, potential_replace = _get_potential(potential=potential)
 
     lmp_str_lst = []
     atom_type = "atomic"
@@ -248,3 +227,30 @@ def _modify_input_dict(
         return lmp_tmp_lst
     else:
         return lmp_str_lst
+
+
+def _get_potential(potential):
+    if isinstance(potential, str):
+        potential_dataframe = get_potential_by_name(
+            potential_name=potential, resource_path=resource_path
+        )
+    elif isinstance(potential, pandas.DataFrame):
+        potential_dataframe = potential.iloc[0]
+    elif isinstance(potential, pandas.Series):
+        potential_dataframe = potential
+    else:
+        raise TypeError()
+
+    potential_replace = {}
+    potential_lst = []
+    for l in potential_dataframe["Config"]:
+        if l.startswith("units"):
+            potential_replace["units"] = l
+        elif l.startswith("atom_style"):
+            potential_replace["atom_style"] = l
+        elif l.startswith("dimension"):
+            potential_replace["dimension"] = l
+        else:
+            potential_lst.append(l)
+
+    return potential_lst, potential_replace
