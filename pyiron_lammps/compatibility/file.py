@@ -98,8 +98,33 @@ def lammps_file_interface_function(
         potential_dataframe = potential
     else:
         raise TypeError()
-    lmp_str_lst = lammps_file_initialization(structure=structure)
-    lmp_str_lst += potential_dataframe["Config"]
+
+    potential_replace = {}
+    potential_lst = []
+    for l in potential_dataframe["Config"]:
+        if l.startswith("units"):
+            potential_replace["units"] = l
+        elif l.startswith("atom_style"):
+            potential_replace["atom_style"] = l
+        elif l.startswith("dimension"):
+            potential_replace["dimension"] = l
+        else:
+            potential_lst.append(l)
+
+    lmp_str_lst = []
+    atom_type = "atomic"
+    for l in lammps_file_initialization(structure=structure):
+        if l.startswith("units") and "units" in potential_replace:
+            lmp_str_lst.append(potential_replace["units"])
+        elif l.startswith("atom_style") and "atom_style" in potential_replace:
+            lmp_str_lst.append(potential_replace["atom_style"])
+            atom_type = potential_replace["atom_style"].split()[-1]
+        elif l.startswith("dimension") and "dimension" in potential_replace:
+            lmp_str_lst.append(potential_replace["dimension"])
+        else:
+            lmp_str_lst.append(l)
+
+    lmp_str_lst += potential_lst
     lmp_str_lst += ["variable dumptime equal {} ".format(calc_kwargs.get("n_print", 1))]
     lmp_str_lst += [
         "dump 1 all custom ${dumptime} dump.out id type xsu ysu zsu fx fy fz vx vy vz",
@@ -166,6 +191,7 @@ def lammps_file_interface_function(
         units=units,
         file_name="lammps.data",
         working_directory=working_directory,
+        atom_type=atom_type,
     )
 
     shell = subprocess.check_output(
