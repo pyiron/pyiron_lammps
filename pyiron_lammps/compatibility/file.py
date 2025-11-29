@@ -25,6 +25,7 @@ def lammps_file_interface_function(
     units: str = "metal",
     lmp_command: str = "mpiexec -n 1 --oversubscribe lmp_mpi -in lmp.in",
     resource_path: Optional[str] = None,
+    input_control_file: Optional[dict] = None,
 ):
     """
     A single function to execute a LAMMPS calculation based on the LAMMPS job implemented in pyiron
@@ -87,26 +88,9 @@ def lammps_file_interface_function(
         calc_kwargs = {}
 
     os.makedirs(working_directory, exist_ok=True)
-    if isinstance(potential, str):
-        potential_dataframe = get_potential_by_name(
-            potential_name=potential, resource_path=resource_path
-        )
-    elif isinstance(potential, pandas.DataFrame):
-        potential_dataframe = potential.iloc[0]
-    else:
-        raise TypeError()
-
-    potential_replace = {}
-    potential_lst = []
-    for l in potential_dataframe["Config"]:
-        if l.startswith("units"):
-            potential_replace["units"] = l
-        elif l.startswith("atom_style"):
-            potential_replace["atom_style"] = l
-        elif l.startswith("dimension"):
-            potential_replace["dimension"] = l
-        else:
-            potential_lst.append(l)
+    potential_lst, potential_replace, species = _get_potential(
+        potential=potential, resource_path=resource_path
+    )
 
     lmp_str_lst = []
     atom_type = "atomic"
@@ -135,7 +119,12 @@ def lammps_file_interface_function(
                 structure=structure, calc_md=False
             ).items()
         ]
-        lmp_str_lst += calc_static()
+        lmp_str_tmp_lst = calc_static()
+        lmp_str_lst = _modify_input_dict(
+            input_control_file=input_control_file,
+            lmp_str_lst=lmp_str_lst + lmp_str_tmp_lst[:-1],
+        )
+        lmp_str_lst.append(lmp_str_tmp_lst[-1])
     elif calc_mode == "md":
         lmp_str_lst += [
             k + " " + v
@@ -149,6 +138,10 @@ def lammps_file_interface_function(
             n_ionic_steps = 1
         calc_kwargs["units"] = units
         lmp_str_lst += calc_md(**calc_kwargs)
+        lmp_str_lst = _modify_input_dict(
+            input_control_file=input_control_file,
+            lmp_str_lst=lmp_str_lst,
+        )
         lmp_str_lst += ["run {} ".format(n_ionic_steps)]
     elif calc_mode == "minimize":
         calc_kwargs["units"] = units
@@ -159,7 +152,11 @@ def lammps_file_interface_function(
             ).items()
         ]
         lmp_str_tmp_lst, structure = calc_minimize(structure=structure, **calc_kwargs)
-        lmp_str_lst += lmp_str_tmp_lst
+        lmp_str_lst = _modify_input_dict(
+            input_control_file=input_control_file,
+            lmp_str_lst=lmp_str_lst + lmp_str_tmp_lst[:-1],
+        )
+        lmp_str_lst.append(lmp_str_tmp_lst[-1])
     else:
         raise ValueError(
             f"calc_mode must be one of: static, md or minimize, not {calc_mode}"
@@ -170,7 +167,7 @@ def lammps_file_interface_function(
 
     write_lammps_datafile(
         structure=structure,
-        potential_elements=potential_dataframe["Species"],
+        potential_elements=species,
         bond_dict=None,
         units=units,
         file_name="lammps.data",
@@ -189,7 +186,7 @@ def lammps_file_interface_function(
     output = parse_lammps_output(
         working_directory=working_directory,
         structure=structure,
-        potential_elements=potential_dataframe["Species"],
+        potential_elements=species,
         units=units,
         prism=None,
         dump_h5_file_name="dump.h5",
@@ -209,3 +206,54 @@ def lammps_file_initialization(structure, dimension=3, units="metal"):
         "read_data lammps.data",
     ]
     return init_commands
+
+
+def _modify_input_dict(
+    input_control_file: Optional[dict] = None,
+    lmp_str_lst: list[str] = [],
+):
+    if input_control_file is not None:
+        lmp_tmp_lst, keys_used = [], []
+        for l in lmp_str_lst:
+            ls = l.split()
+            if len(ls) >= 1:  # Remove empty lines
+                key = ls[0]
+                if key in input_control_file.keys():
+                    lmp_tmp_lst.append(key + " " + input_control_file[key])
+                    keys_used.append(key)
+                else:
+                    lmp_tmp_lst.append(l)
+        for k, v in input_control_file.items():
+            if k not in keys_used:
+                lmp_tmp_lst.append(k + " " + v)
+
+        return lmp_tmp_lst
+    else:
+        return lmp_str_lst
+
+
+def _get_potential(potential, resource_path: Optional[str] = None):
+    if isinstance(potential, str):
+        potential_dataframe = get_potential_by_name(
+            potential_name=potential, resource_path=resource_path
+        )
+    elif isinstance(potential, pandas.DataFrame):
+        potential_dataframe = potential.iloc[0]
+    elif isinstance(potential, pandas.Series):
+        potential_dataframe = potential
+    else:
+        raise TypeError()
+
+    potential_replace = {}
+    potential_lst = []
+    for l in potential_dataframe["Config"]:
+        if l.startswith("units"):
+            potential_replace["units"] = l
+        elif l.startswith("atom_style"):
+            potential_replace["atom_style"] = l
+        elif l.startswith("dimension"):
+            potential_replace["dimension"] = l
+        else:
+            potential_lst.append(l)
+
+    return potential_lst, potential_replace, potential_dataframe["Species"]

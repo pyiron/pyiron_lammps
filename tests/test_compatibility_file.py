@@ -2,7 +2,12 @@ import unittest
 import os
 import shutil
 from ase.build import bulk
-from pyiron_lammps.compatibility.file import lammps_file_interface_function
+import pandas
+from pyiron_lammps.compatibility.file import (
+    lammps_file_interface_function,
+    _get_potential,
+)
+from pyiron_lammps.potential import get_potential_by_name
 
 
 class TestCompatibilityFile(unittest.TestCase):
@@ -35,6 +40,15 @@ class TestCompatibilityFile(unittest.TestCase):
             shutil.rmtree(self.working_dir)
 
     def test_calc_error(self):
+        with self.assertRaises(TypeError):
+            lammps_file_interface_function(
+                working_directory=self.working_dir,
+                structure=self.structure,
+                potential=1,
+                calc_mode="static",
+                units=self.units,
+                resource_path=os.path.join(self.static_path, "potential"),
+            )
         with self.assertRaises(ValueError):
             lammps_file_interface_function(
                 working_directory=self.working_dir,
@@ -83,7 +97,10 @@ class TestCompatibilityFile(unittest.TestCase):
         shell_output, parsed_output, job_crashed = lammps_file_interface_function(
             working_directory=self.working_dir,
             structure=self.structure,
-            potential=self.potential,
+            potential=get_potential_by_name(
+                potential_name=self.potential,
+                resource_path=os.path.join(self.static_path, "potential"),
+            ),
             calc_mode="md",
             calc_kwargs=calc_kwargs,
             units=self.units,
@@ -91,6 +108,7 @@ class TestCompatibilityFile(unittest.TestCase):
             + str(os.path.join(self.static_path, "compatibility_output"))
             + "/* .",
             resource_path=os.path.join(self.static_path, "potential"),
+            input_control_file={"thermo_modify": "flush yes"},
         )
         self.assertFalse(job_crashed)
         for key in self.keys:
@@ -112,7 +130,7 @@ class TestCompatibilityFile(unittest.TestCase):
             "timestep 0.001\n",
             "velocity all create 1000.0 80996 dist gaussian\n",
             "thermo_style custom step temp pe etotal pxx pxy pxz pyy pyz pzz vol\n",
-            "thermo_modify format float %20.15g\n",
+            "thermo_modify flush yes\n",
             "thermo ${thermotime}\n",
             "run 1000 \n",
         ]
@@ -127,10 +145,14 @@ class TestCompatibilityFile(unittest.TestCase):
             "n_print": 100,
             "langevin": True,
         }
+        potential = get_potential_by_name(
+            potential_name=self.potential,
+            resource_path=os.path.join(self.static_path, "potential"),
+        )
         shell_output, parsed_output, job_crashed = lammps_file_interface_function(
             working_directory=self.working_dir,
             structure=self.structure,
-            potential=self.potential,
+            potential=pandas.DataFrame({k: [potential[k]] for k in potential.keys()}),
             calc_mode="md",
             calc_kwargs=calc_kwargs,
             units=self.units,
@@ -252,10 +274,43 @@ class TestCompatibilityFile(unittest.TestCase):
 
     def test_calc_md_nve(self):
         calc_kwargs = {"n_print": 100, "langevin": True}
+        potential = [
+            "# Bouhadja et al., J. Chem. Phys. 138, 224510 (2013) \n",
+            "units metal\n",
+            "dimension 3\n",
+            "atom_style charge\n",
+            "\n",
+            "# create groups ###\n",
+            "group Al type 1\n",
+            "group Ca type 2\n",
+            "group O type 3\n",
+            "group Si type 4\n",
+            "\n### set charges ###\n",
+            "set type 1 charge 1.8\n",
+            "set type 2 charge 1.2\n",
+            "set type 3 charge -1.2\n",
+            "set type 4 charge 2.4\n",
+            "\n### Bouhadja Born-Mayer-Huggins + Coulomb Potential Parameters ###\n",
+            "pair_style born/coul/dsf 0.25 8.0\n",
+            "pair_coeff 1 1 0.002900 0.068000 1.570400 14.049800 0.000000\n",
+            "pair_coeff 1 2 0.003200 0.074000 1.957200 17.171000 0.000000\n",
+            "pair_coeff 1 3 0.007500 0.164000 2.606700 34.574700 0.000000\n",
+            "pair_coeff 1 4 0.002500 0.057000 1.505600 18.811600 0.000000\n",
+            "pair_coeff 2 2 0.003500 0.080000 2.344000 20.985600 0.000000\n",
+            "pair_coeff 2 3 0.007700 0.178000 2.993500 42.255600 0.000000\n",
+            "pair_coeff 2 4 0.002700 0.063000 1.892400 22.990700 0.000000\n",
+            "pair_coeff 3 3 0.012000 0.263000 3.643000 85.084000 0.000000\n",
+            "pair_coeff 3 4 0.007000 0.156000 2.541900 46.293000 0.000000\n",
+            "pair_coeff 4 4 0.001200 0.046000 1.440800 25.187300 0.000000\n",
+            "\npair_modify shift yes\n",
+        ]
+        element_lst = ["Al", "Ca", "O", "Si"]
         shell_output, parsed_output, job_crashed = lammps_file_interface_function(
             working_directory=self.working_dir,
             structure=self.structure,
-            potential=self.potential,
+            potential=pandas.DataFrame(
+                {"Config": [potential], "Species": [element_lst]}
+            ),
             calc_mode="md",
             calc_kwargs=calc_kwargs,
             units=self.units,
@@ -273,15 +328,40 @@ class TestCompatibilityFile(unittest.TestCase):
             "units metal\n",
             "dimension 3\n",
             "boundary p p p\n",
-            "atom_style atomic\n",
+            "atom_style charge\n",
+            "\n",
             "read_data lammps.data\n",
-            "pair_style eam/alloy\n",
+            "# Bouhadja et al., J. Chem. Phys. 138, 224510 (2013) \n",
+            "# create groups ###\n",
+            "group Al type 1\n",
+            "group Ca type 2\n",
+            "group O type 3\n",
+            "group Si type 4\n",
+            "### set charges ###\n",
+            "set type 1 charge 1.8\n",
+            "set type 2 charge 1.2\n",
+            "set type 3 charge -1.2\n",
+            "set type 4 charge 2.4\n",
+            "### Bouhadja Born-Mayer-Huggins + Coulomb Potential Parameters ###\n",
+            "pair_style born/coul/dsf 0.25 8.0\n",
+            "pair_coeff 1 1 0.002900 0.068000 1.570400 14.049800 0.000000\n",
+            "pair_coeff 1 2 0.003200 0.074000 1.957200 17.171000 0.000000\n",
+            "pair_coeff 1 3 0.007500 0.164000 2.606700 34.574700 0.000000\n",
+            "pair_coeff 1 4 0.002500 0.057000 1.505600 18.811600 0.000000\n",
+            "pair_coeff 2 2 0.003500 0.080000 2.344000 20.985600 0.000000\n",
+            "pair_coeff 2 3 0.007700 0.178000 2.993500 42.255600 0.000000\n",
+            "pair_coeff 2 4 0.002700 0.063000 1.892400 22.990700 0.000000\n",
+            "pair_coeff 3 3 0.012000 0.263000 3.643000 85.084000 0.000000\n",
+            "pair_coeff 3 4 0.007000 0.156000 2.541900 46.293000 0.000000\n",
+            "pair_coeff 4 4 0.001200 0.046000 1.440800 25.187300 0.000000\n",
+            "pair_modify shift yes\n",
             "variable dumptime equal 100 \n",
             "dump 1 all custom ${dumptime} dump.out id type xsu ysu zsu fx fy fz vx vy vz\n",
             'dump_modify 1 sort id format line "%d %d %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g"\n',
             "fix ensemble all nve\n",
             "variable thermotime equal 100 \n",
             "timestep 0.001\n",
+            "velocity all create None 80996 dist gaussian\n",
             "thermo_style custom step temp pe etotal pxx pxy pxz pyy pyz pzz vol\n",
             "thermo_modify format float %20.15g\n",
             "thermo ${thermotime}\n",
@@ -441,3 +521,63 @@ class TestCompatibilityFile(unittest.TestCase):
         ]
         for line in content_expected:
             self.assertIn(line, content)
+
+
+class TestGlassPotential(unittest.TestCase):
+    def setUp(self):
+        self.static_path = os.path.abspath(
+            os.path.join("..", os.path.dirname(__file__), "static")
+        )
+
+    def test_bouhadja(self):
+        potential = [
+            "# Bouhadja et al., J. Chem. Phys. 138, 224510 (2013) \n",
+            "units metal\n",
+            "dimension 3\n",
+            "atom_style charge\n",
+            "\n",
+            "# create groups ###\n",
+            "group Al type 1\n",
+            "group Ca type 2\n",
+            "group O type 3\n",
+            "group Si type 4\n",
+            "\n### set charges ###\n",
+            "set type 1 charge 1.8\n",
+            "set type 2 charge 1.2\n",
+            "set type 3 charge -1.2\n",
+            "set type 4 charge 2.4\n",
+            "\n### Bouhadja Born-Mayer-Huggins + Coulomb Potential Parameters ###\n",
+            "pair_style born/coul/dsf 0.25 8.0\n",
+            "pair_coeff 1 1 0.002900 0.068000 1.570400 14.049800 0.000000\n",
+            "pair_coeff 1 2 0.003200 0.074000 1.957200 17.171000 0.000000\n",
+            "pair_coeff 1 3 0.007500 0.164000 2.606700 34.574700 0.000000\n",
+            "pair_coeff 1 4 0.002500 0.057000 1.505600 18.811600 0.000000\n",
+            "pair_coeff 2 2 0.003500 0.080000 2.344000 20.985600 0.000000\n",
+            "pair_coeff 2 3 0.007700 0.178000 2.993500 42.255600 0.000000\n",
+            "pair_coeff 2 4 0.002700 0.063000 1.892400 22.990700 0.000000\n",
+            "pair_coeff 3 3 0.012000 0.263000 3.643000 85.084000 0.000000\n",
+            "pair_coeff 3 4 0.007000 0.156000 2.541900 46.293000 0.000000\n",
+            "pair_coeff 4 4 0.001200 0.046000 1.440800 25.187300 0.000000\n",
+            "\npair_modify shift yes\n",
+        ]
+        element_lst = ["Al", "Ca", "O", "Si"]
+        potential_lst, potential_replace, species = _get_potential(
+            potential=pandas.DataFrame(
+                {"Config": [potential], "Species": [element_lst]}
+            ),
+            resource_path=os.path.join(self.static_path, "potential"),
+        )
+        for i, l in enumerate(potential):
+            if i in [1, 2, 3]:
+                self.assertFalse(l in potential_lst)
+            else:
+                self.assertTrue(l in potential_lst)
+
+        for k, v in {
+            "units": "units metal\n",
+            "dimension": "dimension 3\n",
+            "atom_style": "atom_style charge\n",
+        }.items():
+            self.assertEqual(potential_replace[k], v)
+
+        self.assertEqual(species, element_lst)
