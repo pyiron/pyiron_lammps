@@ -511,9 +511,9 @@ class TestGlassPotential(unittest.TestCase):
         )
         for i, l in enumerate(potential):
             if i in [1, 2, 3, 4]:
-                self.assertTrue(l not in potential_lst)
-            else:
                 self.assertFalse(l in potential_lst)
+            else:
+                self.assertTrue(l in potential_lst)
 
         for k, v in {
             "units": "units metal\n",
