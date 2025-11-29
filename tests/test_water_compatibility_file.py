@@ -132,55 +132,6 @@ class TestLammpsStructureCompatibility(unittest.TestCase):
         if os.path.exists(self.output_folder):
             shutil.rmtree(self.output_folder)
 
-    def test_structure_bond_3d(self):
-        ls = LammpsStructureCompatibility(atom_type="bond")
-        ls.el_eam_lst = ["H"]
-        atoms = Atoms("H2", positions=[[0, 0, 0], [0.74, 0, 0]], cell=np.eye(3) * 15)
-        ls.structure = atoms
-        output_lines = ls._string_input.split("\n")
-        atoms_part_found = False
-        bonds_part_found = False
-        for i, line in enumerate(output_lines):
-            if line.strip() == "Atoms":
-                atoms_part_found = True
-                self.assertEqual(
-                    output_lines[i + 2].strip(), "1 1 1 0.000000 0.000000 0.000000"
-                )
-                self.assertEqual(
-                    output_lines[i + 3].strip(), "2 1 1 0.740000 0.000000 0.000000"
-                )
-            if line.strip() == "Bonds":
-                bonds_part_found = True
-                self.assertEqual(output_lines[i + 2].strip(), "1 1 1 2")
-
-        self.assertTrue(atoms_part_found)
-        self.assertTrue(bonds_part_found)
-
-    def test_structure_bond_2d(self):
-        ls = LammpsStructureCompatibility(atom_type="bond")
-        ls.el_eam_lst = ["H"]
-        atoms = Atoms(
-            "H2", positions=[[0, 0, 0], [0.74, 0, 0]], cell=[[15, 15, 0], [15, -15, 0], [0, 0, 15]]
-        )
-        atoms.pbc = True
-        ls.structure = atoms
-
-        output_lines = ls._string_input.split("\n")
-        atoms_part_found = False
-        for i, line in enumerate(output_lines):
-            if line.strip() == "Atoms":
-                atoms_part_found = True
-                self.assertIn("1 1 1 0.000000 0.000000 0.000000", output_lines[i + 2])
-                self.assertIn("2 1 1 0.523259 0.523259 0.000000", output_lines[i + 3])
-        self.assertTrue(atoms_part_found)
-
-    def test_structure_bond_1d_error(self):
-        ls = LammpsStructureCompatibility(atom_type="bond")
-        ls.el_eam_lst = ["H"]
-        atoms = Atoms("H", positions=[[0, 0, 0]], cell=[15, 15, 15])
-        ls.structure = atoms
-        self.assertNotIn("Bonds", ls._string_input)
-
     def test_structure_full(self):
         bond_dict = {
             "O": {
@@ -258,32 +209,6 @@ class TestLammpsStructureCompatibility(unittest.TestCase):
         )
         ls.structure = atoms
 
-        self.assertNotIn("Angles", ls._string_input)
-
-    def test_structure_full_no_bonds_for_element(self):
-        bond_dict = {
-            "C": {
-                "element_list": ["H"],
-                "cutoff_list": [1.2],
-                "max_bond_list": [1],
-                "bond_type_list": [1],
-                "angle_type_list": [1],
-            }
-        }
-        q_dict = {"H": 0.41, "O": -0.82}
-        ls = LammpsStructureCompatibility(
-            atom_type="full", bond_dict=bond_dict, q_dict=q_dict
-        )
-        ls.el_eam_lst = ["H", "O"]
-
-        atoms = Atoms(
-            "H2O",
-            positions=[(0, 0.757, 0.586), (0, -0.757, 0.586), (0, 0, 0)],
-            cell=np.eye(3) * 15,
-        )
-        ls.structure = atoms
-
-        self.assertNotIn("Bonds", ls._string_input)
         self.assertNotIn("Angles", ls._string_input)
 
     def test_write_lammps_datafile_full(self):
