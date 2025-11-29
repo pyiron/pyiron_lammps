@@ -502,9 +502,10 @@ class TestGlassPotential(unittest.TestCase):
             "pair_coeff 4 4 0.001200 0.046000 1.440800 25.187300 0.000000\n",
             "\npair_modify shift yes\n",
         ]
-        potential_lst, potential_replace = _get_potential(
+        element_lst = ["Al", "Ca", "O", "Si"]
+        potential_lst, potential_replace, species = _get_potential(
             potential=pandas.DataFrame(
-                {"Config": [potential], "Species": [["Al", "Ca", "O", "Si"]]}
+                {"Config": [potential], "Species": [element_lst]}
             ),
             resource_path=os.path.join(self.static_path, "potential"),
         )
@@ -520,3 +521,5 @@ class TestGlassPotential(unittest.TestCase):
             "atom_style": "atom_style charge\n",
         }.items():
             self.assertEqual(potential_replace[k], v)
+
+        self.assertEqual(species, element_lst)
