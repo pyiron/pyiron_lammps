@@ -504,7 +504,7 @@ class TestGlassPotential(unittest.TestCase):
         ]
         potential_lst, potential_replace = _get_potential(
             potential=pandas.DataFrame(
-                {"Config": [potential], "Species": ["Al", "Ca", "O", "Si"]}
+                {"Config": [potential], "Species": [["Al", "Ca", "O", "Si"]]}
             ),
             resource_path=os.path.join(self.static_path, "potential"),
         )
