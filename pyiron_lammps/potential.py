@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 
 import pandas
 from ase.atoms import Atoms
@@ -346,7 +346,7 @@ def get_potential_dataframe(structure: Atoms, resource_path=None):
     )
 
 
-def get_potential_by_name(potential_name: str, resource_path=None):
+def get_potential_by_name(potential_name: str, resource_path: Optional[str] = None):
     if resource_path is None:
         resource_path = get_resource_path_from_conda()
     df = LammpsPotentialFile(resource_path=resource_path).list()
