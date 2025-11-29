@@ -466,6 +466,11 @@ class TestCompatibilityFile(unittest.TestCase):
 
 
 class TestGlassPotential(unittest.TestCase):
+    def setUp(self):
+        self.static_path = os.path.abspath(
+            os.path.join("..", os.path.dirname(__file__), "static")
+        )
+
     def test_bouhadja(self):
         potential = [
             "# Bouhadja et al., J. Chem. Phys. 138, 224510 (2013) \n",
@@ -498,7 +503,8 @@ class TestGlassPotential(unittest.TestCase):
             "\npair_modify shift yes\n",
         ]
         potential_lst, potential_replace = _get_potential(
-            potential=pandas.DataFrame({"Config": [potential]})
+            potential=pandas.DataFrame({"Config": [potential]}),
+            resource_path=os.path.join(self.static_path, "potential"),
         )
         for i, l in enumerate(potential):
             if i in [1, 2, 3]:

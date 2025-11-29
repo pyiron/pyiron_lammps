@@ -88,7 +88,7 @@ def lammps_file_interface_function(
         calc_kwargs = {}
 
     os.makedirs(working_directory, exist_ok=True)
-    potential_lst, potential_replace = _get_potential(potential=potential)
+    potential_lst, potential_replace, species = _get_potential(potential=potential, resource_path=resource_path)
 
     lmp_str_lst = []
     atom_type = "atomic"
@@ -165,7 +165,7 @@ def lammps_file_interface_function(
 
     write_lammps_datafile(
         structure=structure,
-        potential_elements=potential_dataframe["Species"],
+        potential_elements=species,
         bond_dict=None,
         units=units,
         file_name="lammps.data",
@@ -183,7 +183,7 @@ def lammps_file_interface_function(
     output = parse_lammps_output(
         working_directory=working_directory,
         structure=structure,
-        potential_elements=potential_dataframe["Species"],
+        potential_elements=species,
         units=units,
         prism=None,
         dump_h5_file_name="dump.h5",
@@ -229,7 +229,7 @@ def _modify_input_dict(
         return lmp_str_lst
 
 
-def _get_potential(potential):
+def _get_potential(potential, resource_path: Optional[str]=None):
     if isinstance(potential, str):
         potential_dataframe = get_potential_by_name(
             potential_name=potential, resource_path=resource_path
@@ -253,4 +253,4 @@ def _get_potential(potential):
         else:
             potential_lst.append(l)
 
-    return potential_lst, potential_replace
+    return potential_lst, potential_replace, potential_dataframe["Species"]
