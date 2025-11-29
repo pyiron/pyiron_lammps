@@ -241,9 +241,7 @@ class TestLammpsStructureCompatibility(unittest.TestCase):
             ("1 1 3 1" in content and "2 1 3 2" in content)
             or ("1 1 3 2" in content and "2 1 3 1" in content)
         )
-        self.assertTrue(
-            "1 1 1 3 2" in content or "1 1 2 3 1" in content
-        )
+        self.assertTrue("1 1 1 3 2" in content or "1 1 2 3 1" in content)
 
     def test_get_charge(self):
         potential_lines = [
