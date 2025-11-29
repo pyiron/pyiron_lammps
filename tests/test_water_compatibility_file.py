@@ -160,7 +160,9 @@ class TestLammpsStructureCompatibility(unittest.TestCase):
         ls = LammpsStructureCompatibility(atom_type="bond")
         ls.el_eam_lst = ["H"]
         atoms = Atoms(
-            "H2", positions=[[0, 0, 0], [0.74, 0, 0]], cell=[[15, 15, 0], [15, -15, 0], [0, 0, 15]]
+            "H2",
+            positions=[[0, 0, 0], [0.74, 0, 0]],
+            cell=[[15, 15, 0], [15, -15, 0], [0, 0, 15]],
         )
         atoms.pbc = True
         ls.structure = atoms
@@ -316,9 +318,7 @@ class TestLammpsStructureCompatibility(unittest.TestCase):
             ("1 1 3 1" in content and "2 1 3 2" in content)
             or ("1 1 3 2" in content and "2 1 3 1" in content)
         )
-        self.assertTrue(
-            "1 1 1 3 2" in content or "1 1 2 3 1" in content
-        )
+        self.assertTrue("1 1 1 3 2" in content or "1 1 2 3 1" in content)
 
     def test_get_charge(self):
         potential_lines = [
