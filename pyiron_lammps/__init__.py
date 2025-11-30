@@ -5,7 +5,11 @@ from pyiron_lammps.compatibility.file import (
     lammps_file_interface_function,
 )
 from pyiron_lammps.output import parse_lammps_output as parse_lammps_output_files
-from pyiron_lammps.potential import get_potential_by_name, get_potential_dataframe
+from pyiron_lammps.potential import (
+    get_potential_by_name,
+    get_potential_dataframe,
+    validate_potential_dataframe,
+)
 from pyiron_lammps.structure import write_lammps_datafile as write_lammps_structure
 
 DUMP_COMMANDS = [
@@ -29,5 +33,6 @@ __all__ = [
     "lammps_file_initialization",
     "lammps_file_interface_function",
     "parse_lammps_output_files",
+    "validate_potential_dataframe",
     "write_lammps_structure",
 ]
