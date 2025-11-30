@@ -11,9 +11,9 @@ from pyiron_lammps.compatibility.calculate import (
     calc_static,
 )
 from pyiron_lammps.compatibility.constraints import set_selective_dynamics
+from pyiron_lammps.compatibility.structure import write_lammps_datafile
 from pyiron_lammps.output import parse_lammps_output
 from pyiron_lammps.potential import get_potential_by_name
-from pyiron_lammps.structure import write_lammps_datafile
 
 
 def lammps_file_interface_function(
@@ -173,6 +173,7 @@ def lammps_file_interface_function(
         file_name="lammps.data",
         working_directory=working_directory,
         atom_type=atom_type,
+        potential_lst=potential_lst,
     )
 
     shell = subprocess.check_output(
