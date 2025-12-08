@@ -434,6 +434,9 @@ def _collect_output_log(
         "PotEng": "energy_pot",
         "TotEng": "energy_tot",
         "Volume": "volume",
+        "Lx": "lx",
+        "Ly": "ly",
+        "Lz": "lz",
     }
     if len(dfs) == 1:
         df = dfs[0]

@@ -129,6 +129,9 @@ _conversion_dict["distance"] = [
     "cells",
     "unwrapped_positions",
     "mean_unwrapped_positions",
+    "lx",
+    "ly",
+    "lz",
 ]
 _conversion_dict["volume"] = ["volume", "volumes"]
 _conversion_dict["pressure"] = ["pressure", "pressures", "mean_pressures"]
