@@ -132,6 +132,9 @@ _conversion_dict["distance"] = [
     "lx",
     "ly",
     "lz",
+    "cella",
+    "cellb",
+    "cellc",
 ]
 _conversion_dict["volume"] = ["volume", "volumes"]
 _conversion_dict["pressure"] = ["pressure", "pressures", "mean_pressures"]
