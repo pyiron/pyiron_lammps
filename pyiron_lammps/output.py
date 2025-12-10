@@ -434,6 +434,15 @@ def _collect_output_log(
         "PotEng": "energy_pot",
         "TotEng": "energy_tot",
         "Volume": "volume",
+        "Lx": "lx",
+        "Ly": "ly",
+        "Lz": "lz",
+        "Cella": "cella",
+        "Cellb": "cellb",
+        "Cellc": "cellc",
+        "CellAlpha": "cell_alpha",
+        "CellBeta": "cell_beta",
+        "CellGamma": "cell_gamma",
     }
     if len(dfs) == 1:
         df = dfs[0]
@@ -519,7 +528,7 @@ def _collect_output_log(
             ]
         )
         pressure_dict["mean_pressures"] = pressures
-    generic_keys_lst = list(h5_dict.values())
+    generic_keys_lst = [value for key, value in h5_dict.items() if key in df.columns]
     return generic_keys_lst, pressure_dict, df
 
 

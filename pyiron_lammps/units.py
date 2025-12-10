@@ -129,6 +129,12 @@ _conversion_dict["distance"] = [
     "cells",
     "unwrapped_positions",
     "mean_unwrapped_positions",
+    "lx",
+    "ly",
+    "lz",
+    "cella",
+    "cellb",
+    "cellc",
 ]
 _conversion_dict["volume"] = ["volume", "volumes"]
 _conversion_dict["pressure"] = ["pressure", "pressures", "mean_pressures"]
@@ -145,7 +151,13 @@ _conversion_dict["velocity"] = ["velocity", "velocities", "mean_velocities"]
 _conversion_dict["mass"] = ["mass"]
 _conversion_dict["charge"] = ["charges", "charge"]
 _conversion_dict["force"] = ["forces", "force", "mean_forces"]
-_conversion_dict["dimensionless_integer_quantity"] = ["steps", "indices"]
+_conversion_dict["dimensionless_integer_quantity"] = [
+    "steps",
+    "indices",
+    "cell_alpha",
+    "cell_beta",
+    "cell_gamma",
+]
 _conversion_dict["natoms"] = ["natoms"]
 
 # Reverse _conversion_dict
