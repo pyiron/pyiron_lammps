@@ -522,7 +522,7 @@ def _collect_output_log(
             ]
         )
         pressure_dict["mean_pressures"] = pressures
-    generic_keys_lst = list(h5_dict.values())
+    generic_keys_lst = [value for key, value in h5_dict.items() if key in df.columns]
     return generic_keys_lst, pressure_dict, df
 
 
