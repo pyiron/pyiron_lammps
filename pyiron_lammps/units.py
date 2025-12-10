@@ -152,11 +152,12 @@ _conversion_dict["mass"] = ["mass"]
 _conversion_dict["charge"] = ["charges", "charge"]
 _conversion_dict["force"] = ["forces", "force", "mean_forces"]
 _conversion_dict["dimensionless_integer_quantity"] = [
-    "steps", 
+    "steps",
     "indices",
-    "cell_alpha", 
-    "cell_beta", 
-    "cell_gamma"]
+    "cell_alpha",
+    "cell_beta",
+    "cell_gamma",
+]
 _conversion_dict["natoms"] = ["natoms"]
 
 # Reverse _conversion_dict
