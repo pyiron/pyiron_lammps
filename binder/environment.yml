@@ -9,3 +9,4 @@ dependencies:
 - lammps =2024.08.29=*_mpi_openmpi_*
 - hatchling =1.27.0
 - hatch-vcs =0.4.0
+- structuretoolkit =0.0.38
