@@ -57,7 +57,7 @@ def remap_indices_ase(
     structure_symbol_order = np.unique(structure.get_chemical_symbols())
     map_ = np.array(
         [
-            int(np.argwhere(lammps_symbol_order == symbol)[0]) + 1
+            int(np.argwhere(lammps_symbol_order == symbol)[0][0]) + 1
             for symbol in structure_symbol_order
         ]
     )
