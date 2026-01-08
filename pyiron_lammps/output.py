@@ -137,7 +137,6 @@ def _parse_dump(
             )
         return parse_raw_dump_from_h5md(
             file_name=dump_h5_full_file_name,
-            prism=prism,
         )
     elif os.path.exists(dump_out_full_file_name):
         return _collect_dump_from_text(

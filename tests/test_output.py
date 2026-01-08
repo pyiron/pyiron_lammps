@@ -568,13 +568,6 @@ class TestLammpsOutput(unittest.TestCase):
             )
         )
 
-    def test_h5md_error(self):
-        with self.assertRaises(RuntimeError):
-            _collect_dump_from_h5md(
-                file_name="test",
-                prism=UnfoldingPrism(cell=np.array([[1, 1, 0], [0, 1, 0], [0, 0, 1]])),
-            )
-
     def test_mean_values_non_ortho(self):
         cell = np.array([[1, 1, 0], [0, 1, 0], [0, 0, 1]])
         generic_keys_lst, pressure_dict, df = _collect_output_log(
