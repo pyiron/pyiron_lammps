@@ -183,7 +183,11 @@ def _parse_dump(
     remap_indices_funct: callable = remap_indices_ase,
 ) -> Dict:
     if os.path.isfile(dump_h5_full_file_name):
-        return _collect_dump_from_h5md(
+        if not _check_ortho_prism(prism=prism):
+            raise RuntimeError(
+                "The Lammps output will not be mapped back to pyiron correctly."
+            )
+        return parse_raw_dump_from_h5md(
             file_name=dump_h5_full_file_name,
             prism=prism,
         )
@@ -201,13 +205,8 @@ def _parse_dump(
         )
 
 
-def _collect_dump_from_h5md(file_name: str, prism: UnfoldingPrism) -> Dict:
+def parse_raw_dump_from_h5md(file_name: str) -> Dict:
     import h5py
-
-    if not _check_ortho_prism(prism=prism):
-        raise RuntimeError(
-            "The Lammps output will not be mapped back to pyiron correctly."
-        )
 
     with h5py.File(file_name, mode="r", libver="latest", swmr=True) as h5md:
         positions = [pos_i.tolist() for pos_i in h5md["/particles/all/position/value"]]
@@ -226,17 +225,16 @@ def _collect_dump_from_h5md(file_name: str, prism: UnfoldingPrism) -> Dict:
     }
 
 
-def _collect_dump_from_text(
-    file_name: str,
-    prism: UnfoldingPrism,
-    structure: Atoms,
-    potential_elements: Union[np.ndarray, List],
-    remap_indices_funct: callable = remap_indices_ase,
-) -> Dict:
+def parse_raw_dump_from_text(file_name: str) -> Dict:
     """
-    general purpose routine to extract static from a lammps dump file
+    Docstring for _parse_dump_from_text
+    
+    Args:
+        file_name (str): The path to the lammps dump file.
+    
+    Returns:
+        Dict: Parsed dump data.
     """
-    rotation_lammps2orig = prism.R.T
     with open(file_name, "r") as f:
         dump = DumpData()
 
@@ -249,9 +247,7 @@ def _collect_dump_from_text(
                 c2 = np.fromstring(f.readline(), dtype=float, sep=" ")
                 c3 = np.fromstring(f.readline(), dtype=float, sep=" ")
                 cell = np.concatenate([c1, c2, c3])
-                lammps_cell = to_amat(cell)
-                unfolded_cell = prism.unfold_cell(lammps_cell)
-                dump.cells.append(unfolded_cell)
+                dump.cells.append(to_amat(cell))
 
             elif "ITEM: NUMBER OF ATOMS" in line:
                 n = int(f.readline())
@@ -277,49 +273,39 @@ def _collect_dump_from_text(
                 )
                 df.sort_values(by="id", ignore_index=True, inplace=True)
                 # Coordinate transform lammps->pyiron
-                dump.indices.append(
-                    remap_indices_funct(
-                        lammps_indices=df["type"].array.astype(int),
-                        potential_elements=potential_elements,
-                        structure=structure,
-                    )
-                )
+                dump.indices.append(df["type"].array.astype(int))
 
-                force = np.stack(
+                dump.forces.append(np.stack(
                     [df["fx"].array, df["fy"].array, df["fz"].array], axis=1
-                )
-                dump.forces.append(np.matmul(force, rotation_lammps2orig))
+                ))
                 if "f_mean_forces[1]" in columns:
-                    force = np.stack(
+                    dump.mean_forces.append(np.stack(
                         [
                             df["f_mean_forces[1]"].array,
                             df["f_mean_forces[2]"].array,
                             df["f_mean_forces[3]"].array,
                         ],
                         axis=1,
-                    )
-                    dump.mean_forces.append(np.matmul(force, rotation_lammps2orig))
+                    ))
                 if "vx" in columns and "vy" in columns and "vz" in columns:
-                    v = np.stack(
+                    dump.velocities.append(np.stack(
                         [
                             df["vx"].array,
                             df["vy"].array,
                             df["vz"].array,
                         ],
                         axis=1,
-                    )
-                    dump.velocities.append(np.matmul(v, rotation_lammps2orig))
+                    ))
 
                 if "f_mean_velocities[1]" in columns:
-                    v = np.stack(
+                    dump.mean_velocities.append(np.stack(
                         [
                             df["f_mean_velocities[1]"].array,
                             df["f_mean_velocities[2]"].array,
                             df["f_mean_velocities[3]"].array,
                         ],
                         axis=1,
-                    )
-                    dump.mean_velocities.append(np.matmul(v, rotation_lammps2orig))
+                    ))
 
                 if "xsu" in columns:
                     direct_unwrapped_positions = np.stack(
@@ -330,35 +316,20 @@ def _collect_dump_from_text(
                         ],
                         axis=1,
                     )
-                    dump.unwrapped_positions.append(
-                        np.matmul(
-                            np.matmul(direct_unwrapped_positions, lammps_cell),
-                            rotation_lammps2orig,
-                        )
-                    )
-
-                    direct_positions = direct_unwrapped_positions - np.floor(
+                    dump.unwrapped_positions.append(direct_unwrapped_positions)
+                    dump.positions.append(direct_unwrapped_positions - np.floor(
                         direct_unwrapped_positions
-                    )
-                    dump.positions.append(
-                        np.matmul(
-                            np.matmul(direct_positions, lammps_cell),
-                            rotation_lammps2orig,
-                        )
-                    )
+                    ))
 
                 if "f_mean_positions[1]" in columns:
-                    pos = np.stack(
+                    dump.mean_unwrapped_positions.append(np.stack(
                         [
                             df["f_mean_positions[1]"].array,
                             df["f_mean_positions[2]"].array,
                             df["f_mean_positions[3]"].array,
                         ],
                         axis=1,
-                    )
-                    dump.mean_unwrapped_positions.append(
-                        np.matmul(pos, rotation_lammps2orig)
-                    )
+                    ))
                 for k in columns:
                     if k.startswith("c_"):
                         kk = k.replace("c_", "")
@@ -367,6 +338,43 @@ def _collect_dump_from_text(
                         dump.computes[kk].append(df[k].array)
 
         return asdict(dump)
+    
+
+def _collect_dump_from_text(
+    file_name: str,
+    prism: UnfoldingPrism,
+    structure: Atoms,
+    potential_elements: Union[np.ndarray, List],
+    remap_indices_funct: callable = remap_indices_ase,
+) -> Dict:
+    """
+    general purpose routine to extract static from a lammps dump file
+    """
+    rotation_lammps2orig = prism.R.T
+    dump_lammps_dict = parse_raw_dump_from_text(file_name=file_name)
+    dump_dict = {}
+    for key, val in dump_lammps_dict.items():
+        if key in ["cells"]:
+            dump_dict[key] = [prism.unfold_cell(cell=cell) for cell in val]
+        elif key in ["indices"]:
+            dump_dict[key] = [
+                remap_indices_funct(
+                    lammps_indices=indices, 
+                    potential_elements=potential_elements, 
+                    structure=structure,
+                ) 
+                for indices in val
+            ]
+        elif key in ["forces", "mean_forces", "velocities", "mean_velocities", "mean_unwrapped_positions"]:
+            dump_dict[key] = [np.matmul(v, rotation_lammps2orig) for v in val]
+        elif key in ["positions", "unwrapped_positions"]:
+            dump_dict[key] = [
+                np.matmul(np.matmul(v, lammps_cell), rotation_lammps2orig)
+                for v, lammps_cell in zip(val, dump_lammps_dict["cells"])
+            ]
+        else:
+            dump_dict[key] = val
+    return dump_dict
 
 
 def _parse_log(
@@ -399,11 +407,15 @@ def _parse_log(
         return None, None, None
 
 
-def _collect_output_log(
-    file_name: str, prism: UnfoldingPrism
-) -> Tuple[List[str], Dict, pd.DataFrame]:
+def parse_raw_lammps_log(file_name: str) -> pd.DataFrame:
     """
-    general purpose routine to extract static from a lammps log file
+    Docstring for _parse_lammps_log
+    
+    Args:
+        file_name (str): The path to the lammps log file.
+    
+    Returns:
+        pd.DataFrame: Dataframe containing the parsed log data.
     """
     with open(file_name, "r") as f:
         dfs = []
@@ -428,21 +440,34 @@ def _collect_output_log(
                 else:
                     thermo_lines += l
 
+    if len(dfs) == 1:
+        df = dfs[0]
+    else:
+        for i in range(len(dfs)):
+            df = dfs[i]
+            df["LogStep"] = np.ones(len(df)) * i
+        df = pd.concat(dfs, ignore_index=True)
+    return df
+
+
+def _collect_output_log(
+    file_name: str, prism: UnfoldingPrism
+) -> Tuple[List[str], Dict, pd.DataFrame]:
+    """
+    general purpose routine to extract static from a lammps log file
+    """
+    df = parse_raw_lammps_log(file_name=file_name)
+
     h5_dict = {
         "Step": "steps",
         "Temp": "temperature",
         "PotEng": "energy_pot",
         "TotEng": "energy_tot",
         "Volume": "volume",
+        "LogStep": "LogStep",
     }
-    if len(dfs) == 1:
-        df = dfs[0]
-    else:
-        h5_dict["LogStep"] = "LogStep"
-        for i in range(len(dfs)):
-            df = dfs[i]
-            df["LogStep"] = np.ones(len(df)) * i
-        df = pd.concat(dfs, ignore_index=True)
+    if "LogStep" not in df.columns:
+        del h5_dict["LogStep"]
 
     for key in df.columns[df.columns.str.startswith("f_mean")]:
         h5_dict[key] = key.replace("f_", "")
