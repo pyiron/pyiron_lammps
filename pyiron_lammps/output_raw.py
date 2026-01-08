@@ -249,5 +249,3 @@ def parse_raw_lammps_log(file_name: str) -> pd.DataFrame:
             df["LogStep"] = np.ones(len(df)) * i
         df = pd.concat(dfs, ignore_index=True)
     return df
-
-
