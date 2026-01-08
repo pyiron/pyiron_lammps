@@ -51,26 +51,26 @@ h5md = ["h5py==3.15.1"]
 
 [tool.hatch.build]
 include = [
-    "pyiron_lammps"
+    "src/pyiron_lammps"
 ]
 
 [tool.hatch.build.hooks.vcs]
-version-file = "pyiron_lammps/_version.py"
+version-file = "src/pyiron_lammps/_version.py"
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "pyiron_lammps"
+    "src/pyiron_lammps"
 ]
 
 [tool.hatch.build.targets.wheel]
 packages = [
-    "pyiron_lammps"
+    "src/pyiron_lammps"
 ]
 
 [tool.hatch.version]
 source = "vcs"
-path = "pyiron_lammps/_version.py"
+path = "src/pyiron_lammps/_version.py"
 
 [tool.coverage.run]
-omit = ["pyiron_lammps/_version.py", "tests/*"]
+source = ["pyiron_lammps"]
 command_line = "-m unittest discover tests"
