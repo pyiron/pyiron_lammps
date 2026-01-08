@@ -228,10 +228,10 @@ def parse_raw_dump_from_h5md(file_name: str) -> Dict:
 def parse_raw_dump_from_text(file_name: str) -> Dict:
     """
     Docstring for _parse_dump_from_text
-    
+
     Args:
         file_name (str): The path to the lammps dump file.
-    
+
     Returns:
         Dict: Parsed dump data.
     """
@@ -275,37 +275,43 @@ def parse_raw_dump_from_text(file_name: str) -> Dict:
                 # Coordinate transform lammps->pyiron
                 dump.indices.append(df["type"].array.astype(int))
 
-                dump.forces.append(np.stack(
-                    [df["fx"].array, df["fy"].array, df["fz"].array], axis=1
-                ))
+                dump.forces.append(
+                    np.stack([df["fx"].array, df["fy"].array, df["fz"].array], axis=1)
+                )
                 if "f_mean_forces[1]" in columns:
-                    dump.mean_forces.append(np.stack(
-                        [
-                            df["f_mean_forces[1]"].array,
-                            df["f_mean_forces[2]"].array,
-                            df["f_mean_forces[3]"].array,
-                        ],
-                        axis=1,
-                    ))
+                    dump.mean_forces.append(
+                        np.stack(
+                            [
+                                df["f_mean_forces[1]"].array,
+                                df["f_mean_forces[2]"].array,
+                                df["f_mean_forces[3]"].array,
+                            ],
+                            axis=1,
+                        )
+                    )
                 if "vx" in columns and "vy" in columns and "vz" in columns:
-                    dump.velocities.append(np.stack(
-                        [
-                            df["vx"].array,
-                            df["vy"].array,
-                            df["vz"].array,
-                        ],
-                        axis=1,
-                    ))
+                    dump.velocities.append(
+                        np.stack(
+                            [
+                                df["vx"].array,
+                                df["vy"].array,
+                                df["vz"].array,
+                            ],
+                            axis=1,
+                        )
+                    )
 
                 if "f_mean_velocities[1]" in columns:
-                    dump.mean_velocities.append(np.stack(
-                        [
-                            df["f_mean_velocities[1]"].array,
-                            df["f_mean_velocities[2]"].array,
-                            df["f_mean_velocities[3]"].array,
-                        ],
-                        axis=1,
-                    ))
+                    dump.mean_velocities.append(
+                        np.stack(
+                            [
+                                df["f_mean_velocities[1]"].array,
+                                df["f_mean_velocities[2]"].array,
+                                df["f_mean_velocities[3]"].array,
+                            ],
+                            axis=1,
+                        )
+                    )
 
                 if "xsu" in columns:
                     direct_unwrapped_positions = np.stack(
@@ -317,19 +323,22 @@ def parse_raw_dump_from_text(file_name: str) -> Dict:
                         axis=1,
                     )
                     dump.unwrapped_positions.append(direct_unwrapped_positions)
-                    dump.positions.append(direct_unwrapped_positions - np.floor(
+                    dump.positions.append(
                         direct_unwrapped_positions
-                    ))
+                        - np.floor(direct_unwrapped_positions)
+                    )
 
                 if "f_mean_positions[1]" in columns:
-                    dump.mean_unwrapped_positions.append(np.stack(
-                        [
-                            df["f_mean_positions[1]"].array,
-                            df["f_mean_positions[2]"].array,
-                            df["f_mean_positions[3]"].array,
-                        ],
-                        axis=1,
-                    ))
+                    dump.mean_unwrapped_positions.append(
+                        np.stack(
+                            [
+                                df["f_mean_positions[1]"].array,
+                                df["f_mean_positions[2]"].array,
+                                df["f_mean_positions[3]"].array,
+                            ],
+                            axis=1,
+                        )
+                    )
                 for k in columns:
                     if k.startswith("c_"):
                         kk = k.replace("c_", "")
@@ -338,7 +347,7 @@ def parse_raw_dump_from_text(file_name: str) -> Dict:
                         dump.computes[kk].append(df[k].array)
 
         return asdict(dump)
-    
+
 
 def _collect_dump_from_text(
     file_name: str,
@@ -359,13 +368,19 @@ def _collect_dump_from_text(
         elif key in ["indices"]:
             dump_dict[key] = [
                 remap_indices_funct(
-                    lammps_indices=indices, 
-                    potential_elements=potential_elements, 
+                    lammps_indices=indices,
+                    potential_elements=potential_elements,
                     structure=structure,
-                ) 
+                )
                 for indices in val
             ]
-        elif key in ["forces", "mean_forces", "velocities", "mean_velocities", "mean_unwrapped_positions"]:
+        elif key in [
+            "forces",
+            "mean_forces",
+            "velocities",
+            "mean_velocities",
+            "mean_unwrapped_positions",
+        ]:
             dump_dict[key] = [np.matmul(v, rotation_lammps2orig) for v in val]
         elif key in ["positions", "unwrapped_positions"]:
             dump_dict[key] = [
@@ -410,10 +425,10 @@ def _parse_log(
 def parse_raw_lammps_log(file_name: str) -> pd.DataFrame:
     """
     Docstring for _parse_lammps_log
-    
+
     Args:
         file_name (str): The path to the lammps log file.
-    
+
     Returns:
         pd.DataFrame: Dataframe containing the parsed log data.
     """
