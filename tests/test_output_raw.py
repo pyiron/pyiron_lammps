@@ -1,6 +1,11 @@
 import unittest
 import numpy as np
-from src.pyiron_lammps.output_raw import to_amat, parse_raw_dump_from_text, parse_raw_lammps_log
+from src.pyiron_lammps.output_raw import (
+    to_amat,
+    parse_raw_dump_from_text,
+    parse_raw_lammps_log,
+)
+
 
 class TestOutputRaw(unittest.TestCase):
     def test_to_amat_9_values(self):
