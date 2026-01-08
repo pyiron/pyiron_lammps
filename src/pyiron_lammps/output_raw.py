@@ -183,8 +183,7 @@ def parse_raw_dump_from_text(file_name: str) -> Dict:
                 )
                 dump.unwrapped_positions.append(direct_unwrapped_positions)
                 dump.positions.append(
-                    direct_unwrapped_positions
-                    - np.floor(direct_unwrapped_positions)
+                    direct_unwrapped_positions - np.floor(direct_unwrapped_positions)
                 )
 
             if "f_mean_positions[1]" in columns:
@@ -231,7 +230,7 @@ def parse_raw_lammps_log(file_name: str) -> pd.DataFrame:
         l_stripped = l.lstrip()
 
         if l_stripped.startswith("Step"):
-            if read_thermo: # Finish previous block
+            if read_thermo:  # Finish previous block
                 dfs.append(pd.read_csv(StringIO(thermo_lines), sep="\\s+", engine="c"))
             thermo_lines = l
             read_thermo = True
@@ -245,7 +244,7 @@ def parse_raw_lammps_log(file_name: str) -> pd.DataFrame:
             else:
                 thermo_lines += l
 
-    if thermo_lines: # Add final block if file doesn't end with Loop
+    if thermo_lines:  # Add final block if file doesn't end with Loop
         dfs.append(pd.read_csv(StringIO(thermo_lines), sep="\\s+", engine="c"))
 
     if len(dfs) == 1:
