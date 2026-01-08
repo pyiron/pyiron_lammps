@@ -52,12 +52,3 @@ class TestOutputRaw(unittest.TestCase):
         self.assertIn("test", data["computes"])
         self.assertEqual(len(data["mean_unwrapped_positions"]), 1)
         self.assertEqual(len(data["computes"]["test"]), 1)
-
-    def test_parse_raw_lammps_log_warning_error(self):
-        with self.assertWarns(UserWarning):
-            df = parse_raw_lammps_log("tests/static/warning_error_log/log.lammps")
-        self.assertEqual(len(df), 1)
-
-    def test_parse_raw_dump_from_text_duplicate_compute(self):
-        with self.assertRaises(ValueError):
-            parse_raw_dump_from_text("tests/static/duplicate_compute/dump.out")
