@@ -6,10 +6,9 @@ from pyiron_lammps import parse_lammps_output_files
 from pyiron_lammps.output import (
     remap_indices_ase,
     _parse_dump,
-    _collect_dump_from_h5md,
     _collect_output_log,
-    to_amat,
 )
+from pyiron_lammps.output_raw import to_amat
 from pyiron_lammps.structure import UnfoldingPrism
 
 
@@ -445,12 +444,6 @@ class TestLammpsOutput(unittest.TestCase):
         with self.assertRaises(ValueError):
             to_amat([])
 
-    def test_collect_dump_from_h5md(self):
-        with self.assertRaises(RuntimeError):
-            _collect_dump_from_h5md(
-                file_name="test", prism=UnfoldingPrism(cell=bulk("Al").cell)
-            )
-
     def test_collect_output_log(self):
         generic_keys_lst, pressure_dict, df = _collect_output_log(
             file_name=os.path.join(self.static_folder, "no_pressure", "log.lammps"),
@@ -574,13 +567,6 @@ class TestLammpsOutput(unittest.TestCase):
                 )
             )
         )
-
-    def test_h5md_error(self):
-        with self.assertRaises(RuntimeError):
-            _collect_dump_from_h5md(
-                file_name="test",
-                prism=UnfoldingPrism(cell=np.array([[1, 1, 0], [0, 1, 0], [0, 0, 1]])),
-            )
 
     def test_mean_values_non_ortho(self):
         cell = np.array([[1, 1, 0], [0, 1, 0], [0, 0, 1]])
