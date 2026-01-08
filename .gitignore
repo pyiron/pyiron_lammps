@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+.coverage
+src/pyiron_lammps/_version.py
