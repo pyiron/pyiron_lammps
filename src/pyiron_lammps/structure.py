@@ -162,7 +162,7 @@ class UnfoldingPrism(Prism):
         a = ucell[0]
         bp = ucell[1]
         cpp = ucell[2]
-        (n1, n2, n3) = self.ns
+        n1, n2, n3 = self.ns
         b = bp - n1 * a
         c = cpp - n2 * bp - n3 * a
         return np.array([a, b, c])
