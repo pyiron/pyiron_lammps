@@ -106,12 +106,12 @@ def lammps_file_interface_function(
         read_restart_file=read_restart_file,
         restart_file=restart_file,
     ):
-        if l.startswith("units") and "units" in potential_replace:
+        if l.strip().startswith("units") and "units" in potential_replace:
             lmp_str_lst.append(potential_replace["units"])
-        elif l.startswith("atom_style") and "atom_style" in potential_replace:
+        elif l.strip().startswith("atom_style") and "atom_style" in potential_replace:
             lmp_str_lst.append(potential_replace["atom_style"])
             atom_type = potential_replace["atom_style"].split()[-1]
-        elif l.startswith("dimension") and "dimension" in potential_replace:
+        elif l.strip().startswith("dimension") and "dimension" in potential_replace:
             lmp_str_lst.append(potential_replace["dimension"])
         else:
             lmp_str_lst.append(l)
