@@ -191,16 +191,17 @@ def calc_md(
 
     line_lst.append("variable thermotime equal {} ".format(n_print))
     line_lst.append("timestep {}".format(time_step))
-    line_lst.append(
-        _set_initial_velocity(
-            temperature=initial_temperature,
-            seed=seed,
-            gaussian=True,
-            append_value=False,
-            zero_lin_momentum=True,
-            zero_rot_momentum=True,
+    if initial_temperature is not None and initial_temperature > 0:
+        line_lst.append(
+            _set_initial_velocity(
+                temperature=initial_temperature,
+                seed=seed,
+                gaussian=True,
+                append_value=False,
+                zero_lin_momentum=True,
+                zero_rot_momentum=True,
+            )
         )
-    )
     line_lst += _get_thermo()
     return line_lst
 
