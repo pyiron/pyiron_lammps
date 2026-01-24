@@ -154,7 +154,7 @@ def lammps_file_interface_function(
             lmp_str_lst=lmp_str_lst,
         )
         if read_restart_file:
-            lmp_str_lst += ["reset_timestep 0 "]
+            lmp_str_lst += ["reset_timestep 0"]
         lmp_str_lst += ["run {} ".format(n_ionic_steps)]
     elif calc_mode == "minimize":
         calc_kwargs["units"] = units
