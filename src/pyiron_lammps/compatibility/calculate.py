@@ -403,7 +403,7 @@ def _pressure_to_lammps(pressure, rotation_matrix, units="metal"):
 
     # If necessary, rotate the pressure tensor to the Lammps coordinate frame.
     # Isotropic, hydrostatic pressures are rotation invariant.
-    if not np.isclose(
+    if rotation_matrix is not None and not np.isclose(
         np.matrix.trace(rotation_matrix), 3
     ) and not _is_isotropic_hydrostatic(pressure):
         if any(p is None for p in pressure):
