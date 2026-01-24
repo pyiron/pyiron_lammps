@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 from typing import Optional
 
@@ -26,6 +27,9 @@ def lammps_file_interface_function(
     lmp_command: str = "mpiexec -n 1 --oversubscribe lmp_mpi -in lmp.in",
     resource_path: Optional[str] = None,
     input_control_file: Optional[dict] = None,
+    write_restart_file: bool = False,
+    read_restart_file: bool = False,
+    restart_file: str = "restart.out",
 ):
     """
     A single function to execute a LAMMPS calculation based on the LAMMPS job implemented in pyiron
@@ -94,7 +98,12 @@ def lammps_file_interface_function(
 
     lmp_str_lst = []
     atom_type = "atomic"
-    for l in lammps_file_initialization(structure=structure):
+    for l in lammps_file_initialization(
+        structure=structure, 
+        units=units, 
+        read_restart_file=read_restart_file, 
+        restart_file=restart_file
+    ):
         if l.startswith("units") and "units" in potential_replace:
             lmp_str_lst.append(potential_replace["units"])
         elif l.startswith("atom_style") and "atom_style" in potential_replace:
@@ -136,12 +145,16 @@ def lammps_file_interface_function(
             n_ionic_steps = int(calc_kwargs.pop("n_ionic_steps"))
         else:
             n_ionic_steps = 1
+        if read_restart_file:
+            calc_kwargs["initial_temperature"] = 0.0
         calc_kwargs["units"] = units
         lmp_str_lst += calc_md(**calc_kwargs)
         lmp_str_lst = _modify_input_dict(
             input_control_file=input_control_file,
             lmp_str_lst=lmp_str_lst,
         )
+        if read_restart_file:
+            lmp_str_lst += ["reset_timestep 0 "]
         lmp_str_lst += ["run {} ".format(n_ionic_steps)]
     elif calc_mode == "minimize":
         calc_kwargs["units"] = units
@@ -161,6 +174,13 @@ def lammps_file_interface_function(
         raise ValueError(
             f"calc_mode must be one of: static, md or minimize, not {calc_mode}"
         )
+    if read_restart_file:
+        shutil.copyfile(
+            os.path.abspath(restart_file),
+            os.path.join(working_directory, os.path.basename(restart_file)),
+        )
+    if write_restart_file:
+        lmp_str_lst.append(f"write_restart {os.path.basename(restart_file)}")
 
     with open(os.path.join(working_directory, "lmp.in"), "w") as f:
         f.writelines([l + "\n" for l in lmp_str_lst])
@@ -195,15 +215,18 @@ def lammps_file_interface_function(
     return shell, output, False
 
 
-def lammps_file_initialization(structure, dimension=3, units="metal"):
+def lammps_file_initialization(structure, dimension=3, units="metal", read_restart_file=False, restart_file=None):
+    init_commands = ["units " + units]
     boundary = " ".join(["p" if coord else "f" for coord in structure.pbc])
-    init_commands = [
-        "units " + units,
-        "dimension " + str(dimension),
-        "boundary " + boundary + "",
-        "atom_style atomic",
-        "read_data lammps.data",
-    ]
+    if read_restart_file:
+        init_commands.append(f"read_restart {os.path.basename(restart_file)}")
+    else:
+        init_commands += [
+            "dimension " + str(dimension),
+            "boundary " + boundary + "",
+            "atom_style atomic",
+            "read_data lammps.data",
+        ]
     return init_commands
 
 
