@@ -99,10 +99,10 @@ def lammps_file_interface_function(
     lmp_str_lst = []
     atom_type = "atomic"
     for l in lammps_file_initialization(
-        structure=structure, 
-        units=units, 
-        read_restart_file=read_restart_file, 
-        restart_file=restart_file
+        structure=structure,
+        units=units,
+        read_restart_file=read_restart_file,
+        restart_file=restart_file,
     ):
         if l.startswith("units") and "units" in potential_replace:
             lmp_str_lst.append(potential_replace["units"])
@@ -215,7 +215,9 @@ def lammps_file_interface_function(
     return shell, output, False
 
 
-def lammps_file_initialization(structure, dimension=3, units="metal", read_restart_file=False, restart_file=None):
+def lammps_file_initialization(
+    structure, dimension=3, units="metal", read_restart_file=False, restart_file=None
+):
     init_commands = ["units " + units]
     boundary = " ".join(["p" if coord else "f" for coord in structure.pbc])
     if read_restart_file:
