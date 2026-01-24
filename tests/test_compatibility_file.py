@@ -230,6 +230,48 @@ class TestCompatibilityFile(unittest.TestCase):
         for line in content_expected:
             self.assertIn(line, content)
 
+    def test_calc_md_nvt_restart(self):
+        calc_kwargs = {"temperature": 500.0, "n_print": 100}
+        shell_output, parsed_output, job_crashed = lammps_file_interface_function(
+            working_directory=self.working_dir,
+            structure=self.structure,
+            potential=self.potential,
+            calc_mode="md",
+            calc_kwargs=calc_kwargs,
+            units=self.units,
+            lmp_command="cp "
+            + str(os.path.join(self.static_path, "compatibility_output"))
+            + "/* .",
+            resource_path=os.path.join(self.static_path, "potential"),
+            restart_file=os.path.join(self.static_path, "restart", "restart.out"),
+            write_restart_file=True,
+            read_restart_file=True,
+        )
+        self.assertFalse(job_crashed)
+        for key in self.keys:
+            self.assertIn(key, parsed_output["generic"])
+        with open(self.working_dir + "/lmp.in", "r") as f:
+            content = f.readlines()
+        content_expected = [
+            "units metal\n",
+            "read_restart restart.out\n",
+            "pair_style eam/alloy\n",
+            "variable dumptime equal 100 \n",
+            "dump 1 all custom ${dumptime} dump.out id type xsu ysu zsu fx fy fz vx vy vz\n",
+            'dump_modify 1 sort id format line "%d %d %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g"\n',
+            "fix ensemble all nvt temp 500.0 500.0 0.1\n",
+            "variable thermotime equal 100 \n",
+            "timestep 0.001\n",
+            "thermo_style custom step temp pe etotal pxx pxy pxz pyy pyz pzz vol\n",
+            "thermo_modify format float %20.15g\n",
+            "thermo ${thermotime}\n",
+            "reset_timestep 0\n",
+            "run 1 \n",
+            "write_restart restart.out\n",
+        ]
+        for line in content_expected:
+            self.assertIn(line, content)
+
     def test_calc_md_nvt_langevin(self):
         calc_kwargs = {"temperature": 500.0, "n_print": 100, "langevin": True}
         shell_output, parsed_output, job_crashed = lammps_file_interface_function(
