@@ -90,6 +90,8 @@ def lammps_file_interface_function(
     """
     if calc_kwargs is None:
         calc_kwargs = {}
+    else:
+        calc_kwargs = calc_kwargs.copy()
 
     os.makedirs(working_directory, exist_ok=True)
     potential_lst, potential_replace, species = _get_potential(

@@ -403,7 +403,6 @@ class TestCompatibilityFile(unittest.TestCase):
             "fix ensemble all nve\n",
             "variable thermotime equal 100 \n",
             "timestep 0.001\n",
-            "velocity all create None 80996 dist gaussian\n",
             "thermo_style custom step temp pe etotal pxx pxy pxz pyy pyz pzz vol\n",
             "thermo_modify format float %20.15g\n",
             "thermo ${thermotime}\n",
