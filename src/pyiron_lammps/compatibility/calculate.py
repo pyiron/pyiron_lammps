@@ -387,7 +387,7 @@ def _pressure_to_lammps(pressure, rotation_matrix, units="metal"):
 
     # in case no rotation matrix is given, assume identity
     if rotation_matrix is None:
-        rotation_matrix = np.eye(3
+        rotation_matrix = np.eye(3)
 
     # If pressure is a scalar, only unit conversion is needed.
     if np.isscalar(pressure):
