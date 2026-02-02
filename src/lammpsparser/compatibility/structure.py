@@ -6,7 +6,7 @@ from ase.atoms import Atoms
 from structuretoolkit.analyse import get_neighbors
 from structuretoolkit.common import select_index
 
-from pyiron_lammps.structure import LammpsStructure
+from lammpsparser.structure import LammpsStructure
 
 
 class LammpsStructureCompatibility(LammpsStructure):

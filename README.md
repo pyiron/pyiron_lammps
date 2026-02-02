@@ -1,27 +1,27 @@
-# pyiron_lammps
+# lammpsparser
 
-[![Pipeline](https://github.com/pyiron/pyiron_lammps/actions/workflows/pipeline.yml/badge.svg)](https://github.com/pyiron/pyiron_lammps/actions/workflows/pipeline.yml)
-[![codecov](https://codecov.io/gh/pyiron/pyiron_lammps/graph/badge.svg?token=OeZVIJ9vyW)](https://codecov.io/gh/pyiron/pyiron_lammps)
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pyiron/pyiron_lammps/main?urlpath=%2Fdoc%2Ftree%2Fnotebooks%2Fexample.ipynb)
+[![Pipeline](https://github.com/pyiron/lammpsparser/actions/workflows/pipeline.yml/badge.svg)](https://github.com/pyiron/lammpsparser/actions/workflows/pipeline.yml)
+[![codecov](https://codecov.io/gh/pyiron/lammpsparser/graph/badge.svg?token=OeZVIJ9vyW)](https://codecov.io/gh/pyiron/lammpsparser)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pyiron/lammpsparser/main?urlpath=%2Fdoc%2Ftree%2Fnotebooks%2Fexample.ipynb)
 
-The `pyiron_lammps` packages provides primarily two functions. A `write_lammps_structure()` function to write an `ase.atoms.Atoms`
+The `lammpsparser` packages provides primarily two functions. A `write_lammps_structure()` function to write an `ase.atoms.Atoms`
 structure to an LAMMPS data file and a `parse_lammps_output_files()` function to parse the `log.lammps`, `dump.out` and
 `dump.h5` files from the LAMMPS `thermo` and `dump` commands. 
 
 ## Installation 
-The `pyiron_lammps` package is distributed via both [pypi](https://pypi.org/project/pyiron-lammps/):
+The `lammpsparser` package is distributed via both [pypi](https://pypi.org/project/lammpsparser/):
 ```
-pip install pyiron-lammps
+pip install lammpsparser
 ```
-and [conda-forge](https://anaconda.org/conda-forge/pyiron_lammps):
+and [conda-forge](https://anaconda.org/conda-forge/lammpsparser):
 ```
-conda install -c conda-forge pyiron_lammps
+conda install -c conda-forge lammpsparser
 ```
 
 ## Write LAMMPS structure 
 The `write_lammps_structure()` function is designed to write an `ase.atoms.Atoms` structure to an LAMMPS data file:
 ```python
-from pyiron_lammps import write_lammps_structure
+from lammpsparser import write_lammps_structure
 
 write_lammps_structure(
     structure,
@@ -42,10 +42,10 @@ parameter are designed to select the location where the LAMMPS structure should 
 the LAMMPS structure is written in the `lammps.data` file in the current directory. 
 
 ## Parse LAMMPS output
-In addition to writing the LAMMPS input structure `pyiron_lammps` also provide the `parse_lammps_output_files()` function
+In addition to writing the LAMMPS input structure `lammpsparser` also provide the `parse_lammps_output_files()` function
 to parse the LAMMPS output files, namely the `log.lammps`, `dump.out` and `dump.h5` files:
 ```python
-from pyiron_lammps import parse_lammps_output_files
+from lammpsparser import parse_lammps_output_files
 
 parse_lammps_output_files(
     working_directory,
@@ -81,7 +81,7 @@ thermo 100
 ```
 
 ## Usage 
-Currently, the `pyiron_lammps` parser is primarily used in the [pyiron_atomistics](https://github.com/pyiron/pyiron_atomistics) 
+Currently, the `lammpsparser` parser is primarily used in the [pyiron_atomistics](https://github.com/pyiron/pyiron_atomistics) 
 package and its successor the [atomistics](https://github.com/pyiron/atomistics) package to provide a simple LAMMPS 
 parser. It only depends on `ase`, `numpy`, `pandas` and `scipy` and has an optional dependency on `h5py` to parse the 
 LAMMPS [h5md](https://docs.lammps.org/dump_h5md.html) format. 

@@ -6,15 +6,15 @@ from typing import Optional
 import pandas
 from ase.atoms import Atoms
 
-from pyiron_lammps.compatibility.calculate import (
+from lammpsparser.compatibility.calculate import (
     calc_md,
     calc_minimize,
     calc_static,
 )
-from pyiron_lammps.compatibility.constraints import set_selective_dynamics
-from pyiron_lammps.output import parse_lammps_output
-from pyiron_lammps.potential import get_potential_by_name
-from pyiron_lammps.structure import write_lammps_datafile
+from lammpsparser.compatibility.constraints import set_selective_dynamics
+from lammpsparser.output import parse_lammps_output
+from lammpsparser.potential import get_potential_by_name
+from lammpsparser.structure import write_lammps_datafile
 
 
 def lammps_file_interface_function(

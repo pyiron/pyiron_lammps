@@ -1,16 +1,16 @@
-import pyiron_lammps._version
-from pyiron_lammps.compatibility.calculate import calc_md, calc_minimize, calc_static
-from pyiron_lammps.compatibility.file import (
+import lammpsparser._version
+from lammpsparser.compatibility.calculate import calc_md, calc_minimize, calc_static
+from lammpsparser.compatibility.file import (
     lammps_file_initialization,
     lammps_file_interface_function,
 )
-from pyiron_lammps.output import parse_lammps_output as parse_lammps_output_files
-from pyiron_lammps.potential import (
+from lammpsparser.output import parse_lammps_output as parse_lammps_output_files
+from lammpsparser.potential import (
     get_potential_by_name,
     get_potential_dataframe,
     validate_potential_dataframe,
 )
-from pyiron_lammps.structure import write_lammps_datafile as write_lammps_structure
+from lammpsparser.structure import write_lammps_datafile as write_lammps_structure
 
 DUMP_COMMANDS = [
     "dump 1 all custom 100 dump.out id type xsu ysu zsu fx fy fz vx vy vz\n",
@@ -23,7 +23,7 @@ THERMO_COMMANDS = [
     "thermo 100\n",
 ]
 
-__version__ = pyiron_lammps._version.__version__
+__version__ = lammpsparser._version.__version__
 __all__ = [
     "calc_md",
     "calc_minimize",

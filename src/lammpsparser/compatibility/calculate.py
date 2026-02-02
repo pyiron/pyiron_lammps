@@ -3,8 +3,8 @@ import warnings
 import numpy as np
 from ase.atoms import Atoms
 
-from pyiron_lammps.structure import UnfoldingPrism
-from pyiron_lammps.units import LAMMPS_UNIT_CONVERSIONS
+from lammpsparser.structure import UnfoldingPrism
+from lammpsparser.units import LAMMPS_UNIT_CONVERSIONS
 
 
 def calc_md(

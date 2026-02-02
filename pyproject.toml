@@ -11,7 +11,7 @@ requires = [
 build-backend = "hatchling.build"
 
 [project]
-name = "pyiron_lammps"
+name = "lammpsparser"
 description = "Vector-oriented LAMMPS interface to rapidly iterate over series of atomistic structures or interatomic potentials."
 authors = [
     { name = "Jan Janssen", email = "janssen@mpie.de" },
@@ -42,35 +42,35 @@ dependencies = [
 dynamic = ["version"]
 
 [project.urls]
-Homepage = "https://github.com/pyiron/pyiron_lammps"
-Documentation = "https://github.com/pyiron/pyiron_lammps"
-Repository = "https://github.com/pyiron/pyiron_lammps"
+Homepage = "https://github.com/pyiron/lammpsparser"
+Documentation = "https://github.com/pyiron/lammpsparser"
+Repository = "https://github.com/pyiron/lammpsparser"
 
 [project.optional-dependencies]
 h5md = ["h5py==3.15.1"]
 
 [tool.hatch.build]
 include = [
-    "src/pyiron_lammps"
+    "src/lammpsparser"
 ]
 
 [tool.hatch.build.hooks.vcs]
-version-file = "src/pyiron_lammps/_version.py"
+version-file = "src/lammpsparser/_version.py"
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "src/pyiron_lammps"
+    "src/lammpsparser"
 ]
 
 [tool.hatch.build.targets.wheel]
 packages = [
-    "src/pyiron_lammps"
+    "src/lammpsparser"
 ]
 
 [tool.hatch.version]
 source = "vcs"
-path = "src/pyiron_lammps/_version.py"
+path = "src/lammpsparser/_version.py"
 
 [tool.coverage.run]
-source = ["pyiron_lammps"]
+source = ["lammpsparser"]
 command_line = "-m unittest discover tests"

@@ -13,7 +13,7 @@ import numpy as np
 from ase.atoms import Atoms
 from ase.data import atomic_masses, atomic_numbers
 
-from pyiron_lammps.units import UnitConverter
+from lammpsparser.units import UnitConverter
 
 try:
     from ase.calculators.lammps import Prism

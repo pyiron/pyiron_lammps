@@ -8,13 +8,13 @@ import numpy as np
 import pandas as pd
 from ase.atoms import Atoms
 
-from pyiron_lammps.output_raw import (
+from lammpsparser.output_raw import (
     parse_raw_dump_from_h5md,
     parse_raw_dump_from_text,
     parse_raw_lammps_log,
 )
-from pyiron_lammps.structure import UnfoldingPrism
-from pyiron_lammps.units import UnitConverter
+from lammpsparser.structure import UnfoldingPrism
+from lammpsparser.units import UnitConverter
 
 
 def remap_indices_ase(
