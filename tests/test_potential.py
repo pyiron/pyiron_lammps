@@ -6,7 +6,7 @@ from unittest import mock
 
 from ase.build import bulk
 import pandas
-from pyiron_lammps.potential import (
+from lammpsparser.potential import (
     validate_potential_dataframe,
     get_potential_dataframe,
     get_potential_by_name,

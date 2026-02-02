@@ -2,14 +2,14 @@ from ase.build import bulk
 import numpy as np
 import os
 import unittest
-from pyiron_lammps import parse_lammps_output_files
-from pyiron_lammps.output import (
+from lammpsparser import parse_lammps_output_files
+from lammpsparser.output import (
     remap_indices_ase,
     _parse_dump,
     _collect_output_log,
 )
-from pyiron_lammps.output_raw import to_amat
-from pyiron_lammps.structure import UnfoldingPrism
+from lammpsparser.output_raw import to_amat
+from lammpsparser.structure import UnfoldingPrism
 
 
 class TestLammpsOutput(unittest.TestCase):

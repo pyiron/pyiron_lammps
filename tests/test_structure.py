@@ -5,12 +5,12 @@ import sys
 from shutil import rmtree
 from ase.build import bulk
 from ase.atoms import Atoms
-from pyiron_lammps.structure import (
+from lammpsparser.structure import (
     structure_to_lammps,
     UnfoldingPrism,
     LammpsStructure,
 )
-from pyiron_lammps import write_lammps_structure
+from lammpsparser import write_lammps_structure
 
 
 class TestLammpsStructure(unittest.TestCase):

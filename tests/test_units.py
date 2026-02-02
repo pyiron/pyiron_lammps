@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from pyiron_lammps.units import UnitConverter
+from lammpsparser.units import UnitConverter
 
 
 class TestUnits(unittest.TestCase):

@@ -3,7 +3,7 @@ import unittest
 from ase.build import bulk
 from ase.constraints import FixAtoms, FixCom, FixedPlane
 
-from pyiron_lammps.compatibility.constraints import (
+from lammpsparser.compatibility.constraints import (
     set_selective_dynamics,
 )
 

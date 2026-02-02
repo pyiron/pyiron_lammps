@@ -3,11 +3,11 @@ import os
 import shutil
 from ase.build import bulk
 import pandas
-from pyiron_lammps.compatibility.file import (
+from lammpsparser.compatibility.file import (
     lammps_file_interface_function,
     _get_potential,
 )
-from pyiron_lammps.potential import get_potential_by_name
+from lammpsparser.potential import get_potential_by_name
 
 
 class TestCompatibilityFile(unittest.TestCase):
